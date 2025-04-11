@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<!-- SPDX-FileCopyrightText: Czech Technical University in Prague -->
+<package format="3">
+  <name>magnetometer_pipeline</name>
+  <version>2.0.3</version>
+  <description>Calibration and removing of magnetometer bias.</description>
+
+  <author email="peckama2@fel.cvut.cz">Martin Pecka</author>
+  <maintainer email="peckama2@fel.cvut.cz">Martin Pecka</maintainer>
+
+  <license file="LICENSE">BSD</license>
+
+  <url type="repository">https://github.com/ctu-vras/compass</url>
+  <url type="bugtracker">https://github.com/ctu-vras/compass/issues</url>
+  <url type="website">https://wiki.ros.org/magnetometer_pipeline</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>tl-expected</depend>
+
+  <build_depend>compass_utils</build_depend>
+  <build_depend>Eigen3</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>rclcpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>tf2_eigen</build_depend>
+
+  <exec_depend>compass_utils</exec_depend>
+  <exec_depend>Eigen3</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>message_filters</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>tf2_eigen</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>roslaunch</test_depend>
+  <test_depend>roslint</test_depend>
+  <test_depend>rostest</test_depend>
+
+  <export>
+    <rosdoc config="rosdoc.yaml">
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

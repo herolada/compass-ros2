@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<!-- SPDX-FileCopyrightText: Czech Technical University in Prague -->
+<package format="3">
+  <name>magnetometer_compass</name>
+  <version>2.0.3</version>
+  <description>Compass based on a 3-axis magnetometer, attitude readings and possibly also GNSS.</description>
+
+  <author email="peckama2@fel.cvut.cz">Martin Pecka</author>
+  <maintainer email="peckama2@fel.cvut.cz">Martin Pecka</maintainer>
+
+  <license file="LICENSE">BSD</license>
+
+  <url type="repository">https://github.com/ctu-vras/compass</url>
+  <url type="bugtracker">https://github.com/ctu-vras/compass/issues</url>
+  <url type="website">https://wiki.ros.org/magnetometer_compass</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>tl-expected</depend>
+
+  <build_depend>angles</build_depend>
+  <build_depend>compass_conversions</build_depend>
+  <build_depend>compass_interfaces</build_depend>
+  <build_depend>compass_utils</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>imu_transformer</build_depend>
+  <build_depend>magnetometer_pipeline</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>nodelet</build_depend>
+  <build_depend>rclcpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>tf2</build_depend>
+
+  <exec_depend>angles</exec_depend>
+  <exec_depend>compass_conversions</exec_depend>
+  <exec_depend>compass_interfaces</exec_depend>
+  <exec_depend>compass_utils</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>imu_transformer</exec_depend>
+  <exec_depend>magnetometer_pipeline</exec_depend>
+  <exec_depend>message_filters</exec_depend>
+  <exec_depend>nodelet</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>roslaunch</test_depend>
+  <test_depend>roslint</test_depend>
+  <test_depend>rostest</test_depend>
+
+  <export>
+    <rosdoc config="rosdoc.yaml">
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
