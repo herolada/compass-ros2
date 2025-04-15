@@ -11,7 +11,7 @@
 #include <tuple>
 #include <map>
 
-#include <boost/shared_ptr.hpp>
+// #include <boost/shared_ptr.hpp>
 
 #include <compass_conversions/topic_names.h>
 #include <compass_interfaces/msg/azimuth.hpp>
@@ -116,7 +116,7 @@ parseAzimuthTopicName(const std::string& topic)
 }
 
 std::optional<std::tuple<decltype(Az::unit), decltype(Az::orientation), decltype(Az::reference)>>
-parseAzimuthTopicName(const boost::shared_ptr<std::map<std::string, std::string>>& connectionHeaderPtr)
+parseAzimuthTopicName(const std::shared_ptr<std::map<std::string, std::string>>& connectionHeaderPtr)
 {
   if (connectionHeaderPtr != nullptr && connectionHeaderPtr->find("topic") != connectionHeaderPtr->end())
     return parseAzimuthTopicName(connectionHeaderPtr->at("topic"));

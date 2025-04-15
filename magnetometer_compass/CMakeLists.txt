@@ -71,6 +71,7 @@ ament_target_dependencies(${PROJECT_NAME}_nodelet
   magnetometer_pipeline
   message_filters
   rclcpp
+  rclcpp_components
   sensor_msgs
   tf2
   tf2_geometry_msgs
@@ -106,6 +107,7 @@ ament_target_dependencies(visualize_azimuth_nodelet
   magnetometer_pipeline
   message_filters
   rclcpp
+  rclcpp_components
   sensor_msgs
   tf2
   tf2_geometry_msgs

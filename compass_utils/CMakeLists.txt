@@ -22,10 +22,10 @@ find_package(tl-expected REQUIRED)
 add_library(${PROJECT_NAME} SHARED
     src/string_utils.cpp
     src/time_utils.cpp
-    src/interruptible_buffer.cpp
-    src/interruptible_sleep_interface.cpp
+    # src/interruptible_buffer.cpp
+    # src/interruptible_sleep_interface.cpp
     src/rate_limiter.cpp
-    src/semaphore.cpp
+    # src/semaphore.cpp
     src/tf2_utils.cpp
 )
 

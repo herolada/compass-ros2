@@ -15,7 +15,7 @@
 #include <string>
 #include <utility>
 #include <rclcpp/utilities.hpp>
-#include <Eigen/Core>
+// #include <Eigen/Core>
 
 // #include <cras_cpp_common/log_utils/memory.h>
 // #include <cras_cpp_common/log_utils/node.h>
@@ -33,7 +33,7 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
 
-  ros::NodeHandle nh, pnh("~");
+  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("test_node");
 
   std::optional<Field> lastField;
   auto magCb = [&lastField](const Field::ConstPtr& msg)
@@ -41,30 +41,35 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
     lastField = *msg;
   };
 
-  std::list<rclcpp::Publisher> pubs;
-  auto magPub = nh.advertise<Field>("imu/mag", 1); pubs.push_back(magPub);
-  auto magBiasPub = nh.advertise<Field>("imu/mag_bias", 1, true); pubs.push_back(magBiasPub);
+  std::list<rclcpp::PublisherBase::SharedPtr> pubs;  
+  auto magPub = node->create_publisher<Field>("imu/mag", 1); pubs.push_back(magPub);
+  auto magBiasPub = node->create_publisher<Field>("imu/mag_bias", rclcpp::QoS(1).transient_local()); pubs.push_back(magBiasPub);
 
-  std::list<rclcpp::Subscription> subs;
-  auto magUnbiasedSub = nh.subscribe<Field>("imu/mag_unbiased", 1, magCb); subs.push_back(magUnbiasedSub);
+  std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
+  auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", 1, magCb); subs.push_back(magUnbiasedSub);
 
+  
   // const auto log = std::make_shared<rclcpp::Logger>();
-  const auto log = std::make_shared<rclcpp::Logger>();
 
-  const auto pubTest = [](const rclcpp::Publisher& p) {return p.getNumSubscribers() == 0;};
+  const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
+
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node);
+
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(0.01*1e09);
-    ros::spinOnce();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 0.2, "Waiting for publisher connections.");
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    executor.spin_once();
+    RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for publisher connections.");
   }
 
-  const auto subTest = [](const rclcpp::Subscription& p) {return p.getNumPublishers() == 0;};
+  const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
+    
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(static_cast<int64_t>(0.01*1e09));
-    ros::spinOnce();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 0.2, "Waiting for subscriber connections.");
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    executor.spin_once();
+    RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for subscriber connections.");
   }
 
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
@@ -84,8 +89,8 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
 
   for (size_t i = 0; i < 5 && !lastField.has_value() && rclcpp::ok(); ++i)
   {
-    ros::spinOnce();
-    rclcpp::sleep_for(0.01*1e09);
+    executor.spin_once();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
   }
   // Missing bias, nothing published
   ASSERT_FALSE(lastField.has_value());
@@ -100,18 +105,20 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
   bias.magnetic_field.z = 0;
   magBiasPub->publish(bias);
 
-  ros::spinOnce();
+  executor.spin_once();
 
   // Wait until the latched messages are received
-  rclcpp::sleep_for(0.2s);
-  ros::spinOnce();
+
+  rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.2*1e09)));
+  executor.spin_once();
+
 
   magPub->publish(mag);
 
   for (size_t i = 0; i < 10 && !lastField.has_value() && rclcpp::ok(); ++i)
   {
-    ros::spinOnce();
-    rclcpp::sleep_for(0.1s);
+    executor.spin_once();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
   }
   ASSERT_TRUE(lastField.has_value());
 
@@ -136,8 +143,8 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
 
   for (size_t i = 0; i < 10 && !lastField.has_value() && rclcpp::ok(); ++i)
   {
-    ros::spinOnce();
-    rclcpp::sleep_for(0.1s);
+    executor.spin_once();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
   }
   ASSERT_TRUE(lastField.has_value());
 
@@ -152,8 +159,8 @@ int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
-  ros::init(argc, argv, "test_magnetometer_bias_remover");
-  ros::NodeHandle nh;  // Just prevent ROS being uninited when the test-private nodehandles go out of scope
+  rclcpp::init(argc, argv);
+  rclcpp::Node node("prevent_uninitialized");  // Just prevent ROS being uninited when the test-private nodehandles go out of scope
 
   return RUN_ALL_TESTS();
 }

@@ -21,13 +21,13 @@ namespace tf2
 {
 
 template<>
-const rclcpp::Time& getTimestamp(const compass_interfaces::msg::Azimuth& t)
+tf2::TimePoint getTimestamp(const compass_interfaces::msg::Azimuth& t)
 {
-  return t.header.stamp;
+  return tf2::timeFromSec((double)t.header.stamp.sec + t.header.stamp.nanosec * 1e-9);
 }
 
 template<>
-const std::string& getFrameId(const compass_interfaces::msg::Azimuth& t)
+std::string getFrameId(const compass_interfaces::msg::Azimuth& t)
 {
   return t.header.frame_id;
 }

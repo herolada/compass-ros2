@@ -7,7 +7,6 @@ set (CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(angles REQUIRED)
-find_package(boost REQUIRED)
 find_package(compass_interfaces REQUIRED)
 find_package(compass_utils REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -33,7 +32,6 @@ add_library(compass_topic_names SHARED
   src/topic_names.cpp
 )
 ament_target_dependencies(compass_topic_names
-  boost
   compass_interfaces
   compass_utils
   geometry_msgs
@@ -49,7 +47,6 @@ target_include_directories(compass_topic_names
 ament_export_targets(export_compass_topic_names HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   compass_interfaces
-  boost
   geometry_msgs
   sensor_msgs
 )
@@ -93,7 +90,6 @@ add_library(compass_message_filter SHARED
   src/message_filter.cpp
 )
 ament_target_dependencies(compass_message_filter
-  boost
   compass_interfaces
   compass_utils
   message_filters
@@ -162,7 +158,7 @@ ament_target_dependencies(compass_transformer_nodelet
   tf2
   tf2_ros
 )
-target_link_libraries(compass_transformer tl::expected)
+target_link_libraries(compass_transformer_nodelet tl::expected)
 
 target_include_directories(compass_transformer_nodelet
   PUBLIC

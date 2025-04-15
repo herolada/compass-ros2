@@ -25,13 +25,13 @@ public:
    * \brief Create limiter with the given rate.
    * \param[in] rate The desired rate of messages.
    */
-  explicit RateLimiter(const rclcpp::Clock& clock, const ::rclcpp::Rate& rate);
+  explicit RateLimiter(const rclcpp::Clock::SharedPtr clock, const ::rclcpp::Rate& rate);
 
   /**
    * \brief Create limiter with rate corresponding to the given period.
    * \param[in] period Average delay between two desired output messages.
    */
-  explicit RateLimiter(const rclcpp::Clock& clock, const ::rclcpp::Duration& period);
+  explicit RateLimiter(const rclcpp::Clock::SharedPtr clock, const ::rclcpp::Duration& period);
 
   /**
    * \brief Call this function whenever a message is received. It tells whether the message has passed the rate-limiting
@@ -72,7 +72,7 @@ protected:
   //! \brief Threshold for jump back detection.
   ::rclcpp::Duration jumpBackTolerance {3, 0};
 
-  const rclcpp::Clock& clock;
+  const rclcpp::Clock::SharedPtr clock;
 
 };
 
@@ -83,8 +83,8 @@ protected:
 class ThrottleLimiter : public ::compass_utils::RateLimiter
 {
 public:
-  explicit ThrottleLimiter(const rclcpp::Clock& clock, const ::rclcpp::Rate& rate);
-  explicit ThrottleLimiter(const rclcpp::Clock& clock, const ::rclcpp::Duration& period);
+  explicit ThrottleLimiter(const rclcpp::Clock::SharedPtr clock, const ::rclcpp::Rate& rate);
+  explicit ThrottleLimiter(const rclcpp::Clock::SharedPtr clock, const ::rclcpp::Duration& period);
 
   bool shouldPublish(const ::rclcpp::Time& stamp) override;
   void reset() override;
@@ -92,7 +92,7 @@ public:
 protected:
   //! \brief Stamp of the last message for which `shouldPublish()` returned trued.
   ::rclcpp::Time lastPublishTime {0, 0};
-  const rclcpp::Clock& clock;
+  const rclcpp::Clock::SharedPtr clock;
 };
 
 /**
@@ -115,7 +115,7 @@ public:
    *                                   let the first packet through. This number should not be higher than
    *                                   `bucketCapacity`.
    */
-  explicit TokenBucketLimiter(const rclcpp::Clock& clock, const ::rclcpp::Rate& rate, size_t bucketCapacity = 2, double initialTokensAvailable = 1.0);
+  explicit TokenBucketLimiter(const rclcpp::Clock::SharedPtr clock, const ::rclcpp::Rate& rate, size_t bucketCapacity = 2, double initialTokensAvailable = 1.0);
 
   /**
    * \brief Create rate-limiter with rate corresponding to the given period.
@@ -125,7 +125,7 @@ public:
    *                                   let the first packet through. This number should not be higher than
    *                                   `bucketCapacity`.
    */
-  explicit TokenBucketLimiter(const rclcpp::Clock& clock, const ::rclcpp::Duration& period, size_t bucketCapacity = 2,
+  explicit TokenBucketLimiter(const rclcpp::Clock::SharedPtr clock, const ::rclcpp::Duration& period, size_t bucketCapacity = 2,
     double initialTokensAvailable = 1.0);
 
   bool shouldPublish(const ::rclcpp::Time& stamp) override;
@@ -145,7 +145,7 @@ protected:
   //! \brief The number of tokens that are initially in the buffer (and after reset).
   double initialTokensAvailable;
 
-  const rclcpp::Clock& clock;
+  const rclcpp::Clock::SharedPtr clock;
 };
 
 }

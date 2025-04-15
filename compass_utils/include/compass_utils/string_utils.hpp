@@ -23,10 +23,12 @@ namespace compass_utils
   template <class E>
   tl::unexpected<typename std::decay<E>::type> make_unexpected(E &&e)
   {
-    return std::unexpected<typename std::decay<E>::type>(std::forward<E>(e));
+    return tl::unexpected<typename std::decay<E>::type>(std::forward<E>(e));
   }
 
   std::string to_pretty_string(const rclcpp::Time &value);
+  std::string to_pretty_string(const std::chrono::system_clock::time_point &tp);
+  std::string to_pretty_string(const std::chrono::steady_clock::time_point &tp);
   std::string toLower(const std::string &str);
 
   /**

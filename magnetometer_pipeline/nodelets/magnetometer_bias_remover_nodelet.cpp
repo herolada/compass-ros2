@@ -12,23 +12,13 @@
 // #include <cras_cpp_common/nodelet_utils.hpp>
 #include <magnetometer_pipeline/message_filter.h>
 #include <message_filters/subscriber.h>
-#include <pluginlib/class_list_macros.hpp>
+// #include <pluginlib/class_list_macros.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/node.hpp>
 #include <rclcpp/publisher.hpp>
 
-#include "rclcpp_components/register_node_macro.hpp"
-
-
-
-
-
-
-
-
-
-
+#include <rclcpp_components/register_node_macro.hpp>
 
 namespace magnetometer_pipeline
 {

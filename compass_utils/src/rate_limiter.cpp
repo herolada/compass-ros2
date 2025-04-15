@@ -18,13 +18,13 @@
 namespace compass_utils
 {
 
-RateLimiter::RateLimiter(const rclcpp::Clock& clock, const ::rclcpp::Rate& rate) : clock(clock), rate(rate.period(), clock), period(rate.period())
+RateLimiter::RateLimiter(const rclcpp::Clock::SharedPtr clock, const ::rclcpp::Rate& rate) : clock(clock), rate(rate.period(), clock), period(rate.period())
 {
   if (this->period < rclcpp::Duration::from_seconds(0.))
     throw std::invalid_argument("Negative rate is not supported.");
 }
 
-RateLimiter::RateLimiter(const rclcpp::Clock& clock, const rclcpp::Duration& period) : rate(period, clock), period(period)
+RateLimiter::RateLimiter(const rclcpp::Clock::SharedPtr clock, const rclcpp::Duration& period) : rate(period, clock), period(period)
 {
   if (this->period < rclcpp::Duration::from_seconds(0.))
     throw std::invalid_argument("Negative rate is not supported.");
@@ -43,11 +43,11 @@ bool RateLimiter::jumpedBack(const ::rclcpp::Time& stamp, const ::rclcpp::Time& 
   return stamp + this->jumpBackTolerance < previousStamp;
 }
 
-ThrottleLimiter::ThrottleLimiter(const rclcpp::Clock& clock, const rclcpp::Rate& rate) : clock(clock), RateLimiter(clock, rate)
+ThrottleLimiter::ThrottleLimiter(const rclcpp::Clock::SharedPtr clock, const rclcpp::Rate& rate) : clock(clock), RateLimiter(clock, rate)
 {
 }
 
-ThrottleLimiter::ThrottleLimiter(const rclcpp::Clock& clock, const rclcpp::Duration& period) : clock(clock), RateLimiter(clock, period)
+ThrottleLimiter::ThrottleLimiter(const rclcpp::Clock::SharedPtr clock, const rclcpp::Duration& period) : clock(clock), RateLimiter(clock, period)
 {
 }
 
@@ -75,7 +75,7 @@ void ThrottleLimiter::reset()
   this->lastPublishTime = {0, 0};
 }
 
-TokenBucketLimiter::TokenBucketLimiter(const rclcpp::Clock& clock, const rclcpp::Rate& rate, const size_t bucketCapacity,
+TokenBucketLimiter::TokenBucketLimiter(const rclcpp::Clock::SharedPtr clock, const rclcpp::Rate& rate, const size_t bucketCapacity,
   const double initialTokensAvailable) : clock(clock), RateLimiter(clock, rate), tokensAvailable(rclcpp::Duration::from_seconds(initialTokensAvailable))
 {
   this->bucketCapacity = bucketCapacity;
@@ -83,7 +83,7 @@ TokenBucketLimiter::TokenBucketLimiter(const rclcpp::Clock& clock, const rclcpp:
   // this->tokensAvailable = rclcpp::Duration::from_seconds(this->initialTokensAvailable);
 }
 
-TokenBucketLimiter::TokenBucketLimiter(const rclcpp::Clock& clock, const rclcpp::Duration& period, const size_t bucketCapacity,
+TokenBucketLimiter::TokenBucketLimiter(const rclcpp::Clock::SharedPtr clock, const rclcpp::Duration& period, const size_t bucketCapacity,
   const double initialTokensAvailable) : clock(clock), RateLimiter(clock, period), tokensAvailable(rclcpp::Duration::from_seconds(initialTokensAvailable))
 {
   this->bucketCapacity = bucketCapacity;

@@ -27,8 +27,8 @@ TEST(MagnetometerBiasRemover, Basic)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
 
-  // const auto log = std::make_shared<rclcpp::Logger>();
-  const auto log = std::make_shared<rclcpp::Logger>();
+  
+  const auto log = rclcpp::get_logger("test_logger");
 
   auto remover = magnetometer_pipeline::MagnetometerBiasRemover(log);
 
@@ -93,20 +93,21 @@ TEST(MagnetometerBiasRemover, ConfigFromParams)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
 
-  // const auto log = std::make_shared<rclcpp::Logger>();
-  const auto log = std::make_shared<rclcpp::Logger>();
+  
+  auto node = &rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  // const auto log = rclcpp::get_logger("test_logger");
 
-  auto remover = magnetometer_pipeline::MagnetometerBiasRemover(log);
+  auto remover = magnetometer_pipeline::MagnetometerBiasRemover(node->get_logger());
   EXPECT_FALSE(remover.hasBias());
 
-  XmlRpc::XmlRpcValue config;
-  config.begin();  // set to dict type
-  config["initial_mag_bias_x"] = -0.097227663;
-  config["initial_mag_bias_y"] = -0.692264333;
-  config["initial_mag_bias_z"] = 0;
+  rclcpp::Parameter param1("initial_mag_bias_x", -0.097227663);
+  node->set_parameter(param1);
+  rclcpp::Parameter param2("initial_mag_bias_y", -0.692264333);
+  node->set_parameter(param2);
+  rclcpp::Parameter param3("initial_mag_bias_z", 0);
+  node->set_parameter(param3);
 
-  cras::BoundParamHelper params(log);
-  remover.configFromParams(params);
+  remover.configFromParams(node);
 
   EXPECT_TRUE(remover.hasBias());
 
@@ -155,29 +156,50 @@ TEST(MagnetometerBiasRemover, ConfigFromParamsWithScale)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
 
-  // const auto log = std::make_shared<rclcpp::Logger>();
-  const auto log = std::make_shared<rclcpp::Logger>();
+  
+  auto node = &rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
 
-  auto remover = magnetometer_pipeline::MagnetometerBiasRemover(log);
+  auto remover = magnetometer_pipeline::MagnetometerBiasRemover(node->get_logger());
   EXPECT_FALSE(remover.hasBias());
 
-  XmlRpc::XmlRpcValue config;
-  config.begin();  // set to dict type
-  config["initial_mag_bias_x"] = -0.097227663;
-  config["initial_mag_bias_y"] = -0.692264333;
-  config["initial_mag_bias_z"] = 0;
-  config["initial_mag_scaling_matrix"][0 * 3 + 0] = 2.0;
-  config["initial_mag_scaling_matrix"][0 * 3 + 1] = 0.0;
-  config["initial_mag_scaling_matrix"][0 * 3 + 2] = 0.0;
-  config["initial_mag_scaling_matrix"][1 * 3 + 0] = 0.0;
-  config["initial_mag_scaling_matrix"][1 * 3 + 1] = 1.0;
-  config["initial_mag_scaling_matrix"][1 * 3 + 2] = 0.0;
-  config["initial_mag_scaling_matrix"][2 * 3 + 0] = 0.0;
-  config["initial_mag_scaling_matrix"][2 * 3 + 1] = 0.0;
-  config["initial_mag_scaling_matrix"][2 * 3 + 2] = 1.0;
+  // XmlRpc::XmlRpcValue config;
+  // config.begin();  // set to dict type
+  // config["initial_mag_bias_x"] = -0.097227663;
+  // config["initial_mag_bias_y"] = -0.692264333;
+  // config["initial_mag_bias_z"] = 0;
+  // config["initial_mag_scaling_matrix"][0 * 3 + 0] = 2.0;
+  // config["initial_mag_scaling_matrix"][0 * 3 + 1] = 0.0;
+  // config["initial_mag_scaling_matrix"][0 * 3 + 2] = 0.0;
+  // config["initial_mag_scaling_matrix"][1 * 3 + 0] = 0.0;
+  // config["initial_mag_scaling_matrix"][1 * 3 + 1] = 1.0;
+  // config["initial_mag_scaling_matrix"][1 * 3 + 2] = 0.0;
+  // config["initial_mag_scaling_matrix"][2 * 3 + 0] = 0.0;
+  // config["initial_mag_scaling_matrix"][2 * 3 + 1] = 0.0;
+  // config["initial_mag_scaling_matrix"][2 * 3 + 2] = 1.0;
 
-  cras::BoundParamHelper params(log);
-  remover.configFromParams(params);
+  rclcpp::Parameter param1("initial_mag_bias_x", -0.097227663);
+  node->set_parameter(param1);
+  rclcpp::Parameter param2("initial_mag_bias_y", -0.692264333);
+  node->set_parameter(param2);
+  rclcpp::Parameter param3("initial_mag_bias_z", 0);
+  node->set_parameter(param3);
+
+  // For the scaling matrix (3x3)
+  std::vector<double> scaling_matrix(9, 0.0);
+  scaling_matrix[0 * 3 + 0] = 2.0;  // [0][0]
+  scaling_matrix[0 * 3 + 1] = 0.0;  // [0][1]
+  scaling_matrix[0 * 3 + 2] = 0.0;  // [0][2]
+  scaling_matrix[1 * 3 + 0] = 0.0;  // [1][0]
+  scaling_matrix[1 * 3 + 1] = 1.0;  // [1][1]
+  scaling_matrix[1 * 3 + 2] = 0.0;  // [1][2]
+  scaling_matrix[2 * 3 + 0] = 0.0;  // [2][0]
+  scaling_matrix[2 * 3 + 1] = 0.0;  // [2][1]
+  scaling_matrix[2 * 3 + 2] = 1.0;  // [2][2]
+
+  rclcpp::Parameter param4("initial_mag_scaling_matrix", scaling_matrix);
+  node->set_parameter(param4);
+
+  remover.configFromParams(node);
 
   EXPECT_TRUE(remover.hasBias());
 

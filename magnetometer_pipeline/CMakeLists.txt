@@ -21,6 +21,7 @@ add_library(magnetometer_bias_remover SHARED
   src/bias_remover.cpp
 )
 ament_target_dependencies(magnetometer_bias_remover
+  compass_utils
   rclcpp
   sensor_msgs
   tf2_eigen
@@ -44,7 +45,6 @@ add_library(magnetometer_bias_remover_filter SHARED
   src/message_filter.cpp
 )
 ament_target_dependencies(magnetometer_bias_remover_filter
-  compass_utils
   geometry_msgs
   message_filters
   rclcpp
@@ -69,10 +69,10 @@ add_library(magnetometer_bias_remover_nodelet SHARED
   nodelets/magnetometer_bias_remover_nodelet.cpp
 )
 ament_target_dependencies(magnetometer_bias_remover_nodelet
-  compass_utils
   geometry_msgs
   message_filters
   rclcpp
+  rclcpp_components
   sensor_msgs
   tf2_eigen
   Eigen3

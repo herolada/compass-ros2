@@ -147,7 +147,7 @@ public:
 protected:
   void cb(const EventType& event);
 
-  rclcpp::Subscription<compass_interfaces::msg::Azimuth> sub;  //!< The ROS subscriber.
+  rclcpp::Subscription<compass_interfaces::msg::Azimuth>::SharedPtr sub;  //!< The ROS subscriber.
   //rclcpp::SubscriptionOptions subscribeOps;  //!< Options for recreating the subscriber.
   rclcpp::Node* node;  //!< The nodehandle to use for subscribing,
   CompassConverter converter;  //!< The azimuth message converter.
@@ -284,7 +284,7 @@ public:
     this->azimuthConnection.disconnect();
     // The explicit cast to boost:function is needed to retain the message event metadata
     this->azimuthConnection = f.registerCallback(
-      boost::function<void(const AzimuthEventType&)>(std::bind_front(&CompassFilter::cbAzimuth, this)));
+      std::function<void(const AzimuthEventType&)>(std::bind_front(&CompassFilter::cbAzimuth, this)));
   }
 
   template<class FixInput>
@@ -293,7 +293,7 @@ public:
     this->fixConnection.disconnect();
     // The explicit cast to boost:function is needed to retain the message event metadata
     this->fixConnection = f.registerCallback(
-      boost::function<void(const FixEventType&)>(std::bind_front(&CompassFilter::cbFix, this)));
+      std::function<void(const FixEventType&)>(std::bind_front(&CompassFilter::cbFix, this)));
   }
 
   template<class UTMZoneInput>
@@ -302,7 +302,7 @@ public:
     this->utmZoneConnection.disconnect();
     // The explicit cast to boost:function is needed to retain the message event metadata
     this->utmZoneConnection = f.registerCallback(
-      boost::function<void(const UTMZoneEventType&)>(std::bind_front(&CompassFilter::cbUTMZone, this)));
+      std::function<void(const UTMZoneEventType&)>(std::bind_front(&CompassFilter::cbUTMZone, this)));
   }
 
 protected:

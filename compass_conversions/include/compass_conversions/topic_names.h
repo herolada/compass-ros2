@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <boost/shared_ptr.hpp>
+// #include <boost/shared_ptr.hpp>
 
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <optional>
@@ -66,6 +66,6 @@ std::optional<std::tuple<
   decltype(compass_interfaces::msg::Azimuth::unit),
   decltype(compass_interfaces::msg::Azimuth::orientation),
   decltype(compass_interfaces::msg::Azimuth::reference)
->> parseAzimuthTopicName(const boost::shared_ptr<std::map<std::string, std::string>>& connectionHeaderPtr);
+>> parseAzimuthTopicName(const std::shared_ptr<std::map<std::string, std::string>>& connectionHeaderPtr);
 
 }

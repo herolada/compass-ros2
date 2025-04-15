@@ -10,8 +10,8 @@
 #include <memory>
 #include <string>
 
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
+// #include <boost/bind.hpp>
+// #include <boost/make_shared.hpp>
 
 #include <compass_conversions/message_filter.h>
 #include <compass_utils/string_utils.hpp>
@@ -34,10 +34,10 @@ using Az = compass_interfaces::msg::Azimuth;
 namespace compass_conversions
 {
 
-UniversalAzimuthSubscriber::UniversalAzimuthSubscriber(const rclcpp::Logger& log, const rclcpp::Clock& clock, const rclcpp::Node* node,
+UniversalAzimuthSubscriber::UniversalAzimuthSubscriber(rclcpp::Node* node,
   const std::string& topic, const uint32_t queueSize
   //, const ros::TransportHints& transportHints, ros::CallbackQueueInterface* callbackQueue
-  ): log(log), clock(clock), node(node), converter(log, true), topic(topic), queueSize(queueSize)
+  ): node(node), converter(node->get_logger(), *node->get_clock(), true), topic(topic), queueSize(queueSize)
 {
   this->subscribe(node, topic, queueSize);//, transportHints, callbackQueue);
 }
@@ -47,7 +47,7 @@ UniversalAzimuthSubscriber::~UniversalAzimuthSubscriber()
   this->unsubscribe();
 }
 
-void UniversalAzimuthSubscriber::subscribe(const rclcpp::Node* node, const std::string& topic, const uint32_t queueSize)
+void UniversalAzimuthSubscriber::subscribe(rclcpp::Node* node, const std::string& topic, const uint32_t queueSize)
   // const ros::TransportHints& transportHints, ros::CallbackQueueInterface* callbackQueue)
 {
   this->unsubscribe();
@@ -59,10 +59,9 @@ void UniversalAzimuthSubscriber::subscribe(const rclcpp::Node* node, const std::
     // this->subscribeOps.callback_queue = callbackQueue;
     // this->subscribeOps.transport_hints = transportHints;
     // this->sub = node.subscribe();// this->subscribeOps);
-    this->sub = node.create_subscription(topic, queueSize, this->cb);
+
+    this->sub = node->create_subscription<Az>(topic, queueSize, &UniversalAzimuthSubscriber::cb);
     this->node = node;
-    this->topic = topic;
-    this->queueSize = queueSize;
   }
 }
 
@@ -72,7 +71,7 @@ void UniversalAzimuthSubscriber::subscribe()
 
   if (!this->topic.empty())
     // this->sub = this->node.subscribe(this->subscribeOps);
-    this->sub = this->node.create_subscription(this->topic, this->queueSize, this->cb)
+    this->sub = this->node->create_subscription<Az>(this->topic, this->queueSize, &UniversalAzimuthSubscriber::cb);
 
 }
 
@@ -119,7 +118,7 @@ std::string UniversalAzimuthSubscriber::getTopic() const
 
 const rclcpp::Subscription<compass_interfaces::msg::Azimuth>& UniversalAzimuthSubscriber::getSubscriber() const
 {
-  return this->sub;
+  return *this->sub;
 }
 
 void UniversalAzimuthSubscriber::add(const EventType&)
@@ -132,7 +131,7 @@ void UniversalAzimuthSubscriber::cb(const EventType& event)
     event, this->inputVariance.value_or(0.0), Az::UNIT_RAD, this->inputOrientation, this->inputReference);
   if (!maybeAzimuth.has_value())
   {
-    RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10.0, "Error converting message to Azimuth: %s", maybeAzimuth.error().c_str());
+    RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10.0, "Error converting message to Azimuth: %s", maybeAzimuth.error().c_str());
     return;
   }
 

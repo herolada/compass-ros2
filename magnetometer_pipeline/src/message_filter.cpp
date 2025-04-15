@@ -7,7 +7,7 @@
  * \author Martin Pecka
  */
 
-#include <boost/make_shared.hpp>
+// #include <boost/make_shared.hpp>
 
 // #include <cras_cpp_common/log_utils.h>
 #include <magnetometer_pipeline/message_filter.h>

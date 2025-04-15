@@ -88,7 +88,9 @@ tl::expected<Field, std::string> MagnetometerBiasRemover::removeBias(const Field
   field = this->data->lastScale * (field - this->data->lastBias);
 
   Field magUnbiased = mag;
-  tf2::toMsg(field, magUnbiased.magnetic_field);
+  magUnbiased.magnetic_field.x = field.x();
+  magUnbiased.magnetic_field.y = field.y();
+  magUnbiased.magnetic_field.z = field.z();
 
   return magUnbiased;
 }

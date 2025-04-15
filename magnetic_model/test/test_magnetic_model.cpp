@@ -23,31 +23,31 @@
 TEST(MagneticModel, Construct)  // NOLINT
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
   ASSERT_NO_THROW(magnetic_model::MagneticModel model(
-    log, magnetic_model::MagneticModel::WMM2010, TEST_DATA_DIR, true, *clock));
+    log, magnetic_model::MagneticModel::WMM2010, TEST_DATA_DIR, true, *clk));
 
   ASSERT_NO_THROW(magnetic_model::MagneticModel model(
-    log, magnetic_model::MagneticModel::WMM2015, TEST_DATA_DIR, true, *clock));
+    log, magnetic_model::MagneticModel::WMM2015, TEST_DATA_DIR, true, *clk));
 
   ASSERT_NO_THROW(magnetic_model::MagneticModel model(
-    log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clock));
+    log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clk));
 
   ASSERT_NO_THROW(magnetic_model::MagneticModel model(
-    log, magnetic_model::MagneticModel::WMM2025, TEST_DATA_DIR, true, *clock));
+    log, magnetic_model::MagneticModel::WMM2025, TEST_DATA_DIR, true, *clk));
 
   ASSERT_THROW(magnetic_model::MagneticModel model(
-    log, "nonexisting", TEST_DATA_DIR, true, *clock), std::invalid_argument);
+    log, "nonexisting", TEST_DATA_DIR, true, *clk), std::invalid_argument);
 }
 
 TEST(MagneticModel, GetField)
 {
 
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clock);
+  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clk);
 
   sensor_msgs::msg::NavSatFix fix;
   fix.header.frame_id = "test";
@@ -77,9 +77,9 @@ TEST(MagneticModel, GetFieldWrongYearStrict)
 {
 
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clock);
+  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clk);
 
   sensor_msgs::msg::NavSatFix fix;
   fix.header.frame_id = "test";
@@ -93,9 +93,9 @@ TEST(MagneticModel, GetFieldWrongYearNonStrict)
 {
 
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, false, *clock);
+  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, false, *clk);
   
   sensor_msgs::msg::NavSatFix fix;
   fix.header.frame_id = "test";
@@ -108,9 +108,9 @@ TEST(MagneticModel, GetFieldWrongYearNonStrict)
 TEST(MagneticModel, GetFieldWrongAltitude)
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clock);
+  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clk);
 
   sensor_msgs::msg::NavSatFix fix;
   fix.header.frame_id = "test";
@@ -124,9 +124,9 @@ TEST(MagneticModel, GetFieldWrongAltitude)
 TEST(MagneticModel, GetFieldComponentsFromField)
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clock);
+  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clk);
 
   const auto stamp = compass_utils::parseTime("2024-11-18T13:00:00Z");
 
@@ -162,9 +162,9 @@ TEST(MagneticModel, GetFieldComponentsFromField)
 TEST(MagneticModel, GetFieldComponentsFromFix)
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clock);
+  magnetic_model::MagneticModel model(log, magnetic_model::MagneticModel::WMM2020, TEST_DATA_DIR, true, *clk);
 
   sensor_msgs::msg::NavSatFix fix;
   fix.header.frame_id = "test";
@@ -200,9 +200,9 @@ TEST(MagneticModelManager, GetBestModelName)
 {
 
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModelManager manager(log, *clock, TEST_DATA_DIR);
+  magnetic_model::MagneticModelManager manager(log, *clk, TEST_DATA_DIR);
 
   EXPECT_EQ(
     magnetic_model::MagneticModel::WMM2025,
@@ -232,9 +232,9 @@ TEST(MagneticModelManager, GetBestModelName)
 TEST(MagneticModelManager, GetModelByName)
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModelManager manager(log, *clock, TEST_DATA_DIR);
+  magnetic_model::MagneticModelManager manager(log, *clk, TEST_DATA_DIR);
 
   ASSERT_TRUE(manager.getMagneticModel(magnetic_model::MagneticModel::WMM2020, true).has_value());
   ASSERT_TRUE(manager.getMagneticModel(magnetic_model::MagneticModel::WMM2020, false).has_value());
@@ -251,9 +251,9 @@ TEST(MagneticModelManager, GetModelByName)
 TEST(MagneticModelManager, SetModelPath)
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModelManager manager(log, *clock, TEST_DATA_DIR);
+  magnetic_model::MagneticModelManager manager(log, *clk, TEST_DATA_DIR);
 
   EXPECT_TRUE(manager.getMagneticModel(magnetic_model::MagneticModel::WMM2020, true).has_value());
   EXPECT_EQ(TEST_DATA_DIR, manager.getModelPath());
@@ -287,9 +287,9 @@ TEST(MagneticModelManager, SetModelPath)
 TEST(MagneticModelManager, GetModelByTime)
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const rclcpp::Clock& clock(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
+  const rclcpp::Clock::SharedPtr clk(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME));
 
-  magnetic_model::MagneticModelManager manager(log, *clock, TEST_DATA_DIR);
+  magnetic_model::MagneticModelManager manager(log, *clk, TEST_DATA_DIR);
 
   ASSERT_TRUE(manager.getMagneticModel(compass_utils::parseTime("2024-11-18T13:00:00Z"), true).has_value());
   ASSERT_TRUE(manager.getMagneticModel(compass_utils::parseTime("2014-11-18T13:00:00Z"), true).has_value());

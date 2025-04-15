@@ -61,7 +61,28 @@ namespace compass_utils
     return structTm.tm_year + 1900;
   }
 
-  rclcpp::Duration parseTimeoneOffset(const std::string &s)
+  int getYear(const std::chrono::system_clock::time_point &time)
+  {
+    const std::time_t timet = std::chrono::system_clock::to_time_t(time);
+
+    tm structTm{};
+    const auto result = gmtime_r(&timet, &structTm);
+
+    return structTm.tm_year + 1900;
+  }
+
+  int getYear(const std::chrono::steady_clock::time_point &time)
+  {
+    const std::time_t timet = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
+    duration_cast<std::chrono::system_clock::duration>(time - std::chrono::steady_clock::now()));
+
+    tm structTm{};
+    const auto result = gmtime_r(&timet, &structTm);
+
+    return structTm.tm_year + 1900;
+  }
+
+  rclcpp::Duration parseTimeZoneOffset(const std::string &s)
   {
     if (s.empty() || s == "Z")
       return {0, 0};
@@ -160,13 +181,13 @@ namespace compass_utils
 
     /* rclcpp::Duration zoneOffset{};
     if (matches[8].matched) {
-      parseTimeoneOffset(matches[8].str());
+      parseTimeZoneOffset(matches[8].str());
     } else {
       timezoneOffset;
     } */
 
     rclcpp::Duration dur(0, 0);
-    const auto zoneOffset = matches[8].matched ? parseTimeoneOffset(matches[8].str()) : timezoneOffset.value_or(dur);
+    const auto zoneOffset = matches[8].matched ? parseTimeZoneOffset(matches[8].str()) : timezoneOffset.value_or(dur);
 
     tm t{};
     t.tm_year = year - 1900;

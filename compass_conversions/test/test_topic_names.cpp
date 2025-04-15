@@ -166,10 +166,10 @@ TEST(TopicNames, ParseTopicWrong)  // NOLINT
 
 TEST(TopicNames, ParseTopicFromConnectionHeader)  // NOLINT
 {
-  boost::shared_ptr<ros::M_string> header;
+  std::shared_ptr<std::map< std::string, std::string >> header;
   EXPECT_FALSE(compass_conversions::parseAzimuthTopicName(header).has_value());
 
-  header.reset(new ros::M_string{});
+  header.reset(new std::map< std::string, std::string >{});
   EXPECT_FALSE(compass_conversions::parseAzimuthTopicName(header).has_value());
 
   (*header)["topic"] = "azimuth/test/utm/ned/rad";

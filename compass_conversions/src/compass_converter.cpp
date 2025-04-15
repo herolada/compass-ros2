@@ -537,26 +537,26 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
 
   if (type == "compass_interfaces::msg::Azimuth")
   {
-    const auto az = *msg->instantiate<Az>();
+    const compass_interfaces::msg::Azimuth az = Az();
     return this->convertAzimuth(az, unit, az.orientation, az.reference);
   }
   else if (type == "geometry_msgs::msg::PoseWithCovarianceStamped")
   {
-    const auto poseEvent = ME<Pose const>(msg->instantiate<Pose>(), header, stamp, false, Creator<Pose>());
+    const ME<Pose const> poseEvent = ME<Pose const>(std::make_unique<Pose>(), stamp, false, Creator<Pose>());
     return this->convertPoseMsgEvent(topic, poseEvent, unit, orientation, reference);
   }
   else if (type == "geometry_msgs::msg::QuaternionStamped")
   {
-    const auto quatEvent = ME<Quat const>(msg->instantiate<Quat>(), header, stamp, false, Creator<Quat>());
+    const auto quatEvent = ME<Quat const>(std::make_unique<Quat>(), stamp, false, Creator<Quat>());
     return this->convertQuaternionMsgEvent(topic, quatEvent, variance, unit, orientation, reference);
   }
   else if (type == "sensor_msgs::msg::Imu")
   {
-    const auto imuEvent = ME<Imu const>(msg->instantiate<Imu>(), header, stamp, false, Creator<Imu>());
+    const auto imuEvent = ME<Imu const>(std::make_unique<Imu>(), stamp, false, Creator<Imu>());
     return this->convertImuMsgEvent(topic, imuEvent, unit, orientation, reference);
   }
   else
-    return compass_utils::make_unexpected(std::format("Invalid message type: {}.", type.c_str()));
+    return compass_utils::make_unexpected(std::format("Invalid message type: {}.", type));
 };
 
 void CompassConverter::setNavSatPos(const sensor_msgs::msg::NavSatFix& fix)

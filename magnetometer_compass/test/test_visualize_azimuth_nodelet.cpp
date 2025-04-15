@@ -14,14 +14,15 @@
 #include <optional>
 
 #include <compass_interfaces/msg/azimuth.hpp>
+#include <compass_utils/time_utils.hpp>
 //#include <cras_cpp_common/log_utils/memory.h>
 //#include <cras_cpp_common/log_utils/node.h>
 //#include <cras_cpp_common/param_utils/param_helper.hpp>
 //#include <cras_cpp_common/string_utils/ros.hpp>
-#include <geometry_msgs/msg/pose_with_covariance_stamped.h>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 //#include <ros/ros.h>
-#include <sensor_msgs/msg/nav_sat_fix.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <rclcpp/utilities.hpp>
 
 using Az = compass_interfaces::msg::Azimuth;
@@ -31,7 +32,7 @@ using Fix = sensor_msgs::msg::NavSatFix;
 
 TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 {
-  ros::NodeHandle nh, pnh("~");
+  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("test_node");
 
   std::optional<Pose> lastPose;
   auto poseCb = [&lastPose](const Pose::ConstPtr& msg)
@@ -39,31 +40,31 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
     lastPose = *msg;
   };
 
-  std::list<rclcpp::Publisher> pubs;
-  auto azPub = nh.advertise<Az>("visualize_azimuth/azimuth", 1); pubs.push_back(azPub);
-  auto fixPub = nh.advertise<Fix>("gps/fix", 1, true); pubs.push_back(fixPub);
+  std::list<rclcpp::PublisherBase::SharedPtr> pubs;
+  auto azPub = node->create_publisher<Az>("visualize_azimuth/azimuth", 1); pubs.push_back(azPub);
+  auto fixPub = node->create_publisher<Fix>("gps/fix", rclcpp::QoS(1).transient_local()); pubs.push_back(fixPub);
 
-  std::list<rclcpp::Subscription> subs;
-  auto visSub = nh.subscribe<Pose>("visualize_azimuth/azimuth_vis", 1, poseCb); subs.push_back(visSub);
+  std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
+  auto visSub = node->create_subscription<Pose>("visualize_azimuth/azimuth_vis", 1, poseCb); subs.push_back(visSub);
 
-  // bylo uz puvodne commented... const auto log = std::make_shared<rclcpp::Logger>();
-  //const auto log = std::make_shared<rclcpp::Logger>();
-  // ten log se tu ani nepouziva?? rclcpp::Logger log = rclcpp::get_logger("test_logger");
+  const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
-  const auto pubTest = [](const rclcpp::Publisher& p) {return p.getNumSubscribers() == 0;};
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node);
+  
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    ros::WallDuration(0.01).sleep();
-    ros::spinOnce();
-    RCLCPP_WARN_SKIPFIRST_THROTTLE(this->get_logger(), this->get_clock(), 0.2, "Waiting for publisher connections.");
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    executor.spin_once();
+    RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for publisher connections.");
   }
 
-  const auto subTest = [](const rclcpp::Subscription& p) {return p.getNumPublishers() == 0;};
+  const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    ros::WallDuration(0.01).sleep();
-    ros::spinOnce();
-    RCLCPP_WARN_SKIPFIRST_THROTTLE(this->get_logger(), this->get_clock(), 0.2, "Waiting for subscriber connections.");
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    executor.spin_once();
+    RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for subscriber connections.");
   }
 
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
@@ -83,8 +84,8 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
-    ros::spinOnce();
-    ros::WallDuration(0.1).sleep();
+    executor.spin_once();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -105,8 +106,8 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
-    ros::spinOnce();
-    ros::WallDuration(0.1).sleep();
+    executor.spin_once();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -127,8 +128,8 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
-    ros::spinOnce();
-    ros::WallDuration(0.1).sleep();
+    executor.spin_once();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -152,8 +153,8 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 
   for (size_t i = 0; i < 5 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
-    ros::spinOnce();
-    ros::WallDuration(0.1).sleep();
+    executor.spin_once();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
   }
   ASSERT_FALSE(lastPose.has_value());
 
@@ -168,7 +169,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   fixPub->publish(fix);
 
   // Wait until the fix arrives
-  ros::WallDuration(0.2).sleep();
+  rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.2*1e09)));
 
   lastPose.reset();
   azimuth.azimuth = M_PI;
@@ -176,8 +177,8 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
-    ros::spinOnce();
-    ros::WallDuration(0.1).sleep();
+    executor.spin_once();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -197,8 +198,8 @@ int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
-  ros::init(argc, argv, "test_visualize_azimuth_nodelet");
-  ros::NodeHandle nh;  // Just prevent ROS being uninited when the test-private nodehandles go out of scope
+  rclcpp::init(argc, argv);
+  rclcpp::Node node("prevent_uninitalized");  // Just prevent ROS being uninited when the test-private nodehandles go out of scope
 
   return RUN_ALL_TESTS();
 }

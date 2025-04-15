@@ -18,8 +18,13 @@
 
 namespace tf2
 {
-template<> const rclcpp::Time& getTimestamp(const compass_interfaces::msg::Azimuth& t);
-template<> const std::string& getFrameId(const compass_interfaces::msg::Azimuth& t);
+
+
+template<>
+tf2::TimePoint getTimestamp(const compass_interfaces::msg::Azimuth& t);
+
+template<>
+std::string getFrameId(const compass_interfaces::msg::Azimuth& t);
 
 compass_interfaces::msg::Azimuth toMsg(const compass_interfaces::msg::Azimuth& in);
 void fromMsg(const compass_interfaces::msg::Azimuth& msg, compass_interfaces::msg::Azimuth& out);

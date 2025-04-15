@@ -143,20 +143,27 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 
 TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
+  rclcpp::Node* node = &rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  // rclcpp::Logger log = rclcpp::get_logger("test_logger");
 
   auto tf = std::make_shared<tf2_ros::Buffer>();
   tf->setUsingDedicatedThread(true);
 
-  magnetometer_compass::MagnetometerCompass compass(log, "base_link", tf);
+  magnetometer_compass::MagnetometerCompass compass(node->get_logger(), "base_link", tf);
 
-  const std::map<std::string, rclcpp::Parameter> params;
-  params["low_pass_ratio"] = 0.0;
-  params["initial_variance"] = 4.0;
+  // const std::map<std::string, rclcpp::Parameter> params;
+  // params["low_pass_ratio"] = 0.0;
+  // params["initial_variance"] = 4.0;
+
+  rclcpp::Parameter parameter1("low_pass_ratio", 0.0);
+  node->set_parameter(parameter1);
+  rclcpp::Parameter parameter1("initial_variance", 4.0);
+  node->set_parameter(parameter1);
+
   // auto paramAdapter = std::make_shared<cras::XmlRpcValueGetParamAdapter>(params, "");
   // std::map<std::string, rclcpp::Parameter> paramHelper(log, paramAdapter);
 
-  compass.configFromParams(params);
+  compass.configFromParams(node);
 
   rclcpp::Time time(1664286802, 187375068);
 
@@ -363,7 +370,7 @@ int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
-  rclcpp::Time::init();
+  // rclcpp::Time::init();
 
   return RUN_ALL_TESTS();
 }

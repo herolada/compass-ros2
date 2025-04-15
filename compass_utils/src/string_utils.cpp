@@ -34,6 +34,33 @@ namespace compass_utils
 
     return oss.str();
   }
+  
+  std::string to_pretty_string(const std::chrono::system_clock::time_point &tp)
+  {
+
+    // Convert to time_t for formatting
+    std::time_t time = std::chrono::system_clock::to_time_t(tp);
+
+    // Format the time into a string
+    std::ostringstream oss;
+    oss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+
+    return oss.str();
+  }
+
+  std::string to_pretty_string(const std::chrono::steady_clock::time_point &tp)
+  {
+
+    // Convert to time_t for formatting
+    std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
+    duration_cast<std::chrono::system_clock::duration>(tp - std::chrono::steady_clock::now()));
+
+    // Format the time into a string
+    std::ostringstream oss;
+    oss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+
+    return oss.str();
+  }
 
   std::string toLower(const std::string &str)
   {

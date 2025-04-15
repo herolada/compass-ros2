@@ -12,15 +12,15 @@
 #include <memory>
 #include <string>
 
-#include <boost/functional.hpp>
+// #include <boost/functional.hpp>
 
 // #include <cras_cpp_common/log_utils.h>
 // #include <cras_cpp_common/log_utils/memory.h>
 // #include <cras_cpp_common/log_utils/node.h>
 // #include <cras_cpp_common/param_utils/get_param_adapters/xmlrpc_value.hpp>
 #include <magnetometer_pipeline/message_filter.h>
-#include <message_filters/simple_filter.hpp>
-#include <message_filters/message_event.hpp>
+#include <message_filters/simple_filter.h>
+#include <message_filters/message_event.h>
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <rclcpp/logger.hpp>
 #include "rclcpp/rclcpp.hpp"
@@ -34,7 +34,7 @@ class TestInput : public message_filters::SimpleFilter<T>
 public:
   void add(const typename T::ConstPtr& msg)
   {
-    // Pass a complete MessageEvent to avoid calling this->clock.now() to determine the missing timestamp
+    // Pass a complete MessageEvent to avoid calling node->now() to determine the missing timestamp
     this->signalMessage(message_filters::MessageEvent<T const>(msg, msg->header.stamp));
   }
 
@@ -45,20 +45,22 @@ public:
 
 TEST(MessageFilter, Basic)  // NOLINT
 {
-  // const auto log = std::make_shared<rclcpp::Logger>();
-  const auto log = std::make_shared<rclcpp::Logger>();
-  // const auto log = std::make_shared<rclcpp::Logger>();
+  
+  
+  
+  const auto log = rclcpp::get_logger("test");
+  const auto clk = rclcpp::Clock();
 
   TestInput<Field> magInput;
   TestInput<Field> magBiasInput;
-  magnetometer_pipeline::BiasRemoverFilter filter(log, magInput, magBiasInput);
+  magnetometer_pipeline::BiasRemoverFilter filter(log, clk, magInput, magBiasInput);
 
   Field::ConstPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Field const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
   };
-  filter.registerCallback(boost::function<void(const message_filters::MessageEvent<Field const>&)>(cb));
+  filter.registerCallback(std::function<void(const message_filters::MessageEvent<Field const>&)>(cb));
 
   rclcpp::Time time(1664286802, 187375068);
 
@@ -119,29 +121,30 @@ TEST(MessageFilter, Basic)  // NOLINT
 
 TEST(MessageFilter, ConfigFromParams)  // NOLINT
 {
-  // const auto log = std::make_shared<rclcpp::Logger>();
-  const auto log = std::make_shared<rclcpp::Logger>();
-  // const auto log = std::make_shared<rclcpp::Logger>();
+  
+  auto node = &rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  
+  // const auto clk = rclcpp::Clock();
 
   TestInput<Field> magInput;
   TestInput<Field> magBiasInput;
-  magnetometer_pipeline::BiasRemoverFilter filter(log, magInput, magBiasInput);
+  magnetometer_pipeline::BiasRemoverFilter filter(node->get_logger(), *node->get_clock(), magInput, magBiasInput);
 
   Field::ConstPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Field const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
   };
-  filter.registerCallback(boost::function<void(const message_filters::MessageEvent<Field const>&)>(cb));
+  filter.registerCallback(std::function<void(const message_filters::MessageEvent<Field const>&)>(cb));
 
-  XmlRpc::XmlRpcValue config;
-  config.begin();  // set to dict type
-  config["initial_mag_bias_x"] = -0.097227663;
-  config["initial_mag_bias_y"] = -0.692264333;
-  config["initial_mag_bias_z"] = 0;
+  rclcpp::Parameter param1("initial_mag_bias_x", -0.097227663);
+  node->set_parameter(param1);
+  rclcpp::Parameter param2("initial_mag_bias_y", -0.692264333);
+  node->set_parameter(param2);
+  rclcpp::Parameter param3("initial_mag_bias_z", 0.0);  // Using 0.0 for double type
+  node->set_parameter(param3);
 
-  cras::BoundParamHelper params(log);//, std::make_shared<cras::XmlRpcValueGetParamAdapter>(config, ""));
-  filter.configFromParams(params);
+  filter.configFromParams(node);
 
   rclcpp::Time time(1664286802, 187375068);
 
