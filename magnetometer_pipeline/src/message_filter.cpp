@@ -26,7 +26,7 @@ using Field = sensor_msgs::msg::MagneticField;
 
 BiasRemoverFilter::~BiasRemoverFilter() = default;
 
-void BiasRemoverFilter::configFromParams(const rclcpp::Node* node)
+void BiasRemoverFilter::configFromParams(const rclcpp::Node::SharedPtr node)
 {
   this->remover->configFromParams(node);
 }
@@ -43,7 +43,7 @@ void BiasRemoverFilter::cbMag(const message_filters::MessageEvent<Field const>& 
   // const auto header = event.getConstMessage()->header;
   const auto stamp = event.getReceiptTime();
   this->signalMessage(message_filters::MessageEvent<Field const>(
-    std::make_shared<Field>(*maybeMagUnbiased), stamp, false, message_filters::DefaultMessageCreator<Field>()));
+    std::make_shared<Field const>(*maybeMagUnbiased), stamp, false, message_filters::DefaultMessageCreator<Field>()));
 }
 
 void BiasRemoverFilter::cbBias(const message_filters::MessageEvent<Field const>& event)

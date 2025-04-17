@@ -14,7 +14,6 @@
 #include <string>
 
 #include <angles/angles.h>
-#include <class_loader/class_loader_core.hpp>
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_conversions/compass_transformer.h>
 #include <compass_utils/time_utils.hpp>
@@ -112,7 +111,7 @@ TEST(CompassTransformerNodelet, BasicConversion)  // NOLINT
   node->set_parameter(parameter3);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -176,7 +175,7 @@ TEST(CompassTransformerNodelet, TfConversion)  // NOLINT
   node->declare_parameter("target_frame", "test2");
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -195,7 +194,7 @@ TEST(CompassTransformerNodelet, TfConversion)  // NOLINT
   q.setRPY(0, 0, M_PI_2);
   tf2::convert(q, tf.transform.rotation);
 
-  auto tfBuffer = std::make_shared<tf2_ros::Buffer>();
+  auto tfBuffer = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tfBuffer->setTransform(tf, "test", true);
 
   node->setBuffer(tfBuffer);
@@ -258,7 +257,7 @@ TEST(CompassTransformerNodelet, TfConversionFail)  // NOLINT
   node->set_parameter(parameter4);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -277,7 +276,7 @@ TEST(CompassTransformerNodelet, TfConversionFail)  // NOLINT
   q.setRPY(0, 0, M_PI_2);
   tf2::convert(q, tf.transform.rotation);
 
-  auto tfBuffer = std::make_shared<tf2_ros::Buffer>();
+  auto tfBuffer = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tfBuffer->setTransform(tf, "test", true);
 
   node->setBuffer(tfBuffer);
@@ -324,7 +323,7 @@ TEST(CompassTransformerNodelet, FixMissing)  // NOLINT
   node->set_parameter(parameter1);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -387,7 +386,7 @@ TEST(CompassTransformerNodelet, FixFromParams)  // NOLINT
   node->set_parameter(parameter4);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -450,7 +449,7 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
   node->set_parameter(parameter1);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -541,7 +540,7 @@ TEST(CompassTransformerNodelet, SubImuNameDetect)  // NOLINT
   node->set_parameter(parameter3);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -622,7 +621,7 @@ TEST(CompassTransformerNodelet, SubImuNoDetect)  // NOLINT
   node->set_parameter(input_ref_param);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -691,7 +690,7 @@ TEST(CompassTransformerNodelet, SubPoseNameDetect)  // NOLINT
   node->set_parameter(parameter3);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -773,7 +772,7 @@ TEST(CompassTransformerNodelet, SubPoseNoDetect)  // NOLINT
   node->set_parameter(parameter5);
   
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -847,7 +846,7 @@ TEST(CompassTransformerNodelet, SubQuatNameDetect)  // NOLINT
   node->set_parameter(parameter4);
 
   std::optional<Az> lastAz;
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -932,7 +931,7 @@ TEST(CompassTransformerNodelet, SubQuatNoDetect)  // NOLINT
   node->set_parameter(parameter6);
   std::optional<Az> lastAz;
 
-  auto cb = [&lastAz](const Az::ConstPtr& msg)
+  auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -1005,7 +1004,7 @@ TEST(CompassTransformerNodelet, PubImu)  // NOLINT
   node->set_parameter(parameter4);
 
   std::optional<sensor_msgs::msg::Imu> lastAz;
-  auto cb = [&lastAz](const sensor_msgs::msg::Imu::ConstPtr& msg)
+  auto cb = [&lastAz](const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -1082,7 +1081,7 @@ TEST(CompassTransformerNodelet, PubImuSuffix)  // NOLINT
 
 
   std::optional<sensor_msgs::msg::Imu> lastAz;
-  auto cb = [&lastAz](const sensor_msgs::msg::Imu::ConstPtr& msg)
+  auto cb = [&lastAz](const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -1154,7 +1153,7 @@ TEST(CompassTransformerNodelet, PubPose)  // NOLINT
   node->set_parameter(parameter4);
   
   std::optional<geometry_msgs::msg::PoseWithCovarianceStamped> lastAz;
-  auto cb = [&lastAz](const geometry_msgs::msg::PoseWithCovarianceStamped::ConstPtr& msg)
+  auto cb = [&lastAz](const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -1230,7 +1229,7 @@ TEST(CompassTransformerNodelet, PubPoseSuffix)  // NOLINT
   node->set_parameter(parameter5);
 
   std::optional<geometry_msgs::msg::PoseWithCovarianceStamped> lastAz;
-  auto cb = [&lastAz](const geometry_msgs::msg::PoseWithCovarianceStamped::ConstPtr& msg)
+  auto cb = [&lastAz](const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -1302,7 +1301,7 @@ TEST(CompassTransformerNodelet, PubQuat)  // NOLINT
   node->set_parameter(parameter4);
 
   std::optional<geometry_msgs::msg::QuaternionStamped> lastAz;
-  auto cb = [&lastAz](const geometry_msgs::msg::QuaternionStamped::ConstPtr& msg)
+  auto cb = [&lastAz](const geometry_msgs::msg::QuaternionStamped::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -1377,7 +1376,7 @@ TEST(CompassTransformerNodelet, PubQuatSuffix)  // NOLINT
   node->set_parameter(parameter5);
 
   std::optional<geometry_msgs::msg::QuaternionStamped> lastAz;
-  auto cb = [&lastAz](const geometry_msgs::msg::QuaternionStamped::ConstPtr& msg)
+  auto cb = [&lastAz](const geometry_msgs::msg::QuaternionStamped::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };
@@ -1456,7 +1455,7 @@ TEST(CompassTransformerNodelet, CrossType)  // NOLINT
   node->set_parameter(parameter6);
 
   std::optional<geometry_msgs::msg::QuaternionStamped> lastAz;
-  auto cb = [&lastAz](const geometry_msgs::msg::QuaternionStamped::ConstPtr& msg)
+  auto cb = [&lastAz](const geometry_msgs::msg::QuaternionStamped::ConstSharedPtr& msg)
   {
     lastAz = *msg;
   };

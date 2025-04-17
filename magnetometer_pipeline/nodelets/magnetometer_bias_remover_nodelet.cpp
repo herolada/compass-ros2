@@ -8,7 +8,7 @@
  */
 
 #include <memory>
-
+#include <functional>
 // #include <cras_cpp_common/nodelet_utils.hpp>
 #include <magnetometer_pipeline/message_filter.h>
 #include <message_filters/subscriber.h>
@@ -54,9 +54,12 @@ class MagnetometerBiasRemoverNodelet : public rclcpp::Node
 {
 public:
   MagnetometerBiasRemoverNodelet();
+  MagnetometerBiasRemoverNodelet(const rclcpp::NodeOptions & options);
   ~MagnetometerBiasRemoverNodelet() override;
+  void onInit();
 
 protected:
+  void cb (const Field& msg);
   std::unique_ptr<BiasRemoverFilter> remover;  //!< \brief The bias remover doing the actual work.
 
   std::unique_ptr<message_filters::Subscriber<Field>> magSub;  //!< \brief Subscriber for magnetic field measurements.
@@ -66,17 +69,32 @@ protected:
 };
 
 MagnetometerBiasRemoverNodelet::MagnetometerBiasRemoverNodelet() : rclcpp::Node("magnetometer_bias_remover_nodelet") {
+  onInit();  
+};
+
+MagnetometerBiasRemoverNodelet::MagnetometerBiasRemoverNodelet(const rclcpp::NodeOptions & options) 
+  : rclcpp::Node("magnetometer_bias_remover_nodelet", options) {
+    onInit();
+};
+
+void MagnetometerBiasRemoverNodelet::onInit() {
   rclcpp::Node::SharedPtr topicNh = this->create_sub_node("imu");
 
   this->magUnbiasedPub = topicNh->create_publisher<Field>("mag_unbiased", 10);
 
-  this->magSub = std::make_unique<message_filters::Subscriber<Field>>(topicNh, "mag", 100);
-  this->magBiasSub = std::make_unique<message_filters::Subscriber<Field>>(topicNh, "mag_bias", 10);
+  this->magSub = std::make_unique<message_filters::Subscriber<Field>>(topicNh, "mag");//, 100);
+  this->magBiasSub = std::make_unique<message_filters::Subscriber<Field>>(topicNh, "mag_bias");//, 10);
 
-  this->remover = std::make_unique<BiasRemoverFilter>(this->get_logger(), this->get_clock(), *this->magSub, *this->magBiasSub);
-  this->remover->configFromParams(this);
-  this->remover->registerCallback([this](const Field& msg) {this->magUnbiasedPub->publish(msg);});
+  this->remover = std::make_unique<BiasRemoverFilter>(this->get_logger(), *this->get_clock(), *this->magSub, *this->magBiasSub);
+  this->remover->configFromParams(shared_from_this());
+  this->remover->registerCallback(//[this](const Field& msg) {this->magUnbiasedPub->publish(msg);});
+    std::function<void(const Field&)>(std::bind_front(&MagnetometerBiasRemoverNodelet::cb, this)));
 };
+
+void MagnetometerBiasRemoverNodelet::cb (const Field& msg) {
+  this->magUnbiasedPub->publish(msg);
+};
+
 
 MagnetometerBiasRemoverNodelet::~MagnetometerBiasRemoverNodelet() = default;
 

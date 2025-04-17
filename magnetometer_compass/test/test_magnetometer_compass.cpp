@@ -32,7 +32,7 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
 
-  auto tf = std::make_shared<tf2_ros::Buffer>();
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
   magnetometer_compass::MagnetometerCompass compass(log, "base_link", tf);
@@ -143,10 +143,10 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 
 TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
 {
-  rclcpp::Node* node = &rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
   // rclcpp::Logger log = rclcpp::get_logger("test_logger");
 
-  auto tf = std::make_shared<tf2_ros::Buffer>();
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
   magnetometer_compass::MagnetometerCompass compass(node->get_logger(), "base_link", tf);
@@ -263,7 +263,7 @@ TEST(MagnetometerCompass, Reset)  // NOLINT
 {
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
 
-  auto tf = std::make_shared<tf2_ros::Buffer>();
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
   magnetometer_compass::MagnetometerCompass compass(log, "base_link", tf);

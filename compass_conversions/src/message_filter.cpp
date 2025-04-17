@@ -19,7 +19,6 @@
 // #include <cras_cpp_common/log_utils.h>
 #include <optional>
 // #include <ros/callback_queue_interface.h>
-#include <message_filters/message_event.h>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rclcpp/subscription_options.hpp>
@@ -28,16 +27,19 @@
 // #include <ros/transport_hints.h>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <message_filters/message_event.h>
+#include <message_filters/subscriber.h>
 
 using Az = compass_interfaces::msg::Azimuth;
 
 namespace compass_conversions
 {
 
-UniversalAzimuthSubscriber::UniversalAzimuthSubscriber(rclcpp::Node* node,
-  const std::string& topic, const uint32_t queueSize
+
+UniversalAzimuthSubscriber::UniversalAzimuthSubscriber(rclcpp::Node::SharedPtr node,
+  std::string topic, const uint32_t queueSize
   //, const ros::TransportHints& transportHints, ros::CallbackQueueInterface* callbackQueue
-  ): node(node), converter(node->get_logger(), *node->get_clock(), true), topic(topic), queueSize(queueSize)
+  ): node(node), converter(node->get_logger(), *node->get_clock(), true), topic(topic), queueSize(queueSize),
+  azSub(message_filters::Subscriber<Az>())
 {
   this->subscribe(node, topic, queueSize);//, transportHints, callbackQueue);
 }
@@ -47,21 +49,24 @@ UniversalAzimuthSubscriber::~UniversalAzimuthSubscriber()
   this->unsubscribe();
 }
 
-void UniversalAzimuthSubscriber::subscribe(rclcpp::Node* node, const std::string& topic, const uint32_t queueSize)
+void UniversalAzimuthSubscriber::subscribe(rclcpp::Node::SharedPtr node, std::string topic, const uint32_t queueSize)
   // const ros::TransportHints& transportHints, ros::CallbackQueueInterface* callbackQueue)
 {
   this->unsubscribe();
 
   if (!topic.empty())
   {
-    // this->subscribeOps.template initByFullCallbackType<const EventType&>(
-      // topic, queueSize, boost::bind(&UniversalAzimuthSubscriber::cb, this, boost::placeholders::_1));
-    // this->subscribeOps.callback_queue = callbackQueue;
-    // this->subscribeOps.transport_hints = transportHints;
-    // this->sub = node.subscribe();// this->subscribeOps);
 
-    this->sub = node->create_subscription<Az>(topic, queueSize, &UniversalAzimuthSubscriber::cb);
     this->node = node;
+    this->topic = topic;
+    this->queueSize = queueSize;
+
+    this->azSub.subscribe(node, topic);
+    this->azSub.registerCallback(
+      // [this](const AzimuthEventType msg) {
+      //   this->azCb(msg);
+      // std::bind(&azCb, this, std::placeholders::_1)
+      std::function<void(const AzimuthEventType&)>(std::bind_front(&UniversalAzimuthSubscriber::azCb, this)));
   }
 }
 
@@ -70,14 +75,25 @@ void UniversalAzimuthSubscriber::subscribe()
   this->unsubscribe();
 
   if (!this->topic.empty())
-    // this->sub = this->node.subscribe(this->subscribeOps);
-    this->sub = this->node->create_subscription<Az>(this->topic, this->queueSize, &UniversalAzimuthSubscriber::cb);
+  {
+    // // this->sub = this->node.subscribe(this->subscribeOps);
+    // this->sub = this->node->create_subscription<Az>(this->topic, this->queueSize,
+    //   [this](const EventType& msg) {
+    //     this->cb(msg);
+    // });
 
+    this->azSub.subscribe(this->node, this->topic);
+    this->azSub.registerCallback(
+      // [this](const AzimuthEventType msg) {
+      //   this->azCb(msg);
+      std::function<void(const AzimuthEventType&)>(std::bind_front(&UniversalAzimuthSubscriber::azCb, this)));
+
+  }
 }
 
 void UniversalAzimuthSubscriber::unsubscribe()
 {
-  this->sub.reset();
+  this->azSub.unsubscribe();
 }
 
 void UniversalAzimuthSubscriber::setInputDefaults(
@@ -90,23 +106,23 @@ void UniversalAzimuthSubscriber::setInputDefaults(
   this->inputVariance = variance;
 }
 
-void UniversalAzimuthSubscriber::configFromParams(const rclcpp::Node* node)
+void UniversalAzimuthSubscriber::configFromParams(const rclcpp::Node::SharedPtr node)
 {
   std::optional<decltype(Az::orientation)> inputOrientation;
   if (node->has_parameter("input_orientation"))
-    inputOrientation = node->get_parameter_or<std::optional<uint8_t>>("input_orientation", std::nullopt);
+    inputOrientation = std::make_optional<uint8_t>(node->get_parameter("input_orientation").get_value<uint8_t>());
       // cras::GetParamConvertingOptions<decltype(Az::orientation), std::string>(
       //   &compass_interfaces::msg::orientationToString, &compass_interfaces::msg::parseOrientation));
 
   std::optional<decltype(Az::reference)> inputReference;
   if (node->has_parameter("input_reference"))
-    inputReference = node->get_parameter_or<std::optional<uint8_t>>("input_reference", std::nullopt);
+    inputReference = std::make_optional<uint8_t>(node->get_parameter("input_reference").get_value<uint8_t>());
       // cras::GetParamConvertingOptions<decltype(Az::reference), std::string>(
       //   &compass_interfaces::msg::referenceToString, &compass_interfaces::msg::parseReference));
 
   std::optional<decltype(Az::variance)> inputVariance;
   if (node->has_parameter("input_variance"))
-    inputVariance = node->get_parameter_or<std::optional<double>>("input_variance", std::nullopt);
+    inputVariance = std::make_optional<double>(node->get_parameter("input_variance").get_value<double>());
 
   this->setInputDefaults(inputOrientation, inputReference, inputVariance);
 }
@@ -116,16 +132,54 @@ std::string UniversalAzimuthSubscriber::getTopic() const
   return this->topic;
 }
 
-const rclcpp::Subscription<compass_interfaces::msg::Azimuth>& UniversalAzimuthSubscriber::getSubscriber() const
+/* const message_filters::Subscriber<compass_interfaces::msg::Azimuth>& UniversalAzimuthSubscriber::getSubscriber() const
 {
-  return *this->sub;
+  if (this->messageType == "compass_interfaces::msg::Azimuth")
+    {
+      return this->azSub;
+    }
+    else if (this->messageType == "geometry_msgs::msg::PoseWithCovarianceStamped")
+    {
+      return this->poseSub;
+    }
+    else if (this->messageType == "geometry_msgs::msg::QuaternionStamped")
+    {
+      return this->quatSub;
+    }
+    else if (this->messageType == "sensor_msgs::msg::Imu")
+    {
+      return this->imuSub;
+    }
+    else
+    {
+      RCLCPP_ERROR(this->node->get_logger(), "Invalid message type: %s. Returning Azimuth subscriber by default.", this->messageType.c_str());
+      return this->azSub;
+    } 
+} */
+const message_filters::Subscriber<Az>& UniversalAzimuthSubscriber::getAzSubscriber() const
+{return this->azSub;}
+
+
+
+// void UniversalAzimuthSubscriber::add(const EventType&)
+// {
+// }
+
+void UniversalAzimuthSubscriber::azCb(const AzimuthEventType& event) {
+  const compass_interfaces::msg::Azimuth az = Az();
+  const auto maybeAzimuth = this->converter.convertAzimuth(az, Az::UNIT_RAD, az.orientation, az.reference);
+  if (!maybeAzimuth.has_value())
+  {
+    RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10.0, "Error converting message to Azimuth: %s", maybeAzimuth.error().c_str());
+    return;
+  }
+  // const auto header = event.getConnectionHeaderPtr();
+  const auto stamp = event.getReceiptTime();
+  this->signalMessage(message_filters::MessageEvent<Az const>(
+    std::make_shared<Az const>(*maybeAzimuth), stamp, false, message_filters::DefaultMessageCreator<Az>()));
 }
 
-void UniversalAzimuthSubscriber::add(const EventType&)
-{
-}
-
-void UniversalAzimuthSubscriber::cb(const EventType& event)
+/* void UniversalAzimuthSubscriber::cb(const EventType& event)
 {
   const auto maybeAzimuth = this->converter.convertUniversalMsgEvent(
     event, this->inputVariance.value_or(0.0), Az::UNIT_RAD, this->inputOrientation, this->inputReference);
@@ -139,7 +193,7 @@ void UniversalAzimuthSubscriber::cb(const EventType& event)
   const auto stamp = event.getReceiptTime();
   this->signalMessage(message_filters::MessageEvent<Az const>(
     std::make_shared<Az>(*maybeAzimuth), stamp, false, message_filters::DefaultMessageCreator<Az>()));
-}
+} */
 
 
 CompassFilter::~CompassFilter() = default;
@@ -156,7 +210,7 @@ void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
     return;
   }
   this->signalMessage(AzimuthEventType(
-    std::make_shared<Az>(*output), //azimuthEvent.getConnectionHeaderPtr(),
+    std::make_shared<Az const>(*output), //azimuthEvent.getConnectionHeaderPtr(),
     azimuthEvent.getReceiptTime(), false, message_filters::DefaultMessageCreator<Az>()));
 }
 

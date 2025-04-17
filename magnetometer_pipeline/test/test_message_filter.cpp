@@ -32,7 +32,7 @@ template<class T>
 class TestInput : public message_filters::SimpleFilter<T>
 {
 public:
-  void add(const typename T::ConstPtr& msg)
+  void add(const typename T::ConstSharedPtr& msg)
   {
     // Pass a complete MessageEvent to avoid calling node->now() to determine the missing timestamp
     this->signalMessage(message_filters::MessageEvent<T const>(msg, msg->header.stamp));
@@ -55,7 +55,7 @@ TEST(MessageFilter, Basic)  // NOLINT
   TestInput<Field> magBiasInput;
   magnetometer_pipeline::BiasRemoverFilter filter(log, clk, magInput, magBiasInput);
 
-  Field::ConstPtr outMessage;
+  Field::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Field const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
@@ -64,7 +64,7 @@ TEST(MessageFilter, Basic)  // NOLINT
 
   rclcpp::Time time(1664286802, 187375068);
 
-  Field::Ptr mag(new Field);
+  Field::SharedPtr mag(new Field);
   mag->header.stamp = time;
   mag->header.frame_id = "imu";
   // These values are exaggerated (in Gauss instead of in Tesla), but they're consistent with ethzasl_xsens_driver
@@ -73,7 +73,7 @@ TEST(MessageFilter, Basic)  // NOLINT
   mag->magnetic_field.y = -0.538677;
   mag->magnetic_field.z = 0.157033;
 
-  Field::Ptr bias(new Field);
+  Field::SharedPtr bias(new Field);
   bias->header.stamp = time;
   bias->header.frame_id = "imu";
   bias->magnetic_field.x = -0.097227663;
@@ -122,7 +122,7 @@ TEST(MessageFilter, Basic)  // NOLINT
 TEST(MessageFilter, ConfigFromParams)  // NOLINT
 {
   
-  auto node = &rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
   
   // const auto clk = rclcpp::Clock();
 
@@ -130,7 +130,7 @@ TEST(MessageFilter, ConfigFromParams)  // NOLINT
   TestInput<Field> magBiasInput;
   magnetometer_pipeline::BiasRemoverFilter filter(node->get_logger(), *node->get_clock(), magInput, magBiasInput);
 
-  Field::ConstPtr outMessage;
+  Field::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Field const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
@@ -148,7 +148,7 @@ TEST(MessageFilter, ConfigFromParams)  // NOLINT
 
   rclcpp::Time time(1664286802, 187375068);
 
-  Field::Ptr mag(new Field);
+  Field::SharedPtr mag(new Field);
   mag->header.stamp = time;
   mag->header.frame_id = "imu";
   // These values are exaggerated (in Gauss instead of in Tesla), but they're consistent with ethzasl_xsens_driver

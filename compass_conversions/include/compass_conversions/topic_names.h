@@ -9,6 +9,7 @@
  * \author Martin Pecka
  */
 
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -16,7 +17,6 @@
 // #include <boost/shared_ptr.hpp>
 
 #include <compass_interfaces/msg/azimuth.hpp>
-#include <optional>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
 #include <sensor_msgs/msg/imu.hpp>

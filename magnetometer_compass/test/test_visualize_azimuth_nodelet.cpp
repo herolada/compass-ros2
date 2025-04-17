@@ -35,7 +35,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("test_node");
 
   std::optional<Pose> lastPose;
-  auto poseCb = [&lastPose](const Pose::ConstPtr& msg)
+  auto poseCb = [&lastPose](const Pose::ConstSharedPtr& msg)
   {
     lastPose = *msg;
   };

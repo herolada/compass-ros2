@@ -19,6 +19,7 @@
 // #include <cras_cpp_common/param_utils/get_param_specializations/eigen.hpp>
 #include <magnetometer_pipeline/bias_remover.h>
 #include <sensor_msgs/msg/magnetic_field.hpp>
+#include <rclcpp/rclcpp.hpp>
 // #include <tf2_eigen/tf2_eigen.hpp>
 
 namespace magnetometer_pipeline
@@ -48,7 +49,7 @@ MagnetometerBiasRemover::MagnetometerBiasRemover(const rclcpp::Logger& log) :
 
 MagnetometerBiasRemover::~MagnetometerBiasRemover() = default;
 
-void MagnetometerBiasRemover::configFromParams(const rclcpp::Node* node)
+void MagnetometerBiasRemover::configFromParams(const rclcpp::Node::SharedPtr node)
 {
   if (node->has_parameter("initial_mag_bias_x") || node->has_parameter("initial_mag_bias_y") ||
     node->has_parameter("initial_mag_bias_z"))
@@ -58,8 +59,19 @@ void MagnetometerBiasRemover::configFromParams(const rclcpp::Node* node)
     msg.magnetic_field.y = node->get_parameter_or<double>("initial_mag_bias_y", 0.0);
     msg.magnetic_field.z = node->get_parameter_or<double>("initial_mag_bias_z", 0.0);
 
+    std::vector<double> scaling_vec;
+    node->get_parameter_or(
+        "initial_mag_scaling_matrix",
+        scaling_vec,
+        std::vector<double>(this->data->lastScale.data(), this->data->lastScale.data() + 9)
+    );
+
     Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>> scalingMatrix(msg.magnetic_field_covariance.data());
-    scalingMatrix = node->get_parameter_or<Eigen::Matrix3d>("initial_mag_scaling_matrix", this->data->lastScale);
+    if (scaling_vec.size() == 9) {
+        scalingMatrix = Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(scaling_vec.data());
+    } else {
+        scalingMatrix = this->data->lastScale;
+    }
 
     this->setBias(msg);
 

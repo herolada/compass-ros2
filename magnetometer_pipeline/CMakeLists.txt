@@ -3,16 +3,18 @@
 
 cmake_minimum_required(VERSION 3.20)
 project(magnetometer_pipeline)
-set (CMAKE_CXX_STANDARD 23)
+set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(ament_cmake REQUIRED)
 find_package(compass_utils REQUIRED)
+find_package(compass_conversions REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(tf2_eigen REQUIRED)
+# find_package(tf2_eigen REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(tl-expected REQUIRED)
 
@@ -21,10 +23,10 @@ add_library(magnetometer_bias_remover SHARED
   src/bias_remover.cpp
 )
 ament_target_dependencies(magnetometer_bias_remover
+  compass_conversions
   compass_utils
   rclcpp
   sensor_msgs
-  tf2_eigen
   Eigen3
 )
 target_link_libraries(magnetometer_bias_remover tl::expected)
@@ -49,9 +51,10 @@ ament_target_dependencies(magnetometer_bias_remover_filter
   message_filters
   rclcpp
   sensor_msgs
-  tf2_eigen
   Eigen3
 )
+
+target_link_libraries(magnetometer_bias_remover_filter tl::expected)
 
 target_include_directories(magnetometer_bias_remover_filter
   PUBLIC
@@ -74,7 +77,6 @@ ament_target_dependencies(magnetometer_bias_remover_nodelet
   rclcpp
   rclcpp_components
   sensor_msgs
-  tf2_eigen
   Eigen3
 )
 target_link_libraries(magnetometer_bias_remover_nodelet tl::expected)
@@ -88,8 +90,9 @@ ament_export_targets(export_magnetometer_bias_remover_nodelet HAS_LIBRARY_TARGET
 ament_export_dependencies( 
   message_filters
   sensor_msgs
-  magnetometer_bias_remover
 )
+rclcpp_components_register_nodes(magnetometer_bias_remover_nodelet "magnetometer_pipeline::MagnetometerBiasRemoverNodelet")
+
 
 # INSTALL LIBRARIES
 install(
@@ -194,3 +197,4 @@ install(DIRECTORY launch/ DESTINATION share/launch${PROJECT_NAME})
 #   target_link_libraries(test_magnetometer_bias_remover_nodelet ${catkin_LIBRARIES})
 #   roslaunch_add_file_check(test/test_bias_remover_nodelet.test USE_TEST_DEPENDENCIES)
 # endif()
+ament_package()

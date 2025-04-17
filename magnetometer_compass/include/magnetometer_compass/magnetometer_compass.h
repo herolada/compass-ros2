@@ -42,7 +42,7 @@ public:
    * \param[in] tf TF buffer for transforming incoming data to `frame`. If you are sure data are already in the target
    *               frame, you can pass an empty buffer.
    */
-  MagnetometerCompass(const rclcpp::Logger& log, const std::string& frame,
+  MagnetometerCompass(const rclcpp::Logger& log, const rclcpp::Clock::SharedPtr clk, const std::string& frame,
                       const std::shared_ptr<tf2::BufferCore>& tf);
 
   /**
@@ -67,7 +67,7 @@ public:
    * - `~low_pass_ratio` (double, default 0.95): The azimuth is filtered with a low-pass filter. This sets its
    *                                             aggressivity (0 means raw measurements, 1 means no updates).
    */
-  virtual void configFromParams(const rclcpp::Node* node);//const std::map<std::string, rclcpp::Parameter>& params);
+  virtual void configFromParams(const rclcpp::Node::SharedPtr node);//const std::map<std::string, rclcpp::Parameter>& params);
 
   /**
    * \brief The azimuth is filtered with a low-pass filter. This sets its aggressivity.

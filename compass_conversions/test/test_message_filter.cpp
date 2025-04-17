@@ -32,7 +32,7 @@ template<class T>
 class TestInput : public message_filters::SimpleFilter<T>
 {
 public:
-  void add(const typename T::ConstPtr& msg)
+  void add(const typename T::ConstSharedPtr& msg)
   {
     // Pass a complete MessageEvent to avoid calling node->now() to determine the missing timestamp
     this->signalMessage(message_filters::MessageEvent<T const>(msg, msg->header.stamp));
@@ -47,14 +47,14 @@ TEST(MessageFilter, NoNavSatNeeded)  // NOLINT
   compass_conversions::CompassFilter filter(
     log, clk, nullptr, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
-  Az::ConstPtr outMessage;
+  Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
   };
   filter.registerCallback(std::function<void(const message_filters::MessageEvent<Az const>&)>(cb));
 
-  Az::Ptr inMessage(new Az);
+  Az::SharedPtr inMessage(new Az);
   inMessage->header.stamp = compass_utils::parseTime("2024-11-18T13:00:00.000Z");
   inMessage->unit = Az::UNIT_DEG;
   inMessage->orientation = Az::ORIENTATION_NED;
@@ -80,14 +80,14 @@ TEST(MessageFilter, NavSatNeededButNotGiven)  // NOLINT
   compass_conversions::CompassFilter filter(
     log, clk, nullptr, azimuthInput, fixInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
-  Az::ConstPtr outMessage;
+  Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
   };
   filter.registerCallback(std::function<void(const message_filters::MessageEvent<Az const>&)>(cb));
 
-  Az::Ptr inMessage(new Az);
+  Az::SharedPtr inMessage(new Az);
   inMessage->header.stamp = compass_utils::parseTime("2024-11-18T13:00:00.000Z");
   inMessage->unit = Az::UNIT_DEG;
   inMessage->orientation = Az::ORIENTATION_NED;
@@ -109,14 +109,14 @@ TEST(MessageFilter, NavSatNeeded)  // NOLINT
   compass_conversions::CompassFilter filter(
     log, clk, nullptr, azimuthInput, fixInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
-  Az::ConstPtr outMessage;
+  Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
   };
   filter.registerCallback(std::function<void(const message_filters::MessageEvent<Az const>&)>(cb));
 
-  Az::Ptr inMessage(new Az);
+  Az::SharedPtr inMessage(new Az);
   inMessage->header.stamp = compass_utils::parseTime("2024-11-18T13:00:00.000Z");
   inMessage->unit = Az::UNIT_DEG;
   inMessage->orientation = Az::ORIENTATION_NED;
@@ -128,7 +128,7 @@ TEST(MessageFilter, NavSatNeeded)  // NOLINT
 
   ASSERT_EQ(nullptr, outMessage);
 
-  sensor_msgs::msg::NavSatFix::Ptr fixMessage(new sensor_msgs::msg::NavSatFix);
+  sensor_msgs::msg::NavSatFix::SharedPtr fixMessage(new sensor_msgs::msg::NavSatFix);
   fixMessage->header.stamp = inMessage->header.stamp;
   fixMessage->latitude = 51;
   fixMessage->longitude = 10;
@@ -159,18 +159,18 @@ TEST(MessageFilter, NavSatNeededAndGivenAsInitValue)  // NOLINT
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
   rclcpp::Clock clk = rclcpp::Clock(RCL_ROS_TIME);
   TestInput<Az> azimuthInput;
-  auto converter = std::make_shared<compass_conversions::CompassConverter>(log, true);
+  auto converter = std::make_shared<compass_conversions::CompassConverter>(log, clk, true);
   compass_conversions::CompassFilter filter(
     log, clk, converter, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
-  Az::ConstPtr outMessage;
+  Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
   };
   filter.registerCallback(std::function<void(const message_filters::MessageEvent<Az const>&)>(cb));
 
-  Az::Ptr inMessage(new Az);
+  Az::SharedPtr inMessage(new Az);
   inMessage->header.stamp = compass_utils::parseTime("2024-11-18T13:00:00.000Z");
   inMessage->unit = Az::UNIT_DEG;
   inMessage->orientation = Az::ORIENTATION_NED;
@@ -182,7 +182,7 @@ TEST(MessageFilter, NavSatNeededAndGivenAsInitValue)  // NOLINT
 
   ASSERT_EQ(nullptr, outMessage);
 
-  sensor_msgs::msg::NavSatFix::Ptr fixMessage(new sensor_msgs::msg::NavSatFix);
+  sensor_msgs::msg::NavSatFix::SharedPtr fixMessage(new sensor_msgs::msg::NavSatFix);
   fixMessage->header.stamp = inMessage->header.stamp;
   fixMessage->latitude = 51;
   fixMessage->longitude = 10;
@@ -213,18 +213,18 @@ TEST(MessageFilter, ForcedDeclination)  // NOLINT
   rclcpp::Logger log = rclcpp::get_logger("test_logger");
   rclcpp::Clock clk = rclcpp::Clock(RCL_ROS_TIME);
   TestInput<Az> azimuthInput;
-  auto converter = std::make_shared<compass_conversions::CompassConverter>(log, true);
+  auto converter = std::make_shared<compass_conversions::CompassConverter>(log, clk, true);
   compass_conversions::CompassFilter filter(
     log, clk, converter, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
-  Az::ConstPtr outMessage;
+  Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
   {
     outMessage = filteredMessage.getConstMessage();
   };
   filter.registerCallback(std::function<void(const message_filters::MessageEvent<Az const>&)>(cb));
 
-  Az::Ptr inMessage(new Az);
+  Az::SharedPtr inMessage(new Az);
   inMessage->header.stamp = compass_utils::parseTime("2024-11-18T13:00:00.000Z");
   inMessage->unit = Az::UNIT_DEG;
   inMessage->orientation = Az::ORIENTATION_NED;

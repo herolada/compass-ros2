@@ -41,7 +41,7 @@ public:
    * - `~initial_mag_bias_z` (double, no default, optional): Magnetometer bias in the Z axis.
    * - `~initial_scaling_matrix` (double[9], optional): Magnetometer scaling matrix (row-major).
    */
-  void configFromParams(const rclcpp::Node* node);
+  void configFromParams(const rclcpp::Node::SharedPtr node);
 
   /**
    * \brief Whether bias has already been set.

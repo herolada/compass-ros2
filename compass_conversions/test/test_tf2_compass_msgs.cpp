@@ -31,7 +31,7 @@ TEST(TF2CompassMsgs, Tf2MessageTraits)  // NOLINT
   inMessage.header.frame_id = "test";
 
   EXPECT_EQ(inMessage.header.frame_id, tf2::getFrameId(inMessage));
-  EXPECT_EQ(inMessage.header.stamp, tf2::getTimestamp(inMessage));
+  EXPECT_NEAR(inMessage.header.stamp.sec + inMessage.header.stamp.nanosec * 1e-9, tf2::timeToSec(tf2::getTimestamp(inMessage)), 1e-9);
   EXPECT_EQ(inMessage, tf2::toMsg(inMessage));
 
   Az msg2;

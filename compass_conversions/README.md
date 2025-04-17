@@ -63,7 +63,7 @@ message_filters::Subscriber fixInput(...);
 compass_conversions::CompassFilter filter(log, nullptr, azimuthInput, fixInput,
   compass_interfaces::msg::Azimuth::UNIT_RAD, compass_interfaces::msg::Azimuth::ORIENTATION_ENU,
   compass_interfaces::msg::Azimuth::REFERENCE_GEOGRAPHIC);
-filter.registerCallback([](const compass_interfaces::msg::AzimuthConstPtr& msg) {
+filter.registerCallback([](const compass_interfaces::msg::AzimuthConstSharedPtr& msg) {
   ...  // Handle the data
 });
 ```

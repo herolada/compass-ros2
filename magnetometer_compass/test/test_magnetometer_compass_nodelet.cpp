@@ -110,31 +110,31 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   std::map<std::tuple<decltype(Az::unit), decltype(Az::orientation), decltype(Az::reference)>, std::optional<Az>> az;
   auto azCb = [&az](decltype(Az::unit) unit, decltype(Az::orientation) orientation, decltype(Az::reference) reference,
-    const Az::ConstPtr& msg)
+    const Az::ConstSharedPtr& msg)
   {
     az[std::make_tuple(unit, orientation, reference)] = *msg;
   };
 
   std::optional<Imu> lastImu;
-  auto imuCb = [&lastImu](const Imu::ConstPtr& msg)
+  auto imuCb = [&lastImu](const Imu::ConstSharedPtr& msg)
   {
     lastImu = *msg;
   };
 
   std::optional<Quat> lastQuat;
-  auto quatCb = [&lastQuat](const Quat::ConstPtr& msg)
+  auto quatCb = [&lastQuat](const Quat::ConstSharedPtr& msg)
   {
     lastQuat = *msg;
   };
 
   std::optional<Pose> lastPose;
-  auto poseCb = [&lastPose](const Pose::ConstPtr& msg)
+  auto poseCb = [&lastPose](const Pose::ConstSharedPtr& msg)
   {
     lastPose = *msg;
   };
 
   std::optional<Field> lastField;
-  auto magCb = [&lastField](const Field::ConstPtr& msg)
+  auto magCb = [&lastField](const Field::ConstSharedPtr& msg)
   {
     lastField = *msg;
   };
@@ -168,7 +168,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   
   const auto log = node->get_logger();
 
-  auto tf = std::make_shared<tf2_ros::Buffer>();
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
@@ -562,13 +562,13 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   node->set_parameter(parameter9);
 
   std::optional<Quat> lastQuat;
-  auto quatCb = [&lastQuat](const Quat::ConstPtr& msg)
+  auto quatCb = [&lastQuat](const Quat::ConstSharedPtr& msg)
   {
     lastQuat = *msg;
   };
 
   std::optional<Field> lastField;
-  auto magCb = [&lastField](const Field::ConstPtr& msg)
+  auto magCb = [&lastField](const Field::ConstSharedPtr& msg)
   {
     lastField = *msg;
   };
@@ -586,7 +586,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   
   // const auto log = std::make_shared<rclcpp::Logger>();
 
-  auto tf = std::make_shared<tf2_ros::Buffer>();
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
   ASSERT_NE(nullptr, node);
@@ -716,7 +716,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   node->set_parameter(parameter4);   
 
   std::optional<Quat> lastQuat;
-  auto quatCb = [&lastQuat](const Quat::ConstPtr& msg)
+  auto quatCb = [&lastQuat](const Quat::ConstSharedPtr& msg)
   {
     lastQuat = *msg;
   };
@@ -732,7 +732,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   
   // const auto log = std::make_shared<rclcpp::Logger>();
 
-  auto tf = std::make_shared<tf2_ros::Buffer>();
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
   ASSERT_NE(nullptr, node);

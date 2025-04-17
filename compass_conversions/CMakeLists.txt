@@ -3,16 +3,17 @@
 
 cmake_minimum_required(VERSION 3.20)
 project(compass_conversions)
-set (CMAKE_CXX_STANDARD 23)
+set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(ament_cmake REQUIRED)
 find_package(angles REQUIRED)
 find_package(compass_interfaces REQUIRED)
 find_package(compass_utils REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(magnetic_model REQUIRED)
 find_package(message_filters REQUIRED)
-find_package(pluginlib REQUIRED)
+# find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -47,8 +48,10 @@ target_include_directories(compass_topic_names
 ament_export_targets(export_compass_topic_names HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   compass_interfaces
+  compass_utils
   geometry_msgs
   sensor_msgs
+  tl-expected
 )
 
 # LIBRARY 2
@@ -78,11 +81,15 @@ target_include_directories(compass_converter
 )
 ament_export_targets(export_compass_converter HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
+  compass_utils
+  magnetic_model
+  angles
   compass_interfaces
   std_msgs
   rclcpp
   geometry_msgs
   sensor_msgs
+  tl-expected
 )
 
 # LIBRARY 3
@@ -90,6 +97,7 @@ add_library(compass_message_filter SHARED
   src/message_filter.cpp
 )
 ament_target_dependencies(compass_message_filter
+  angles
   compass_interfaces
   compass_utils
   message_filters
@@ -107,11 +115,12 @@ target_include_directories(compass_message_filter
 ament_export_targets(export_compass_message_filter HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   compass_interfaces
+  compass_utils
   message_filters
   std_msgs
   sensor_msgs
   rclcpp
-  message_filters
+  tl-expected
 )
 
 # LIBRARY 4
@@ -136,9 +145,11 @@ target_include_directories(tf2_compass_msgs
 ament_export_targets(export_tf2_compass_msgs HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   compass_interfaces
+  compass_utils
   rclcpp
   geometry_msgs
   tf2
+  tl-expected
 )
 
 # LIBRARY 5
@@ -146,11 +157,11 @@ add_library(compass_transformer_nodelet SHARED
   nodelets/compass_transformer.cpp
 )
 ament_target_dependencies(compass_transformer_nodelet
+  angles
   compass_interfaces
   compass_utils
   geometry_msgs
   message_filters
-  pluginlib
   rclcpp
   rclcpp_components
   sensor_msgs
@@ -273,6 +284,54 @@ install(TARGETS
 install(FILES nodelets.xml
 DESTINATION share/${PROJECT_NAME}
 )
+
+if(BUILD_TESTING)
+    find_package(ament_cmake_gtest REQUIRED)
+
+    ament_add_gtest(test_compass_converter test/test_compass_converter.cpp)
+    target_link_libraries(test_compass_converter compass_converter compass_topic_names)
+    target_include_directories(test_compass_converter
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+    ament_add_gtest(test_compass_transformer_nodelet test/test_compass_transformer_nodelet.cpp)
+    target_link_libraries(test_compass_transformer_nodelet
+      compass_transformer_nodelet 
+      compass_converter
+      compass_message_filter
+      compass_topic_names 
+      tf2_compass_msgs)
+    target_include_directories(test_compass_transformer_nodelet
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+    ament_add_gtest(test_compass_message_filter test/test_message_filter.cpp)
+    target_link_libraries(test_compass_message_filter
+      compass_message_filter
+      compass_converter
+      compass_topic_names)
+    target_include_directories(test_compass_message_filter
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+    ament_add_gtest(test_tf2_compass_msgs test/test_tf2_compass_msgs.cpp)
+    target_link_libraries(test_tf2_compass_msgs tf2_compass_msgs)
+    target_include_directories(test_tf2_compass_msgs
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+    ament_add_gtest(test_compass_topic_names test/test_topic_names.cpp)
+    target_link_libraries(test_compass_topic_names compass_topic_names)
+    target_include_directories(test_compass_topic_names
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+endif()
 
 # if(CATKIN_ENABLE_TESTING)
 #   find_package(roslint REQUIRED)

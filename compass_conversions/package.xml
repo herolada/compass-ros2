@@ -17,18 +17,18 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>angles</build_depend>
+  <depend>angles</depend>
   <build_depend>geographiclib</build_depend>
   <build_depend>magnetic_model</build_depend>
   <build_depend>nodelet</build_depend>
-  <build_depend>pluginlib</build_depend>
+  <!-- <build_depend>pluginlib</build_depend> -->
   <build_depend>tf2_ros</build_depend>
 
-  <exec_depend>angles</exec_depend>
+  <!-- <exec_depend>angles</exec_depend> -->
   <exec_depend>geographiclib</exec_depend>
   <exec_depend>magnetic_model</exec_depend>
   <exec_depend>nodelet</exec_depend>
-  <exec_depend>pluginlib</exec_depend>
+  <!-- <exec_depend>pluginlib</exec_depend> -->
   <exec_depend>tf2_ros</exec_depend>
 
   <depend>tf2_geometry_msgs</depend>
@@ -43,11 +43,12 @@
   <depend>topic_tools</depend>
   <depend>tl-expected</depend>
 
+  <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <test_depend>roslint</test_depend>
   <test_depend>rostest</test_depend>
-
+  
   <export>
     <rosdoc config="rosdoc.yaml" />
     <build_type>ament_cmake</build_type>

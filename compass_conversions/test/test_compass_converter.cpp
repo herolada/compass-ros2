@@ -39,40 +39,40 @@ TEST(CompassConverter, ConfigFromParams)  // NOLINT
 {
   // rclcpp::Logger log = rclcpp::get_logger("test_logger");
   // const auto clk = rclcpp::Clock();
-  auto node = rclcpp::Node("test_node", rclcpp::NodeOptions());
-  compass_conversions::CompassConverter converter(node.get_logger(), *node.get_clock(), true);
+  auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions());
+  compass_conversions::CompassConverter converter(node->get_logger(), *node->get_clock(), true);
 
-  converter.configFromParams(&node);
+  converter.configFromParams(node);
 
-  node.declare_parameter("magnetic_declination", 1.0);
+  node->declare_parameter("magnetic_declination", 1.0);
   rclcpp::Parameter parameter1("magnetic_declination", 1.0);
-  node.set_parameter(parameter1);
+  node->set_parameter(parameter1);
 
-  converter.configFromParams(&node);
+  converter.configFromParams(node);
 
-  node.declare_parameter("utm_grid_convergence", 2.0);
+  node->declare_parameter("utm_grid_convergence", 2.0);
   rclcpp::Parameter parameter2("utm_grid_convergence", 2.0);
-  node.set_parameter(parameter2);
-  converter.configFromParams(&node);
+  node->set_parameter(parameter2);
+  converter.configFromParams(node);
 
-  node.undeclare_parameter("magnetic_declination");
-  node.undeclare_parameter("utm_grid_convergence");
+  node->undeclare_parameter("magnetic_declination");
+  node->undeclare_parameter("utm_grid_convergence");
 
-  node.declare_parameter("initial_lat", 0.0);
+  node->declare_parameter("initial_lat", 0.0);
   rclcpp::Parameter parameter3("initial_lat", 0.0);
-  node.set_parameter(parameter3);
+  node->set_parameter(parameter3);
 
-  node.declare_parameter("initial_lon", 0.0);
+  node->declare_parameter("initial_lon", 0.0);
   rclcpp::Parameter parameter4("initial_lon", 0.0);
-  node.set_parameter(parameter4);
+  node->set_parameter(parameter4);
 
-  converter.configFromParams(&node);
+  converter.configFromParams(node);
 
-  node.declare_parameter("alt", 0.0);
+  node->declare_parameter("alt", 0.0);
   rclcpp::Parameter parameter5("alt", 0.0);
-  node.set_parameter(parameter5);
+  node->set_parameter(parameter5);
 
-  converter.configFromParams(&node);
+  converter.configFromParams(node);
 }
 
 TEST(CompassConverter, ComputeMagneticDeclination)  // NOLINT

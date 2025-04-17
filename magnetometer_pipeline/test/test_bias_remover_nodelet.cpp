@@ -36,7 +36,7 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("test_node");
 
   std::optional<Field> lastField;
-  auto magCb = [&lastField](const Field::ConstPtr& msg)
+  auto magCb = [&lastField](const Field::ConstSharedPtr& msg)
   {
     lastField = *msg;
   };

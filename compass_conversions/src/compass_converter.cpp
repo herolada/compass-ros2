@@ -8,6 +8,7 @@
  */
 
 #include "tl/expected.hpp"
+#include <list>
 #include <map>
 #include <memory>
 #include <optional>
@@ -45,7 +46,6 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <rclcpp/generic_subscription.hpp>
 
-#include <message_filters/message_event.h>
 
 namespace compass_conversions
 {
@@ -67,31 +67,31 @@ struct CompassConverterPrivate
   std::map<uint32_t, std::shared_ptr<magnetic_model::MagneticModel>> magneticModels;
 };
 
-CompassConverter::CompassConverter(const rclcpp::Logger& log, const rclcpp::Clock& clock, const bool strict) :
+CompassConverter::CompassConverter(const rclcpp::Logger& log, const rclcpp::Clock& clock, bool strict) :
   log(log), clock(clock), strict(strict), data(new CompassConverterPrivate{})
 {
-  this->data->magneticModelManager = std::make_unique<magnetic_model::MagneticModelManager>(this->log);
+  this->data->magneticModelManager = std::make_unique<magnetic_model::MagneticModelManager>(this->log, this->clock);
 };
 
 CompassConverter::~CompassConverter() = default;
 
-void CompassConverter::configFromParams(const rclcpp::Node* node)
+void CompassConverter::configFromParams(const rclcpp::Node::SharedPtr node)
 {
   // cras::TempLocale l(LC_ALL, "en_US.UTF-8");  // Support printing ° signs
 
   if (node->has_parameter("magnetic_declination"))
-    this->forceMagneticDeclination(node->get_parameter_or<std::optional<double>>("magnetic_declination", std::nullopt));
+    this->forceMagneticDeclination(std::make_optional<double>(node->get_parameter("magnetic_declination").get_value<double>()));
   else
     this->forcedMagneticModelName = node->get_parameter_or<std::string>("magnetic_model", std::string());
 
   if (node->has_parameter("magnetic_models_path"))
-    this->setMagneticModelPath(node->get_parameter_or<std::optional<std::string>>("magnetic_models_path", std::nullopt));
+    this->setMagneticModelPath(std::make_optional<std::string>(node->get_parameter("magnetic_models_path").get_value<std::string>()));
 
   if (node->has_parameter("utm_grid_convergence"))
-    this->forceUTMGridConvergence(node->get_parameter_or<std::optional<double>>("utm_grid_convergence", std::nullopt));
+    this->forceUTMGridConvergence(std::make_optional<double>(node->get_parameter("utm_grid_convergence").get_value<double>()));
 
   if (node->has_parameter("utm_zone"))
-    this->forceUTMZone(node->get_parameter_or<std::optional<int>>("utm_zone", std::nullopt));
+    this->forceUTMZone(std::make_optional<int>(node->get_parameter("utm_zone").get_value<int>()));
 
   this->setKeepUTMZone(node->get_parameter_or<bool>("keep_utm_zone", this->keepUTMZone));
 
@@ -434,7 +434,7 @@ tl::expected<sensor_msgs::msg::Imu, std::string> CompassConverter::convertToImu(
 };
 
 tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::convertQuaternionMsgEvent(
-  const char *const topic,
+  const char* topic,
   const message_filters::MessageEvent<geometry_msgs::msg::QuaternionStamped const>& quatEvent,
   const decltype(compass_interfaces::msg::Azimuth::variance) variance,
   const decltype(compass_interfaces::msg::Azimuth::unit) unit,
@@ -445,7 +445,7 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   auto msgReference = reference;
   if (!msgOrientation.has_value() || !msgReference.has_value())
   {
-    const auto maybeAzimuthParams = parseAzimuthTopicName(topic);
+    const auto maybeAzimuthParams = compass_conversions::parseAzimuthTopicName(std::string(topic));
     if (maybeAzimuthParams.has_value())
     {
       msgOrientation = std::get<1>(*maybeAzimuthParams);
@@ -461,7 +461,7 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
 };
 
 tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::convertPoseMsgEvent(
-  const char *const topic,
+  const char* topic,
   const message_filters::MessageEvent<geometry_msgs::msg::PoseWithCovarianceStamped const>& poseEvent,
   const decltype(compass_interfaces::msg::Azimuth::unit) unit,
   const std::optional<decltype(compass_interfaces::msg::Azimuth::orientation)>& orientation,
@@ -471,7 +471,7 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   auto msgReference = reference;
   if (!msgOrientation.has_value() || !msgReference.has_value())
   {
-    const auto maybeAzimuthParams = parseAzimuthTopicName(topic);
+    const auto maybeAzimuthParams = compass_conversions::parseAzimuthTopicName(std::string(topic));
     if (maybeAzimuthParams.has_value())
     {
       msgOrientation = std::get<1>(*maybeAzimuthParams);
@@ -488,37 +488,37 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
 };
 
 tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::convertImuMsgEvent(
-  const char *const topic,
-  const message_filters::MessageEvent<sensor_msgs::msg::Imu const>& imuEvent,
+  const char* topic,
+  const message_filters::MessageEvent<sensor_msgs::msg::Imu>& imuEvent,
   const decltype(compass_interfaces::msg::Azimuth::unit) unit,
   const std::optional<decltype(compass_interfaces::msg::Azimuth::orientation)>& orientation,
   const std::optional<decltype(compass_interfaces::msg::Azimuth::reference)>& reference) const
-{
-  auto msgOrientation = orientation;
-  auto msgReference = reference;
-  if (!msgOrientation.has_value() || !msgReference.has_value())
   {
-    const auto maybeAzimuthParams = parseAzimuthTopicName(topic);
-    if (maybeAzimuthParams.has_value())
+    auto msgOrientation = orientation;
+    auto msgReference = reference;
+    if (!msgOrientation.has_value() || !msgReference.has_value())
     {
-      msgOrientation = std::get<1>(*maybeAzimuthParams);
-      msgReference = std::get<2>(*maybeAzimuthParams);
+      const auto maybeAzimuthParams = compass_conversions::parseAzimuthTopicName(topic);
+      if (maybeAzimuthParams.has_value())
+      {
+        msgOrientation = std::get<1>(*maybeAzimuthParams);
+        msgReference = std::get<2>(*maybeAzimuthParams);
+      }
     }
-  }
 
-  // IMUs should output orientation in ENU frame
-  if (!msgOrientation.has_value())
-    msgOrientation = Az::ORIENTATION_ENU;
+    // IMUs should output orientation in ENU frame
+    if (!msgOrientation.has_value())
+      msgOrientation = Az::ORIENTATION_ENU;
 
-  if (!msgReference.has_value())
-    return compass_utils::make_unexpected("Reference is not specified and cannot be autodetected.");
+    if (!msgReference.has_value())
+      return compass_utils::make_unexpected("Reference is not specified and cannot be autodetected.");
 
-  const auto msg = imuEvent.getConstMessage();
-  return this->convertQuaternion(
-    msg->orientation, msg->header, msg->orientation_covariance[2 * 3 + 2], unit, *msgOrientation, *msgReference);
-};
+    const auto msg = imuEvent.getConstMessage();
+    return this->convertQuaternion(
+      msg->orientation, msg->header, msg->orientation_covariance[2 * 3 + 2], unit, *msgOrientation, *msgReference);
+  };
 
-template<class M> using ME = message_filters::MessageEvent<M>;
+/* template<class M> using ME = message_filters::MessageEvent<M>;
 template<class M> using Creator = message_filters::DefaultMessageCreator<M>;
 
 tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::convertUniversalMsgEvent(
@@ -557,7 +557,7 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   }
   else
     return compass_utils::make_unexpected(std::format("Invalid message type: {}.", type));
-};
+}; */
 
 void CompassConverter::setNavSatPos(const sensor_msgs::msg::NavSatFix& fix)
 {

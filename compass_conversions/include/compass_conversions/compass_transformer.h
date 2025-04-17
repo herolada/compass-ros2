@@ -40,13 +40,16 @@ class CompassTransformerNodelet : public rclcpp::Node
 {
 public:
   CompassTransformerNodelet();
+  CompassTransformerNodelet(const rclcpp::NodeOptions & options);
+  ~CompassTransformerNodelet() override;
 
   void setBuffer(tf2_ros::Buffer::SharedPtr buffer);
 
 protected:
-  void publish(const compass_interfaces::msg::Azimuth::ConstPtr& msg);
-  void transformAndPublish(const compass_interfaces::msg::Azimuth::ConstPtr& msg);
-  void failedCb(const compass_interfaces::msg::Azimuth::ConstPtr& msg,
+  void onInit();
+  void publish(const compass_interfaces::msg::Azimuth::ConstSharedPtr& msg);
+  void transformAndPublish(const compass_interfaces::msg::Azimuth::ConstSharedPtr& msg);
+  void failedCb(const compass_interfaces::msg::Azimuth::ConstSharedPtr& msg,
                 const tf2_ros::filter_failure_reasons::FilterFailureReason reason);
 
   std::shared_ptr<CompassConverter> converter;

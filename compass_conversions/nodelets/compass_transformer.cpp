@@ -28,7 +28,7 @@
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
 // #include <nodelet/nodelet.h>
-#include <pluginlib/class_list_macros.hpp>
+// #include <pluginlib/class_list_macros.hpp>
 // #include <ros/names.h>
 // #include <ros/node_handle.h>
 #include <sensor_msgs/msg/imu.hpp>
@@ -147,14 +147,27 @@ void CompassTransformerNodelet::setBuffer(tf2_ros::Buffer::SharedPtr buffer)
 }
 // protected:
 
+CompassTransformerNodelet::CompassTransformerNodelet(const rclcpp::NodeOptions & options)
+  : rclcpp::Node("compass_transformer_nodelet", options), buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock()))
+{
+  onInit();
+}
+
 CompassTransformerNodelet::CompassTransformerNodelet()
   : rclcpp::Node("compass_transformer_nodelet"), buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock()))
+{
+  onInit();
+}
+
+CompassTransformerNodelet::~CompassTransformerNodelet() = default;
+
+void CompassTransformerNodelet::onInit()
 {
   const auto queue_size = this->get_parameter_or<uint32_t>("queue_size", 10);
   const auto targetUnit = this->get_parameter_or<uint8_t>("target_unit", Az::UNIT_RAD);
   const auto targetOrientation = this->get_parameter_or<uint8_t>("target_orientation", Az::ORIENTATION_ENU);
   const auto targetReference = this->get_parameter_or<uint8_t>("target_reference", Az::REFERENCE_GEOGRAPHIC);
-  this->targetType = this->get_parameter_or<OutputType>("target_type", this->targetType);
+  this->targetType = parseOutputType(this->get_parameter_or<std::string>("target_type", outputTypeToString(this->targetType)));
   const auto targetAppendSuffix = this->get_parameter_or<bool>("target_append_suffix", false);
   this->targetFrame = this->get_parameter_or<std::string>("target_frame", std::string());
   const auto subscribeFix = this->get_parameter_or<bool>("subscribe_fix", true);
@@ -162,8 +175,8 @@ CompassTransformerNodelet::CompassTransformerNodelet()
 
   const auto log = this->get_logger();
   const auto clock = this->get_clock();
-  this->converter = std::make_shared<CompassConverter>(log, this->get_parameter_or<bool>("strict", true));
-  this->converter->configFromParams(this);
+  this->converter = std::make_shared<CompassConverter>(log, *clock, this->get_parameter_or<bool>("strict", true));
+  this->converter->configFromParams(shared_from_this());
 
   std::string outputTopicSuffix;
   std::string topicName;
@@ -197,21 +210,21 @@ CompassTransformerNodelet::CompassTransformerNodelet()
       break;
   }
 
-  this->azimuthInput = std::make_unique<UniversalAzimuthSubscriber>(log, clock, this, "azimuth_in", queue_size);
-  this->azimuthInput->configFromParams(this);
+  this->azimuthInput = std::make_unique<UniversalAzimuthSubscriber>(shared_from_this(), "azimuth_in", queue_size);
+  this->azimuthInput->configFromParams(shared_from_this());
 
   this->compassFilter = std::make_unique<CompassFilter>(
-    log, clock, this->converter, *this->azimuthInput, targetUnit, targetOrientation, targetReference);
+    log, *clock, this->converter, *this->azimuthInput, targetUnit, targetOrientation, targetReference);
 
   if (subscribeFix)
   {
-    this->fixInput = std::make_unique<message_filters::Subscriber<Fix>>(this, "fix", queue_size);
+    this->fixInput = std::make_unique<message_filters::Subscriber<Fix>>(this, "fix");
     this->compassFilter->connectFixInput(*this->fixInput);
   }
 
   if (subscribeUTMZone)
   {
-    this->utmZoneInput = std::make_unique<message_filters::Subscriber<std_msgs::msg::Int32>>(this, "utm_zone", queue_size);
+    this->utmZoneInput = std::make_unique<message_filters::Subscriber<std_msgs::msg::Int32>>(this, "utm_zone");
     this->compassFilter->connectUTMZoneInput(*this->utmZoneInput);
   }
 
@@ -222,14 +235,14 @@ CompassTransformerNodelet::CompassTransformerNodelet()
   else
   {
     this->tfFilter = std::make_unique<tf2_ros::MessageFilter<Az>>(
-      *this->compassFilter, this->buffer, targetFrame, queue_size, this);
+      *this->compassFilter, *this->buffer, targetFrame, queue_size, shared_from_this());
     this->tfFilter->registerCallback(&CompassTransformerNodelet::transformAndPublish, this);
     // registerFailureCallback IS CURRENTLY DISABLED IN TF2_ROS FOR "UNKNOWN REASONS" ...
     // this->tfFilter->registerFailureCallback(std::bind_front(&CompassTransformerNodelet::failedCb, this));
   }
 
   RCLCPP_INFO(log, "Publishing azimuth to topic %s (type %s).",
-    topicName, outputTypeToString(this->targetType).c_str());
+    topicName.c_str(), outputTypeToString(this->targetType).c_str());
 }
   /* void onInit() override
   {
@@ -337,7 +350,7 @@ CompassTransformerNodelet::CompassTransformerNodelet()
       ros::names::resolve(this->pub.getTopic()).c_str(), outputTypeToString(this->targetType).c_str());
   } */
 
-void CompassTransformerNodelet::publish(const Az::ConstPtr& msg)
+void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
 {
   switch (this->targetType)
   {
@@ -374,11 +387,11 @@ void CompassTransformerNodelet::publish(const Az::ConstPtr& msg)
   }
 }
 
-void CompassTransformerNodelet::transformAndPublish(const Az::ConstPtr& msg)
+void CompassTransformerNodelet::transformAndPublish(const Az::ConstSharedPtr& msg)
 {
   try
   {
-    Az::Ptr outMsg(new Az{});
+    Az::SharedPtr outMsg(new Az{});
     *outMsg = this->buffer->transform(*msg, this->targetFrame, tf2::Duration(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(100))));
     this->publish(outMsg);
   }
@@ -388,7 +401,7 @@ void CompassTransformerNodelet::transformAndPublish(const Az::ConstPtr& msg)
   }
 }
 
-void CompassTransformerNodelet::failedCb(const Az::ConstPtr& /*msg*/, const tf2_ros::filter_failure_reasons::FilterFailureReason reason)
+void CompassTransformerNodelet::failedCb(const Az::ConstSharedPtr& /*msg*/, const tf2_ros::filter_failure_reasons::FilterFailureReason reason)
 {
   RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "Can't transform incoming Azimuth data to frame %s. Reason %d",
     this->targetFrame.c_str(), reason);

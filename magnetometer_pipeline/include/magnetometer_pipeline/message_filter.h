@@ -35,7 +35,7 @@ namespace magnetometer_pipeline
  * message_filters::Subscriber<sensor_msgs::msg::MagneticField> biasInput(nh, "imu/mag_bias", 10);
  * magnetometer_pipeline::BiasRemoverFilter filter(log, magInput, biasInput);
  * // filter->configFromParams(params);
- * filter.registerCallback([](const sensor_msgs::msg::MagneticField::ConstPtr& unbiasedMsg) {
+ * filter.registerCallback([](const sensor_msgs::msg::MagneticField::ConstSharedPtr& unbiasedMsg) {
  *   ...  // Handle the unbiased data
  * });
  * \endcode
@@ -88,7 +88,7 @@ public:
    * - `~initial_mag_bias_z` (double, no default, optional): Magnetometer bias in the Z axis.
    * - `~initial_scaling_matrix` (double[9], optional): Magnetometer scaling matrix (row-major).
    */
-  virtual void configFromParams(const rclcpp::Node* node);
+  virtual void configFromParams(const rclcpp::Node::SharedPtr node);
 
 protected:
   virtual void cbMag(const message_filters::MessageEvent<sensor_msgs::msg::MagneticField const>& event);

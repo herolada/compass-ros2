@@ -116,7 +116,7 @@ namespace compass_utils
     size_t i = 0;
     for (const auto& s : strings)
     {
-      ss << std::to_string(s);
+      ss << s;
       if (i < numStrings - 1)
         ss << delimiter;
       i++;

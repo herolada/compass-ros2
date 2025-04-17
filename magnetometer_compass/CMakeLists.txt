@@ -3,9 +3,10 @@
 
 cmake_minimum_required(VERSION 3.20)
 project(magnetometer_compass)
-set (CMAKE_CXX_STANDARD 23)
+set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(ament_cmake REQUIRED)
 find_package(angles REQUIRED)
 find_package(compass_conversions REQUIRED)
 find_package(compass_interfaces REQUIRED)
@@ -52,6 +53,7 @@ target_include_directories(${PROJECT_NAME}
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   compass_interfaces
+  magnetometer_pipeline
   sensor_msgs
   rclcpp
   tf2
@@ -62,7 +64,6 @@ add_library(${PROJECT_NAME}_nodelet SHARED
   nodelets/${PROJECT_NAME}_nodelet.cpp
 )
 ament_target_dependencies(${PROJECT_NAME}_nodelet
-  angles
   compass_conversions
   compass_interfaces
   compass_utils
@@ -87,10 +88,12 @@ target_include_directories(${PROJECT_NAME}_nodelet
 ament_export_targets(export_${PROJECT_NAME}_nodelet HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   compass_interfaces
+  magnetometer_pipeline
   sensor_msgs
   rclcpp
   tf2
 )
+rclcpp_components_register_nodes(${PROJECT_NAME}_nodelet "magnetometer_compass::MagnetometerCompassNodelet")
 
 
 # LIBRARY 3
@@ -98,7 +101,6 @@ add_library(visualize_azimuth_nodelet SHARED
   nodelets/visualize_azimuth_nodelet.cpp
 )
 ament_target_dependencies(visualize_azimuth_nodelet
-  angles
   compass_conversions
   compass_interfaces
   compass_utils
@@ -123,10 +125,12 @@ target_include_directories(visualize_azimuth_nodelet
 ament_export_targets(export_visualize_azimuth_nodelet HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   compass_interfaces
+  magnetometer_pipeline
   sensor_msgs
   rclcpp
   tf2
 )
+rclcpp_components_register_nodes(visualize_azimuth_nodelet "magnetometer_compass::VisualizeAzimuthNodelet")
 
 
 # INSTALL LIBRARIES
@@ -136,15 +140,24 @@ install(
     )
 install(TARGETS
   ${PROJECT_NAME}
-  ${PROJECT_NAME}_nodelet
-  visualize_azimuth_nodelet
   EXPORT export_${PROJECT_NAME}
-  EXPORT export_${PROJECT_NAME}_nodelet
-  EXPORT export_visualize_azimuth_nodelet
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
 
+install(TARGETS
+  ${PROJECT_NAME}_nodelet
+  EXPORT export_${PROJECT_NAME}_nodelet
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
+
+install(TARGETS
+  visualize_azimuth_nodelet
+  EXPORT export_visualize_azimuth_nodelet
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
 # Do we need this???:
 # https://github.com/ros2/demos/blob/23b3bb5807223673cfd3f5e5652e8b0fe2568d7d/composition/CMakeLists.txt#L77
 # since the package installs libraries without exporting them

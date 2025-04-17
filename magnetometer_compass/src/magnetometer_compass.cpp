@@ -24,7 +24,7 @@
 // #include <cras_cpp_common/tf2_utils/interruptible_buffer.h>
 #include <compass_utils/tf2_utils.hpp>
 #include <compass_utils/string_utils.hpp>
-#include <imu_transformer/tf2_sensor_msgs.h>
+// #include <imu_transformer/tf2_sensor_msgs.h>
 #include <magnetometer_compass/magnetometer_compass.h>
 #include <rclcpp/node.hpp>
 #include <sensor_msgs/msg/imu.hpp>
@@ -50,13 +50,13 @@ struct MagnetometerCompassPrivate
 };
 
 MagnetometerCompass::MagnetometerCompass(
-  const rclcpp::Logger& log, const std::string& frame, const std::shared_ptr<tf2::BufferCore>& tf) :
-  MagnetometerCompass(log, frame, std::make_shared<tf2_ros::Buffer>(tf))
+  const rclcpp::Logger& log, const rclcpp::Clock::SharedPtr clk, const std::string& frame, const std::shared_ptr<tf2::BufferCore>& tf) :
+  MagnetometerCompass(log, frame, std::make_shared<tf2_ros::Buffer>(clk, tf ? tf->getCacheLength() : std::chrono::duration_cast<std::chrono::nanoseconds>(tf2::BUFFER_CORE_DEFAULT_CACHE_TIME)))
 {
 }
 
-MagnetometerCompass::MagnetometerCompass(const rclcpp::Logger& log, const std::string& frame,
-  const std::shared_ptr<tf2_ros::Buffer>& tf) :
+MagnetometerCompass::MagnetometerCompass(
+  const rclcpp::Logger& log, const std::string& frame, const std::shared_ptr<tf2_ros::Buffer>& tf) :
   log(log), data(new MagnetometerCompassPrivate{})
 {
   this->data->tf = tf;
@@ -65,7 +65,7 @@ MagnetometerCompass::MagnetometerCompass(const rclcpp::Logger& log, const std::s
 
 MagnetometerCompass::~MagnetometerCompass() = default;
 
-void MagnetometerCompass::configFromParams(const rclcpp::Node* node)//const std::map<std::string, rclcpp::Parameter>& params)
+void MagnetometerCompass::configFromParams(const rclcpp::Node::SharedPtr node)//const std::map<std::string, rclcpp::Parameter>& params)
 {
   // if (params.find("initial_variance") == params.end()) {
   //   this->data->variance = this->data->initialVariance = this->data->variance;

@@ -18,14 +18,13 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>tl-expected</depend>
+  <depend>magnetometer_pipeline</depend>
 
-  <build_depend>angles</build_depend>
   <build_depend>compass_conversions</build_depend>
   <build_depend>compass_interfaces</build_depend>
   <build_depend>compass_utils</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>imu_transformer</build_depend>
-  <build_depend>magnetometer_pipeline</build_depend>
   <build_depend>message_filters</build_depend>
   <build_depend>nodelet</build_depend>
   <build_depend>rclcpp</build_depend>
@@ -40,7 +39,6 @@
   <exec_depend>compass_utils</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>imu_transformer</exec_depend>
-  <exec_depend>magnetometer_pipeline</exec_depend>
   <exec_depend>message_filters</exec_depend>
   <exec_depend>nodelet</exec_depend>
   <exec_depend>rclcpp</exec_depend>
@@ -56,7 +54,7 @@
   <test_depend>rostest</test_depend>
 
   <export>
-    <rosdoc config="rosdoc.yaml">
+    <rosdoc config="rosdoc.yaml" />
     <build_type>ament_cmake</build_type>
   </export>
 </package>
