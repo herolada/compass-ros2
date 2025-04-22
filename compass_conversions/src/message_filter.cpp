@@ -170,7 +170,7 @@ void UniversalAzimuthSubscriber::azCb(const AzimuthEventType& event) {
   const auto maybeAzimuth = this->converter.convertAzimuth(az, Az::UNIT_RAD, az.orientation, az.reference);
   if (!maybeAzimuth.has_value())
   {
-    RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10.0, "Error converting message to Azimuth: %s", maybeAzimuth.error().c_str());
+    RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000., "Error converting message to Azimuth: %s", maybeAzimuth.error().c_str());
     return;
   }
   // const auto header = event.getConnectionHeaderPtr();
@@ -185,7 +185,7 @@ void UniversalAzimuthSubscriber::azCb(const AzimuthEventType& event) {
     event, this->inputVariance.value_or(0.0), Az::UNIT_RAD, this->inputOrientation, this->inputReference);
   if (!maybeAzimuth.has_value())
   {
-    RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10.0, "Error converting message to Azimuth: %s", maybeAzimuth.error().c_str());
+    RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000., "Error converting message to Azimuth: %s", maybeAzimuth.error().c_str());
     return;
   }
 
@@ -205,7 +205,7 @@ void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
     *msg, this->unit, this->orientation, this->reference.value_or(msg->reference));
   if (!output.has_value())
   {
-    RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10.0,
+    RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000.,
       "Azimuth conversion failed%s: %s", fixReceived ? "" : "(no fix message received yet)", output.error().c_str());
     return;
   }

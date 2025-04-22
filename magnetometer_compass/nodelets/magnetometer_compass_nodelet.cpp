@@ -520,7 +520,7 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
   const auto maybeAzimuth = this->compass->computeAzimuth(imu, magUnbiased);
   if (!maybeAzimuth.has_value())
   {
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "%s", maybeAzimuth.error().c_str());
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybeAzimuth.error().c_str());
     return;
   }
 
@@ -532,7 +532,7 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
   }
   catch (const tf2::TransformException& e)
   {
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 1.0,
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 1000.,
       "Could not transform IMU data to frame %s because: %s", this->frame.c_str(), e.what());
     return;
   }
@@ -547,7 +547,7 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
     if (maybeTrueNedAzimuthMsg)
       this->truePublishers.publishAzimuths(*maybeTrueNedAzimuthMsg, imuInBody);
     else
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "%s", maybeTrueNedAzimuthMsg.error().c_str());
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybeTrueNedAzimuthMsg.error().c_str());
   }
 
   if (this->utmPublishers.publish)
@@ -557,7 +557,7 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
     if (maybeUTMNedAzimuthMsg.has_value())
       this->utmPublishers.publishAzimuths(*maybeUTMNedAzimuthMsg, imuInBody);
     else
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "%s", maybeUTMNedAzimuthMsg.error().c_str());
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybeUTMNedAzimuthMsg.error().c_str());
   }
 };
 
@@ -589,7 +589,7 @@ void AzimuthPublishersConfig::publishAzimuths(const Az& nedAzimuth, const Imu& i
     if (maybeEnuAzimuth.has_value())
       this->enu.publishAzimuths(*maybeEnuAzimuth, imuInBody);
     else
-      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(), 1.0, "Could not convert from NED to ENU: %s", maybeEnuAzimuth.error().c_str());
+      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(), 1000., "Could not convert from NED to ENU: %s", maybeEnuAzimuth.error().c_str());
   }
 };
 
@@ -601,7 +601,7 @@ void AzimuthPublishersConfigForOrientation::publishAzimuths(const Az& azimuthRad
     if (maybeQuat.has_value())
       this->quatPub->publish(*maybeQuat);
     else
-      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(), 1.0, "%s", maybeQuat.error().c_str());
+      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(), 1000., "%s", maybeQuat.error().c_str());
   }
 
   if (this->publishImu)
@@ -609,7 +609,7 @@ void AzimuthPublishersConfigForOrientation::publishAzimuths(const Az& azimuthRad
     const auto maybeQuat = this->converter->convertToQuaternion(azimuthRad);
     if (!maybeQuat.has_value())
     {
-      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(), 1.0, "%s", maybeQuat.error().c_str());
+      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(), 1000., "%s", maybeQuat.error().c_str());
     }
     else
     {
@@ -645,7 +645,7 @@ void AzimuthPublishersConfigForOrientation::publishAzimuths(const Az& azimuthRad
     if (maybePose.has_value())
       this->posePub->publish(*maybePose);
     else
-      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(),  1.0, "%s", maybePose.error().c_str());
+      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(), 1000., "%s", maybePose.error().c_str());
   }
 
   if (this->publishRad)
@@ -660,7 +660,7 @@ void AzimuthPublishersConfigForOrientation::publishAzimuths(const Az& azimuthRad
     if (maybeAzimuthDeg.has_value())
       this->degPub->publish(*maybeAzimuthDeg);
     else
-      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(),  1.0, "%s", maybeAzimuthDeg.error().c_str());
+      RCLCPP_ERROR_THROTTLE(node->get_logger(), *node->get_clock(), 1000., "%s", maybeAzimuthDeg.error().c_str());
   }
 };
 

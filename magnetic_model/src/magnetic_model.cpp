@@ -157,7 +157,7 @@ tl::expected<MagneticField, std::string> MagneticModel::getMagneticField(
     }
     else
     {
-      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10.0, "%s", err.c_str());
+      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000., "%s", err.c_str());
       errorCoef *= std::max(1.0, std::max(std::abs(year - minYear), std::abs(year - maxYear)));
     }
   }
@@ -175,7 +175,7 @@ tl::expected<MagneticField, std::string> MagneticModel::getMagneticField(
     }
     else
     {
-      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10.0, "%s", err.c_str());
+      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000., "%s", err.c_str());
       errorCoef *= std::max(1.0, std::max(std::abs(fix.altitude - minAlt), std::abs(fix.altitude - maxAlt)) / 1000.0);
     }
   }
@@ -220,7 +220,7 @@ tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMa
     }
     else
     {
-      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10.0, "%s", err.c_str());
+      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000., "%s", err.c_str());
       errorCoef *= std::max(1.0, std::max(std::abs(fix.altitude - minAlt), std::abs(fix.altitude - maxAlt)) / 1000.0);
     }
   }
@@ -258,7 +258,7 @@ tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMa
     }
     else
     {
-      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10.0, "%s", err.c_str());
+      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000., "%s", err.c_str());
       errorCoef *= std::max(1.0, std::max(std::abs(year - minYear), std::abs(year - maxYear)));
     }
   }

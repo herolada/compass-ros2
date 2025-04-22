@@ -36,7 +36,7 @@ void BiasRemoverFilter::cbMag(const message_filters::MessageEvent<Field const>& 
   const auto maybeMagUnbiased = this->remover->removeBias(*event.getConstMessage());
   if (!maybeMagUnbiased.has_value())
   {
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->log, this->clock, 10.0, "Bias remover cannot work: %s. Waiting...", maybeMagUnbiased.error().c_str());
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->log, this->clock, 10000., "Bias remover cannot work: %s. Waiting...", maybeMagUnbiased.error().c_str());
     return;
   }
 

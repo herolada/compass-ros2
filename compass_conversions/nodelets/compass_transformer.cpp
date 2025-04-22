@@ -360,7 +360,7 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
       if (maybeImu.has_value())
         this->pub_imu->publish<sensor_msgs::msg::Imu>(maybeImu.value());
       else
-        RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "%s", maybeImu.error().c_str());
+        RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybeImu.error().c_str());
       break;
     }
     case OutputType::Pose:
@@ -369,7 +369,7 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
       if (maybePose.has_value())
         this->pub_pose->publish(*maybePose);
       else
-        RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "%s", maybePose.error().c_str());
+        RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybePose.error().c_str());
       break;
     }
     case OutputType::Quaternion:
@@ -378,7 +378,7 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
       if (maybeQuat.has_value())
         this->pub_quat->publish(*maybeQuat);
       else
-        RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "%s", maybeQuat.error().c_str());
+        RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybeQuat.error().c_str());
       break;
     }
     default:
@@ -397,13 +397,13 @@ void CompassTransformerNodelet::transformAndPublish(const Az::ConstSharedPtr& ms
   }
   catch (const tf2::TransformException& e)
   {
-    RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "Azimuth transformation failed: %s", e.what());
+    RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "Azimuth transformation failed: %s", e.what());
   }
 }
 
 void CompassTransformerNodelet::failedCb(const Az::ConstSharedPtr& /*msg*/, const tf2_ros::filter_failure_reasons::FilterFailureReason reason)
 {
-  RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1.0, "Can't transform incoming Azimuth data to frame %s. Reason %d",
+  RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "Can't transform incoming Azimuth data to frame %s. Reason %d",
     this->targetFrame.c_str(), reason);
 }
 

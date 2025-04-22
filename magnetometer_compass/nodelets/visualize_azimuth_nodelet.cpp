@@ -203,7 +203,7 @@ void VisualizeAzimuthNodelet::azimuthCb(const Az& azimuthEast)
   const auto maybePose = this->converter->convertToPose(azimuthNorth);
   if (!maybePose.has_value())
   {
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 10.0, "Visualizing azimuth failed: %s", maybePose.error().c_str());
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->get_logger(), *this->get_clock(), 10000., "Visualizing azimuth failed: %s", maybePose.error().c_str());
     return;
   }
 

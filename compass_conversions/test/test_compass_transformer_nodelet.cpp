@@ -129,7 +129,7 @@ TEST(CompassTransformerNodelet, BasicConversion)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -204,7 +204,7 @@ TEST(CompassTransformerNodelet, TfConversion)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -286,7 +286,7 @@ TEST(CompassTransformerNodelet, TfConversionFail)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -341,7 +341,7 @@ TEST(CompassTransformerNodelet, FixMissing)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -404,7 +404,7 @@ TEST(CompassTransformerNodelet, FixFromParams)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -469,7 +469,7 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for fix and azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for fix and azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -562,7 +562,7 @@ TEST(CompassTransformerNodelet, SubImuNameDetect)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -639,7 +639,7 @@ TEST(CompassTransformerNodelet, SubImuNoDetect)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -712,7 +712,7 @@ TEST(CompassTransformerNodelet, SubPoseNameDetect)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -790,7 +790,7 @@ TEST(CompassTransformerNodelet, SubPoseNoDetect)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -868,7 +868,7 @@ TEST(CompassTransformerNodelet, SubQuatNameDetect)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -949,7 +949,7 @@ TEST(CompassTransformerNodelet, SubQuatNoDetect)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -1022,7 +1022,7 @@ TEST(CompassTransformerNodelet, PubImu)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -1099,7 +1099,7 @@ TEST(CompassTransformerNodelet, PubImuSuffix)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -1171,7 +1171,7 @@ TEST(CompassTransformerNodelet, PubPose)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -1247,7 +1247,7 @@ TEST(CompassTransformerNodelet, PubPoseSuffix)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -1319,7 +1319,7 @@ TEST(CompassTransformerNodelet, PubQuat)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -1394,7 +1394,7 @@ TEST(CompassTransformerNodelet, PubQuatSuffix)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
@@ -1473,7 +1473,7 @@ TEST(CompassTransformerNodelet, CrossType)  // NOLINT
   {
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
     executor.spin_once();
-    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 0.2, "Waiting for azimuth input and output topics.");
+    RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
   }
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);

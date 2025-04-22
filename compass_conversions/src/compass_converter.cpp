@@ -568,7 +568,7 @@ void CompassConverter::setNavSatPos(const sensor_msgs::msg::NavSatFix& fix)
     const auto maybeConvergenceAndZone = this->computeUTMGridConvergenceAndZone(fix, this->forcedUTMZone);
     if (!maybeConvergenceAndZone.has_value())
     {
-      RCLCPP_WARN_THROTTLE(this->log, this->clock, 10.0, "Error computing UTM grid convergence: %s", maybeConvergenceAndZone.error().c_str());
+      RCLCPP_WARN_THROTTLE(this->log, this->clock, 10000., "Error computing UTM grid convergence: %s", maybeConvergenceAndZone.error().c_str());
     }
     else
     {
