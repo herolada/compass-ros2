@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 #include "tl/expected.hpp"
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 #include <compass_utils/string_utils.hpp>
 #include <compass_conversions/tf2_compass_msgs.h>
 
@@ -20,7 +20,7 @@
 #include <magnetometer_pipeline/bias_remover.h>
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <rclcpp/rclcpp.hpp>
-// #include <tf2_eigen/tf2_eigen.hpp>
+#include <tf2_eigen/tf2_eigen.hpp>
 
 namespace magnetometer_pipeline
 {

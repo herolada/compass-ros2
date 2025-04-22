@@ -4,8 +4,15 @@ project(test)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(magnetometer_pipeline REQUIRED)
-find_package(compass_conversions REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(imu_transformer REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(tf2_eigen REQUIRED)
+# find_package(eigen REQUIRED)
+
+# find_package(magnetometer_pipeline REQUIRED)
+# find_package(compass_conversions REQUIRED)
+
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -14,22 +21,29 @@ add_library(test_pckg SHARED
   src/test.cpp
 )
 ament_target_dependencies(test_pckg
-  compass_conversions
+  builtin_interfaces
+  imu_transformer
+  rclcpp
+  tf2_eigen
+  # compass_conversions
 )
 
 target_include_directories(test_pckg
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+  "/usr/include/eigen3"
 )
 
-target_link_libraries(test_pckg
-compass_conversions::compass_topic_names
-)
+# target_link_libraries(test_pckg
+# compass_conversions::compass_topic_names
+# )
 
 ament_export_targets(export_test_pckg HAS_LIBRARY_TARGET)
 ament_export_dependencies(
-  compass_conversions
+  builtin_interfaces
+  imu_transformer
+  # compass_conversions
 )
 
 install(DIRECTORY include/
@@ -49,13 +63,16 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_tutorial_test PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+    "/usr/include/eigen3"
   )
   # ament_target_dependencies(${PROJECT_NAME}_tutorial_test
   #   std_msgs
   # )
   # target_link_libraries(${PROJECT_NAME}_tutorial_test name_of_local_library)
-  target_link_libraries(${PROJECT_NAME}_tutorial_test compass_conversions::compass_topic_names
-)
+
+
+
+  # target_link_libraries(${PROJECT_NAME}_tutorial_test compass_conversions::compass_topic_names)
 endif()
 
 ament_package()

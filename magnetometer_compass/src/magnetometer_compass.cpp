@@ -26,6 +26,8 @@
 #include <compass_utils/string_utils.hpp>
 // #include <imu_transformer/tf2_sensor_msgs.h>
 #include <magnetometer_compass/magnetometer_compass.h>
+#include <magnetometer_compass/tf2_sensor_msgs.h>
+
 #include <rclcpp/node.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>

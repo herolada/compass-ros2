@@ -78,6 +78,7 @@ install(
 if(BUILD_TESTING)
     # this works
     find_package(ament_cmake_gtest REQUIRED)
+
     ament_add_gtest(test_${PROJECT_NAME} test/test_${PROJECT_NAME}.cpp)
     target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
     target_include_directories(test_${PROJECT_NAME}
@@ -85,6 +86,39 @@ if(BUILD_TESTING)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     )
+
+    ament_add_gtest(test_rate_limiter test/test_rate_limiter.cpp)
+    target_link_libraries(test_rate_limiter ${PROJECT_NAME})
+    target_include_directories(test_rate_limiter
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ament_add_gtest(test_string_utils test/test_string_utils.cpp)
+    target_link_libraries(test_string_utils ${PROJECT_NAME})
+    target_include_directories(test_string_utils
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ament_add_gtest(test_tf2_utils test/test_tf2_utils.cpp)
+    target_link_libraries(test_tf2_utils ${PROJECT_NAME})
+    target_include_directories(test_tf2_utils
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ament_add_gtest(test_time_utils test/test_time_utils.cpp)
+    target_link_libraries(test_time_utils ${PROJECT_NAME})
+    target_include_directories(test_time_utils
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+    
     #ament_target_dependencies(test_${PROJECT_NAME}
     #    rclcpp
     #    compass_interfaces

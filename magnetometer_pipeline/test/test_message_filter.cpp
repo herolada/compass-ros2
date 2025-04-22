@@ -121,8 +121,7 @@ TEST(MessageFilter, Basic)  // NOLINT
 
 TEST(MessageFilter, ConfigFromParams)  // NOLINT
 {
-  
-  auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  const auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
   
   // const auto clk = rclcpp::Clock();
 

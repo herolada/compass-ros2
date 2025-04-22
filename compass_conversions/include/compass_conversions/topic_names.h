@@ -13,6 +13,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <map>
 
 // #include <boost/shared_ptr.hpp>
 

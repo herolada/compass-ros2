@@ -9,7 +9,10 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>magnetometer_pipeline</depend>
+  <!-- <depend>magnetometer_pipeline</depend> -->
+  <depend>Eigen3</depend>
+  <depend>builtin_interfaces</depend>
+  <depend>rclcpp</depend>
   <!-- <depend>compass_conversions</depend> -->
 
   <test_depend>ament_lint_auto</test_depend>

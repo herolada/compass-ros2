@@ -14,8 +14,8 @@ find_package(message_filters REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
-# find_package(tf2_eigen REQUIRED)
-find_package(Eigen3 REQUIRED)
+find_package(tf2_eigen REQUIRED)
+# find_package(Eigen3 REQUIRED)
 find_package(tl-expected REQUIRED)
 
 # LIBRARY 1
@@ -27,7 +27,8 @@ ament_target_dependencies(magnetometer_bias_remover
   compass_utils
   rclcpp
   sensor_msgs
-  Eigen3
+  tf2_eigen
+  # Eigen3
 )
 target_link_libraries(magnetometer_bias_remover tl::expected)
 
@@ -35,11 +36,13 @@ target_include_directories(magnetometer_bias_remover
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+  "/usr/include/eigen3"
 )
 ament_export_targets(export_magnetometer_bias_remover HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   sensor_msgs
   rclcpp
+  tf2_eigen
 )
 
 # LIBRARY 2
@@ -50,8 +53,9 @@ ament_target_dependencies(magnetometer_bias_remover_filter
   geometry_msgs
   message_filters
   rclcpp
+  rcutils
   sensor_msgs
-  Eigen3
+  # Eigen3
 )
 
 target_link_libraries(magnetometer_bias_remover_filter tl::expected)
@@ -77,7 +81,7 @@ ament_target_dependencies(magnetometer_bias_remover_nodelet
   rclcpp
   rclcpp_components
   sensor_msgs
-  Eigen3
+  # Eigen3
 )
 target_link_libraries(magnetometer_bias_remover_nodelet tl::expected)
 
@@ -159,6 +163,39 @@ install(FILES nodelets.xml
 )
 
 install(DIRECTORY launch/ DESTINATION share/launch${PROJECT_NAME})
+
+
+if(BUILD_TESTING)
+    find_package(ament_cmake_gtest REQUIRED)
+
+    ament_add_gtest(test_magnetometer_bias_remover_nodelet test/test_bias_remover_nodelet.cpp)
+    ament_target_dependencies(test_magnetometer_bias_remover_nodelet
+    )
+    target_link_libraries(test_magnetometer_bias_remover_nodelet magnetometer_bias_remover_nodelet)
+    target_include_directories(test_magnetometer_bias_remover_nodelet
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ament_add_gtest(test_magnetometer_bias_remover test/test_bias_remover.cpp)
+    ament_target_dependencies(test_magnetometer_bias_remover
+    )
+    target_link_libraries(test_magnetometer_bias_remover magnetometer_bias_remover tl::expected)
+    target_include_directories(test_magnetometer_bias_remover
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ament_add_gtest(test_magnetometer_bias_remover_filter test/test_message_filter.cpp)
+    target_link_libraries(test_magnetometer_bias_remover_filter magnetometer_bias_remover_filter magnetometer_bias_remover)
+    target_include_directories(test_magnetometer_bias_remover_filter
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+endif()
 
 # catkin_install_python(PROGRAMS nodes/magnetometer_bias_observer
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

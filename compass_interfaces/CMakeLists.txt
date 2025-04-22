@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 set (CMAKE_CXX_STANDARD 20)
-project(compass_interfaces)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
+project(compass_interfaces)
 
 find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)

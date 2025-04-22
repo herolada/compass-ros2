@@ -49,6 +49,7 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+  "/usr/include/eigen3"
 )
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
@@ -84,10 +85,12 @@ target_include_directories(${PROJECT_NAME}_nodelet
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+  "/usr/include/eigen3"
 )
 ament_export_targets(export_${PROJECT_NAME}_nodelet HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   compass_interfaces
+  imu_transformer
   magnetometer_pipeline
   sensor_msgs
   rclcpp
@@ -239,6 +242,43 @@ install(TARGETS
 install(FILES nodelets.xml
 DESTINATION share/${PROJECT_NAME}
 )
+
+if(BUILD_TESTING)
+    find_package(ament_cmake_gtest REQUIRED)
+    find_package(builtin_interfaces REQUIRED)
+    find_package(imu_transformer REQUIRED)
+    find_package(tf2_sensor_msgs REQUIRED)
+
+    ament_add_gtest(test_magnetometer_compass_nodelet test/test_magnetometer_compass_nodelet.cpp)
+    ament_target_dependencies(test_magnetometer_compass_nodelet
+      builtin_interfaces
+      imu_transformer
+      tf2_sensor_msgs
+    )
+    target_link_libraries(test_magnetometer_compass_nodelet magnetometer_compass_nodelet)
+    target_include_directories(test_magnetometer_compass_nodelet
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ament_add_gtest(test_magnetometer_compass test/test_magnetometer_compass.cpp)
+    target_link_libraries(test_magnetometer_compass magnetometer_compass)
+    target_include_directories(test_magnetometer_compass
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ament_add_gtest(test_visualize_azimuth_nodelet test/test_visualize_azimuth_nodelet.cpp)
+    target_link_libraries(test_visualize_azimuth_nodelet visualize_azimuth_nodelet)
+    target_include_directories(test_visualize_azimuth_nodelet
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+endif()
+
 
 # if(CATKIN_ENABLE_TESTING)
 #   find_package(roslint REQUIRED)

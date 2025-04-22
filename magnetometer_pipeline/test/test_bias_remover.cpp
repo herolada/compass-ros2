@@ -157,7 +157,7 @@ TEST(MagnetometerBiasRemover, ConfigFromParamsWithScale)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   
-  auto node = &rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
 
   auto remover = magnetometer_pipeline::MagnetometerBiasRemover(node->get_logger());
   EXPECT_FALSE(remover.hasBias());

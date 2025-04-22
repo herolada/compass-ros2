@@ -10,6 +10,8 @@
 #include "gtest/gtest.h"
 
 // #include <boost/array.hpp>
+#include <builtin_interfaces/msg/time.hpp>
+#include <chrono>
 #include <cmath>
 #include <functional>
 #include <map>
@@ -17,6 +19,7 @@
 #include <string>
 #include <utility>
 #include <Eigen/Core>
+#include <Eigen/LU> 
 
 #include <angles/angles.h>
 #include <class_loader/class_loader_core.hpp>
@@ -30,7 +33,10 @@
 // #include <compass_utils/string_utils/rclcpp.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
-// #include <imu_transformer/tf2_sensor_msgs.hpp>
+
+// #include <imu_transformer/tf2_sensor_msgs.h> // TODO doesnt work for some reason
+#include <magnetometer_compass/tf2_sensor_msgs.h>
+
 // #include <nodelet/nodelet.h>
 // #include <rclcpp/callback_queue.h>
 // #include <rclcpp/names.hpp>
@@ -40,6 +46,7 @@
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <rclcpp/utilities.hpp>
 #include <rclcpp/publisher.hpp>
@@ -69,6 +76,19 @@ double det(const std::array<double, 9>& mat)
 {
   return Eigen::Map<const Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(mat.data()).determinant();
 }
+
+/* void azCb(
+  std::map<std::tuple<decltype(Az::unit), decltype(Az::orientation), decltype(Az::reference)>, std::optional<Az>> &az,
+  decltype(Az::unit) unit,
+  decltype(Az::orientation) orientation,
+  decltype(Az::reference) reference,
+  const Az::ConstSharedPtr& msg)
+{
+  az[std::make_tuple(unit, orientation, reference)] = *msg;
+} */
+
+
+
 
 TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 {
@@ -109,11 +129,11 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   node->set_parameter(parameter9); // Disable smoothing
 
   std::map<std::tuple<decltype(Az::unit), decltype(Az::orientation), decltype(Az::reference)>, std::optional<Az>> az;
-  auto azCb = [&az](decltype(Az::unit) unit, decltype(Az::orientation) orientation, decltype(Az::reference) reference,
-    const Az::ConstSharedPtr& msg)
-  {
-    az[std::make_tuple(unit, orientation, reference)] = *msg;
-  };
+  // auto azCb = [&az](decltype(Az::unit) unit, decltype(Az::orientation) orientation, decltype(Az::reference) reference,
+  //   const Az::ConstSharedPtr& msg)
+  // {
+  //   az[std::make_tuple(unit, orientation, reference)] = *msg;
+  // };
 
   std::optional<Imu> lastImu;
   auto imuCb = [&lastImu](const Imu::ConstSharedPtr& msg)
@@ -150,16 +170,24 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   size_t numAzimuths {0u};
   auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", 1, magCb); subs.push_back(magUnbiasedSub);
   auto azMagEnuRadSub = node->create_subscription<Az>("compass/mag/enu/rad", 1,
-    std::bind_front(azCb, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC));
+    [&az](const Az::ConstSharedPtr& msg) {
+      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC)] = *msg;
+    });
   subs.push_back(azMagEnuRadSub); numAzimuths++;
   auto azMagNedDegSub = node->create_subscription<Az>("compass/mag/ned/deg", 1,
-    std::bind_front(azCb, Az::UNIT_DEG, Az::ORIENTATION_NED, Az::REFERENCE_MAGNETIC));
+    [&az](const Az::ConstSharedPtr& msg) {
+      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC)] = *msg;
+    });
   subs.push_back(azMagNedDegSub); numAzimuths++;
   auto azTrueEnuRadSub = node->create_subscription<Az>("compass/true/enu/rad", 1,
-    std::bind_front(azCb, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC));
+    [&az](const Az::ConstSharedPtr& msg) {
+      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC)] = *msg;
+    });
   subs.push_back(azTrueEnuRadSub); numAzimuths++;
   auto azUtmEnuRadSub = node->create_subscription<Az>("compass/utm/enu/rad", 1,
-    std::bind_front(azCb, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_UTM));
+    [&az](const Az::ConstSharedPtr& msg) {
+      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC)] = *msg;
+    });
   subs.push_back(azUtmEnuRadSub); numAzimuths++;
   auto azTrueEnuImuSub = node->create_subscription<Imu>("compass/true/enu/imu", 1, imuCb); subs.push_back(azTrueEnuImuSub);
   auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", 1, quatCb); subs.push_back(azUtmNedQuatSub);
@@ -173,8 +201,8 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(node);
+  // rclcpp::executors::SingleThreadedExecutor executor;
+  // executor.add_node(node);
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
@@ -199,7 +227,10 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
 
-  rclcpp::Time time(1664286802, 187375068);
+  // rclcpp::Time time(1664286802, 187375068);
+  builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   // First, publish imu + mag before bias + fix + tf, this should do nothing
 
@@ -275,6 +306,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   executor.spin_once();
 
+
   // Wait until the latched messages are received
   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.2*1e09)));
   executor.spin_once();
@@ -346,6 +378,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   EXPECT_NEAR(0.360320, lastField->magnetic_field.x, 1e-6);
   EXPECT_NEAR(0.153587, lastField->magnetic_field.y, 1e-6);
   EXPECT_NEAR(0.157033, lastField->magnetic_field.z, 1e-6);
+  // OK
 
   const auto radEnuMag = std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC);
   EXPECT_EQ(time, az[radEnuMag]->header.stamp);
@@ -373,6 +406,8 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   EXPECT_EQ(Az::UNIT_RAD, az[radEnuTrue]->unit);
   EXPECT_EQ(Az::ORIENTATION_ENU, az[radEnuTrue]->orientation);
   EXPECT_EQ(Az::REFERENCE_GEOGRAPHIC, az[radEnuTrue]->reference);
+  
+  // OK
 
   const auto radEnuUtm = std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_UTM);
   EXPECT_EQ(time, az[radEnuUtm]->header.stamp);
@@ -395,6 +430,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   tf2::fromMsg(lastImu->linear_acceleration, v2);
   EXPECT_NEAR(v1.length(), v2.length(), 1e-6);
   Imu transImu;
+  // FIXED
   tf->transform(imu, transImu, "base_link");
   EXPECT_NEAR(compass_utils::getRoll(transImu.orientation), compass_utils::getRoll(lastImu->orientation), 1e-4);
   EXPECT_NEAR(compass_utils::getPitch(transImu.orientation), compass_utils::getPitch(lastImu->orientation), 1e-4);
@@ -412,7 +448,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   EXPECT_NEAR(M_PI_2 - 3.440687 + 2 * M_PI,
     angles::normalize_angle_positive(compass_utils::getYaw(lastPose->pose.pose.orientation)), 1e-6);
   EXPECT_NEAR(0.0, lastPose->pose.covariance[5 * 6 + 5], 1e-6);
-
   // New data
 
   az.clear();
@@ -420,7 +455,9 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   lastQuat.reset();
   lastPose.reset();
   lastField.reset();
-  time = {1664286802, 197458028};
+  // time = {1664286802, 197458028};
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   imu.header.stamp = time;
   imu.angular_velocity.x = -0.007707;
@@ -524,6 +561,17 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   EXPECT_NEAR(0.0, lastPose->pose.covariance[5 * 6 + 5], 1e-6);
 }
 
+
+
+
+
+
+
+
+
+
+
+
 TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
@@ -593,8 +641,8 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(node);
+  // rclcpp::executors::SingleThreadedExecutor executor;
+  // executor.add_node(node);
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
@@ -616,7 +664,10 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
 
-  rclcpp::Time time(1664286802, 187375068);
+  // rclcpp::Time time(1664286802, 187375068);
+  builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   geometry_msgs::msg::TransformStamped baseLinkImuTf;
   baseLinkImuTf.header.stamp = time;
@@ -709,11 +760,11 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   rclcpp::Parameter parameter4("initial_lat", 50.090806436);
   node->set_parameter(parameter4);
   node->declare_parameter("initial_lon", 14.133202857);
-  rclcpp::Parameter parameter3("initial_lon", 14.133202857);
-  node->set_parameter(parameter3);
+  rclcpp::Parameter parameter5("initial_lon", 14.133202857);
+  node->set_parameter(parameter5);
   node->declare_parameter("initial_alt", 445.6146);
-  rclcpp::Parameter parameter4("initial_alt", 445.6146);
-  node->set_parameter(parameter4);   
+  rclcpp::Parameter parameter6("initial_alt", 445.6146);
+  node->set_parameter(parameter6);   
 
   std::optional<Quat> lastQuat;
   auto quatCb = [&lastQuat](const Quat::ConstSharedPtr& msg)
@@ -739,8 +790,8 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(node);
+  // rclcpp::executors::SingleThreadedExecutor executor;
+  // executor.add_node(node);
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
@@ -762,7 +813,11 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
 
-  rclcpp::Time time(1664286802, 187375068);
+  // rclcpp::Time time(1664286802, 187375068);
+  builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
+  
 
   geometry_msgs::msg::TransformStamped baseLinkImuTf;
   baseLinkImuTf.header.stamp = time;

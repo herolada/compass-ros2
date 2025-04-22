@@ -20,6 +20,7 @@
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
 // #include <imu_transformer/tf2_sensor_msgs.h>
+#include <magnetometer_compass/tf2_sensor_msgs.h>
 #include <magnetometer_compass/magnetometer_compass.h>
 #include <magnetometer_pipeline/message_filter.h>
 #include <message_filters/subscriber.h>

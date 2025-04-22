@@ -197,9 +197,11 @@ TEST(TokenBucketLimiter, RegularSequenceRatio)  // NOLINT
   std::map<compass_utils::TokenBucketLimiter*, size_t> numPublished;
   std::map<compass_utils::TokenBucketLimiter*, size_t> expectedPublished;
 
+  const auto clk = std::make_shared<rclcpp::Clock>();
+
   for (const auto& rate : rates)
   {
-    auto limiter = std::make_unique<compass_utils::TokenBucketLimiter>(rclcpp::Rate(rate));
+    auto limiter = std::make_unique<compass_utils::TokenBucketLimiter>(clk, rclcpp::Rate(rate));
     names[limiter.get()] = "limiter " + std::to_string(rate);
     numPublished[limiter.get()] = 0;
     const auto expectedRate = (std::min)(10.0, rate);
