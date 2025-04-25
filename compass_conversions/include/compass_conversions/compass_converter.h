@@ -32,6 +32,7 @@
 #include <std_msgs/msg/header.hpp>
 // #include <rclcpp/generic_subscription.hpp>
 #include <rclcpp/generic_subscription.hpp>
+#include <rclcpp/serialized_message.hpp>
 
 namespace compass_conversions
 {
@@ -77,7 +78,7 @@ public:
    * - `initial_lon` (double, degrees, optional): If set, use this longitude before the first navsat pose is received.
    * - `initial_alt` (double, meters, optional): If set, use this altitude before the first navsat pose is received.
    */
-  void configFromParams(const rclcpp::Node::SharedPtr node);
+  void configFromParams(const rclcpp::Node* node);
 
   /**
    * \brief Force magnetic declination instead of computing it.
@@ -297,13 +298,14 @@ public:
    * \param[in] reference The declared input reference (autodetected from topic if not specified).
    * \return The converted Azimuth message or an error message.
    */
-  /* tl::expected<compass_interfaces::msg::Azimuth, std::string> convertUniversalMsgEvent(
-    const message_filters::MessageEvent<rclcpp::GenericSubscription const>& event,
+/*   tl::expected<compass_interfaces::msg::Azimuth, std::string> convertUniversalMsgEvent(
+    const message_filters::MessageEvent<rclcpp::SerializedMessage const>& event,
+    const std::string& topic,
     decltype(compass_interfaces::msg::Azimuth::variance) variance = 0,
     decltype(compass_interfaces::msg::Azimuth::unit) unit = compass_interfaces::msg::Azimuth::UNIT_RAD,
     const std::optional<decltype(compass_interfaces::msg::Azimuth::orientation)>& orientation = {},
-    const std::optional<decltype(compass_interfaces::msg::Azimuth::reference)>& reference = {}) const; */
-
+    const std::optional<decltype(compass_interfaces::msg::Azimuth::reference)>& reference = {}) const;
+ */
   /**
    * \brief Convert the given Azimuth message to geometry_msgs::msg::QuaternionStamped in the same parametrization.
    *
@@ -329,6 +331,9 @@ public:
    * \return The converted sensor_msgs::msg::Imu message or an error message.
    */
   virtual tl::expected<sensor_msgs::msg::Imu, std::string> convertToImu(const compass_interfaces::msg::Azimuth& azimuth) const;
+  
+  // template<typename Msg>
+  // Msg CompassConverter::deserializeMessage(const rclcpp::SerializedMessage& msg);
 
 protected:
   //! \brief UTM convergence of the last received navsat position (or the forced one).

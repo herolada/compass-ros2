@@ -40,7 +40,9 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
   magnetometer_compass::MagnetometerCompass compass(log, "base_link", tf);
   compass.setLowPassRatio(0.0);
 
-  rclcpp::Time time(1664286802, 187375068);
+    builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   // First, publish imu + mag before tf, this should do nothing
 
@@ -109,7 +111,8 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
   EXPECT_EQ(Az::REFERENCE_MAGNETIC, maybeAzimuth->reference);
 
   // New data
-  time = {1664286802, 197458028};
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   imu.header.stamp = time;
   imu.angular_velocity.x = -0.007707;
@@ -145,29 +148,31 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 
 TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
 {
-  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  rclcpp::Node node = rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
   // rclcpp::Logger log = rclcpp::get_logger("test_logger");
 
-  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
+  auto tf = std::make_shared<tf2_ros::Buffer>(node.get_clock());
   tf->setUsingDedicatedThread(true);
 
-  magnetometer_compass::MagnetometerCompass compass(node->get_logger(), "base_link", tf);
+  magnetometer_compass::MagnetometerCompass compass(node.get_logger(), "base_link", tf);
 
   // const std::map<std::string, rclcpp::Parameter> params;
   // params["low_pass_ratio"] = 0.0;
   // params["initial_variance"] = 4.0;
 
   rclcpp::Parameter parameter1("low_pass_ratio", 0.0);
-  node->set_parameter(parameter1);
+  node.set_parameter(parameter1);
   rclcpp::Parameter parameter2("initial_variance", 4.0);
-  node->set_parameter(parameter2);
+  node.set_parameter(parameter2);
 
   // auto paramAdapter = std::make_shared<cras::XmlRpcValueGetParamAdapter>(params, "");
   // std::map<std::string, rclcpp::Parameter> paramHelper(log, paramAdapter);
 
-  compass.configFromParams(node);
+  compass.configFromParams(&node);
 
-  rclcpp::Time time(1664286802, 187375068);
+    builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   geometry_msgs::msg::TransformStamped baseLinkImuTf;
   baseLinkImuTf.header.stamp = time;
@@ -227,7 +232,8 @@ TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
   EXPECT_EQ(Az::REFERENCE_MAGNETIC, maybeAzimuth->reference);
 
   // New data
-  time = {1664286802, 197458028};
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   imu.header.stamp = time;
   imu.angular_velocity.x = -0.007707;
@@ -272,7 +278,9 @@ TEST(MagnetometerCompass, Reset)  // NOLINT
   magnetometer_compass::MagnetometerCompass compass(log, "base_link", tf);
   compass.setLowPassRatio(0.5);
 
-  rclcpp::Time time(1664286802, 187375068);
+    builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   geometry_msgs::msg::TransformStamped baseLinkImuTf;
   baseLinkImuTf.header.stamp = time;
@@ -335,7 +343,8 @@ TEST(MagnetometerCompass, Reset)  // NOLINT
   compass.reset();
 
   // New data
-  time = {1664286802, 197458028};
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   imu.header.stamp = time;
   imu.angular_velocity.x = -0.007707;

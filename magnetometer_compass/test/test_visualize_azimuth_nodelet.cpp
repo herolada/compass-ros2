@@ -54,7 +54,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
     executor.spin_once();
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
   }
@@ -62,7 +62,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
     executor.spin_once();
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
   }
@@ -85,7 +85,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -107,7 +107,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -129,7 +129,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -154,7 +154,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 5 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
   ASSERT_FALSE(lastPose.has_value());
 
@@ -169,7 +169,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   fixPub->publish(fix);
 
   // Wait until the fix arrives
-  rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.2*1e09)));
+  rclcpp::sleep_for(std::chrono::nanoseconds(200'000'000));
 
   lastPose.reset();
   azimuth.azimuth = M_PI;
@@ -178,7 +178,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);

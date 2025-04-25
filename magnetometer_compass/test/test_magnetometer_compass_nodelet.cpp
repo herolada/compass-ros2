@@ -206,7 +206,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
 
     executor.spin_once();
 
@@ -217,7 +217,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
 
     executor.spin_once();
 
@@ -227,7 +227,9 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
 
-  // rclcpp::Time time(1664286802, 187375068);
+  //   builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
   builtin_interfaces::msg::Time time;
   time.sec = 1664286802;
   time.nanosec = 187375068;
@@ -275,7 +277,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
   }
   // Missing bias + fix + tf, nothing published
   ASSERT_FALSE(lastImu.has_value());
@@ -308,7 +310,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
 
   // Wait until the latched messages are received
-  rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.2*1e09)));
+  rclcpp::sleep_for(std::chrono::nanoseconds(200'000'000));
   executor.spin_once();
 
   imuPub->publish(imu);
@@ -321,7 +323,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
     }
   // Missing tf, nothing published except unbiased magnetometer
   ASSERT_FALSE(lastImu.has_value());
@@ -363,7 +365,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
   ASSERT_TRUE(lastImu.has_value());
   ASSERT_TRUE(lastQuat.has_value());
@@ -455,7 +457,8 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   lastQuat.reset();
   lastPose.reset();
   lastField.reset();
-  // time = {1664286802, 197458028};
+  // time.sec = 1664286802;
+  time.nanosec = 197458028;
   time.sec = 1664286802;
   time.nanosec = 197458028;
 
@@ -485,7 +488,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
     
   }
   ASSERT_TRUE(lastImu.has_value());
@@ -646,7 +649,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
     executor.spin_once();
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
@@ -655,7 +658,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
     executor.spin_once();
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
@@ -664,7 +667,9 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
 
-  // rclcpp::Time time(1664286802, 187375068);
+  //   builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
   builtin_interfaces::msg::Time time;
   time.sec = 1664286802;
   time.nanosec = 187375068;
@@ -721,7 +726,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   for (size_t i = 0; i < 10 && (!lastField || !lastQuat) && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
   ASSERT_TRUE(lastQuat.has_value());
   ASSERT_TRUE(lastField.has_value());
@@ -795,7 +800,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
     executor.spin_once();
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
@@ -804,7 +809,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.01*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
     executor.spin_once();
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
@@ -813,7 +818,9 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
 
-  // rclcpp::Time time(1664286802, 187375068);
+  //   builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
   builtin_interfaces::msg::Time time;
   time.sec = 1664286802;
   time.nanosec = 187375068;
@@ -871,7 +878,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   for (size_t i = 0; i < 10 && (!lastQuat) && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1*1e09)));
+    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
   ASSERT_TRUE(lastQuat.has_value());
 

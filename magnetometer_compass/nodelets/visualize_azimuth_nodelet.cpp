@@ -132,17 +132,17 @@ void VisualizeAzimuthNodelet::onInit()
 
   // set compass converter
   this->converter = std::make_shared<compass_conversions::CompassConverter>(this->get_logger(), *this->get_clock(), true);
-  this->converter->configFromParams(shared_from_this());
+  this->converter->configFromParams(this);
 
   // publisher
   this->visPub = this->create_publisher<Pose>("azimuth_vis", 10);
 
   // subscribe azimuth, gps fix, utm_zone
-  this->azSub = std::make_unique<compass_conversions::UniversalAzimuthSubscriber>(shared_from_this(), "azimuth", 100);
-  this->azSub->configFromParams(shared_from_this());
+  this->azSub = std::make_unique<compass_conversions::UniversalAzimuthSubscriber>(this, "azimuth", 100);
+  this->azSub->configFromParams(this);
 
-  this->fixSub = std::make_unique<message_filters::Subscriber<Fix>>(shared_from_this(), "gps/fix");//, 10);
-  this->zoneSub = std::make_unique<message_filters::Subscriber<Zone>>(shared_from_this(), "utm_zone");//, 10);
+  this->fixSub = std::make_unique<message_filters::Subscriber<Fix>>(this, "gps/fix");//, 10);
+  this->zoneSub = std::make_unique<message_filters::Subscriber<Zone>>(this, "utm_zone");//, 10);
 
   // set compass filter
   this->filter = std::make_unique<compass_conversions::CompassFilter>(

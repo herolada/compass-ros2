@@ -43,10 +43,10 @@ public:
   CompassTransformerNodelet(const rclcpp::NodeOptions & options);
   ~CompassTransformerNodelet() override;
 
+  void init();
   void setBuffer(tf2_ros::Buffer::SharedPtr buffer);
 
 protected:
-  void onInit();
   void publish(const compass_interfaces::msg::Azimuth::ConstSharedPtr& msg);
   void transformAndPublish(const compass_interfaces::msg::Azimuth::ConstSharedPtr& msg);
   void failedCb(const compass_interfaces::msg::Azimuth::ConstSharedPtr& msg,

@@ -25,6 +25,7 @@
 #include <rclcpp/logger.hpp>
 #include "rclcpp/rclcpp.hpp"
 #include <rclcpp/time.hpp>
+#include <rclcpp/node.hpp>
 
 using Field = sensor_msgs::msg::MagneticField;
 
@@ -46,14 +47,13 @@ public:
 TEST(MessageFilter, Basic)  // NOLINT
 {
   
-  
-  
-  const auto log = rclcpp::get_logger("test");
-  const auto clk = rclcpp::Clock();
+  // const auto log = rclcpp::get_logger("test");
+  // const auto clk = rclcpp::Clock();
+  rclcpp::Node node = rclcpp::Node("test_node");
 
   TestInput<Field> magInput;
   TestInput<Field> magBiasInput;
-  magnetometer_pipeline::BiasRemoverFilter filter(log, clk, magInput, magBiasInput);
+  magnetometer_pipeline::BiasRemoverFilter filter(&node, magInput, magBiasInput);
 
   Field::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Field const>& filteredMessage)
@@ -62,7 +62,9 @@ TEST(MessageFilter, Basic)  // NOLINT
   };
   filter.registerCallback(std::function<void(const message_filters::MessageEvent<Field const>&)>(cb));
 
-  rclcpp::Time time(1664286802, 187375068);
+  builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   Field::SharedPtr mag(new Field);
   mag->header.stamp = time;
@@ -100,7 +102,10 @@ TEST(MessageFilter, Basic)  // NOLINT
 
   // New data
 
-  time = {1664286802, 197458028};
+  // time.sec = 1664286802;
+  time.nanosec = 197458028;
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   mag->header.stamp = time;
   // These values are exaggerated (in Gauss instead of in Tesla), but they're consistent with ethzasl_xsens_driver
@@ -121,14 +126,11 @@ TEST(MessageFilter, Basic)  // NOLINT
 
 TEST(MessageFilter, ConfigFromParams)  // NOLINT
 {
-  const auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
-  
+  rclcpp::Node node = rclcpp::Node("test_node");//, rclcpp::NodeOptions().allow_undeclared_parameters(true));
   // const auto clk = rclcpp::Clock();
-
   TestInput<Field> magInput;
   TestInput<Field> magBiasInput;
-  magnetometer_pipeline::BiasRemoverFilter filter(node->get_logger(), *node->get_clock(), magInput, magBiasInput);
-
+  magnetometer_pipeline::BiasRemoverFilter filter(&node, magInput, magBiasInput);
   Field::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Field const>& filteredMessage)
   {
@@ -136,16 +138,21 @@ TEST(MessageFilter, ConfigFromParams)  // NOLINT
   };
   filter.registerCallback(std::function<void(const message_filters::MessageEvent<Field const>&)>(cb));
 
+  node.declare_parameter("initial_mag_bias_x", -0.097227663);
   rclcpp::Parameter param1("initial_mag_bias_x", -0.097227663);
-  node->set_parameter(param1);
+  node.set_parameter(param1);
+  node.declare_parameter("initial_mag_bias_y", -0.692264333);
   rclcpp::Parameter param2("initial_mag_bias_y", -0.692264333);
-  node->set_parameter(param2);
+  node.set_parameter(param2);
+  node.declare_parameter("initial_mag_bias_z", 0.0);
   rclcpp::Parameter param3("initial_mag_bias_z", 0.0);  // Using 0.0 for double type
-  node->set_parameter(param3);
+  node.set_parameter(param3);
 
-  filter.configFromParams(node);
+  filter.configFromParams();
 
-  rclcpp::Time time(1664286802, 187375068);
+  builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   Field::SharedPtr mag(new Field);
   mag->header.stamp = time;
@@ -167,7 +174,8 @@ TEST(MessageFilter, ConfigFromParams)  // NOLINT
 
   // New data
 
-  time = {1664286802, 197458028};
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   mag->header.stamp = time;
   // These values are exaggerated (in Gauss instead of in Tesla), but they're consistent with ethzasl_xsens_driver
@@ -188,6 +196,8 @@ TEST(MessageFilter, ConfigFromParams)  // NOLINT
 
 int main(int argc, char **argv)
 {
+  rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
+  rclcpp::shutdown();
 }

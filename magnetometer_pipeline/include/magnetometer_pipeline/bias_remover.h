@@ -1,3 +1,4 @@
+#pragma once
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: Czech Technical University in Prague
 
@@ -28,7 +29,7 @@ struct MagnetometerBiasRemoverPrivate;
 class MagnetometerBiasRemover
 {
 public:
-  explicit MagnetometerBiasRemover(const rclcpp::Logger& log);
+  explicit MagnetometerBiasRemover();
   virtual ~MagnetometerBiasRemover();
 
   /**
@@ -41,7 +42,7 @@ public:
    * - `~initial_mag_bias_z` (double, no default, optional): Magnetometer bias in the Z axis.
    * - `~initial_scaling_matrix` (double[9], optional): Magnetometer scaling matrix (row-major).
    */
-  void configFromParams(const rclcpp::Node::SharedPtr node);
+  void configFromParams(const rclcpp::Node* node);
 
   /**
    * \brief Whether bias has already been set.
@@ -71,6 +72,5 @@ public:
 
 private:
   std::unique_ptr<MagnetometerBiasRemoverPrivate> data;  //!< PIMPL
-  const rclcpp::Logger& log;
 };
 }

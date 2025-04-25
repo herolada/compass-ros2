@@ -10,7 +10,7 @@
 #include <string>
 #include <format>
 #include <chrono>
-
+#include <cmath>
 // #include <compass_interfaces/Azimuth.h>
 #include <compass_interfaces/msg/azimuth.hpp>
 
@@ -21,7 +21,7 @@ namespace compass_utils
 
   std::string to_pretty_string(const rclcpp::Time &value)
   {
-    int seconds = value.seconds();
+    int32_t seconds = std::floor(value.seconds());
     // Convert seconds to system_clock::time_point
     std::chrono::system_clock::time_point tp = std::chrono::system_clock::time_point(seconds * std::chrono::seconds(1));
 
@@ -30,7 +30,18 @@ namespace compass_utils
 
     // Format the time into a string
     std::ostringstream oss;
-    oss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+
+    oss << std::put_time(std::gmtime(&time), "%Y-%m-%dT%H:%M:%S");
+
+    // Append microseconds and 'Z'
+    long int ns = (long int)(value.nanoseconds() - 1e9*seconds);
+
+    if (ns != 0) {
+      auto us = duration_cast<std::chrono::microseconds>(std::chrono::nanoseconds(ns));
+      oss << '.' << std::setw(6) << std::setfill('0') << us.count() << 'Z';  
+    } else {
+      oss << 'Z';
+    }
 
     return oss.str();
   }
@@ -43,24 +54,45 @@ namespace compass_utils
 
     // Format the time into a string
     std::ostringstream oss;
-    oss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+    oss << std::put_time(std::gmtime(&time), "%Y-%m-%dT%H:%M:%S");
+
+    auto duration = tp.time_since_epoch();
+    auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration) % 1'000'000;
+
+    if (micros.count() != 0) {
+      oss << "." << std::setw(6) << std::setfill('0') << micros.count() << 'Z';
+    } else {
+      oss << 'Z';
+    }
 
     return oss.str();
   }
 
-  std::string to_pretty_string(const std::chrono::steady_clock::time_point &tp)
-  {
+  // std::string to_pretty_string(const std::chrono::steady_clock::time_point &tp)
+  // {
 
-    // Convert to time_t for formatting
-    std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
-    duration_cast<std::chrono::system_clock::duration>(tp - std::chrono::steady_clock::now()));
+  //   // Convert to time_t for formatting
+  //   std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
+  //   std::chrono::duration_cast<std::chrono::system_clock::duration>(tp - std::chrono::steady_clock::now()));
 
-    // Format the time into a string
-    std::ostringstream oss;
-    oss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+  //   printf("Current time as integer: %lld\n", static_cast<long long>(time));
+  //   printf("Current time as integer: %lld\n", static_cast<long long>(std::chrono::duration_cast<std::chrono::system_clock::duration>(tp - std::chrono::steady_clock::now()).count()));
 
-    return oss.str();
-  }
+  //   // Format the time into a string
+  //   std::ostringstream oss;
+  //   oss << std::put_time(std::gmtime(&time), "%Y-%m-%dT%H:%M:%S");
+
+  //   auto duration = tp.time_since_epoch();
+  //   auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration) % 1'000'000;
+
+  //   if (micros.count() != 0) {
+  //     oss << "." << std::setw(6) << std::setfill('0') << micros.count() << 'Z';
+  //   } else {
+  //     oss << 'Z';
+  //   }
+
+  //   return oss.str();
+  // }
 
   std::string toLower(const std::string &str)
   {

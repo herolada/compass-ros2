@@ -45,6 +45,7 @@
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <rclcpp/generic_subscription.hpp>
+#include <rclcpp/serialized_message.hpp>
 
 
 namespace compass_conversions
@@ -75,7 +76,7 @@ CompassConverter::CompassConverter(const rclcpp::Logger& log, const rclcpp::Cloc
 
 CompassConverter::~CompassConverter() = default;
 
-void CompassConverter::configFromParams(const rclcpp::Node::SharedPtr node)
+void CompassConverter::configFromParams(const rclcpp::Node* node)
 {
   // cras::TempLocale l(LC_ALL, "en_US.UTF-8");  // Support printing ° signs
 
@@ -101,8 +102,8 @@ void CompassConverter::configFromParams(const rclcpp::Node::SharedPtr node)
     {
       sensor_msgs::msg::NavSatFix msg;
 
-      msg.latitude = node->get_parameter_or<double>("initial_lat", 0.0); //TODO is this a good default?
-      msg.longitude = node->get_parameter_or<double>("initial_lon", 0.0); //TODO is this a good default?
+      msg.latitude = node->get_parameter_or<double>("initial_lat", 0.0); 
+      msg.longitude = node->get_parameter_or<double>("initial_lon", 0.0); 
       msg.altitude = node->get_parameter_or<double>("initial_alt", 0.0);
 
       std::list<std::string> computedValues;
@@ -242,16 +243,20 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   const decltype(compass_interfaces::msg::Azimuth::orientation) orientation,
   const decltype(compass_interfaces::msg::Azimuth::reference) reference) const
 {
+
+  printf("1 unit %d, orientation %d, reference %d\n", unit, orientation, reference);
+  printf("2 unit %d, orientation %d, reference %d\n", azimuth.unit, azimuth.orientation, azimuth.reference);
   // Fast track for no conversion
   if (azimuth.unit == unit && azimuth.orientation == orientation && azimuth.reference == reference)
     return azimuth;
 
-  compass_interfaces::msg::Azimuth result = azimuth;
+  using Az = compass_interfaces::msg::Azimuth;
+
+  Az result = azimuth;
   result.unit = unit;
   result.orientation = orientation;
   result.reference = reference;
 
-  using Az = compass_interfaces::msg::Azimuth;
 
   // Convert the input to NED radians
   if (azimuth.unit == Az::UNIT_DEG)
@@ -390,7 +395,8 @@ tl::expected<geometry_msgs::msg::QuaternionStamped, std::string> CompassConverte
 {
   tf2::Stamped<tf2::Quaternion> quat;
   quat.frame_id_ = azimuth.header.frame_id;
-  quat.stamp_ = tf2::TimePoint(std::chrono::nanoseconds(azimuth.header.stamp.nanosec));
+  quat.stamp_ = tf2_ros::fromMsg(azimuth.header.stamp);
+  // quat.stamp_ = tf2::TimePoint(std::chrono::nanoseconds((long long int)(azimuth.header.stamp.sec * 1e9)));
   quat.setRPY(0, 0, azimuth.azimuth * (azimuth.unit == Az::UNIT_RAD ? 1 : M_PI / 180.0));
   return tf2::toMsg(quat);
 };
@@ -494,10 +500,13 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   const std::optional<decltype(compass_interfaces::msg::Azimuth::orientation)>& orientation,
   const std::optional<decltype(compass_interfaces::msg::Azimuth::reference)>& reference) const
   {
+    printf("convert event\n");
     auto msgOrientation = orientation;
     auto msgReference = reference;
     if (!msgOrientation.has_value() || !msgReference.has_value())
     {
+      printf("parse\n");
+
       const auto maybeAzimuthParams = compass_conversions::parseAzimuthTopicName(topic);
       if (maybeAzimuthParams.has_value())
       {
@@ -518,42 +527,59 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
       msg->orientation, msg->header, msg->orientation_covariance[2 * 3 + 2], unit, *msgOrientation, *msgReference);
   };
 
-/* template<class M> using ME = message_filters::MessageEvent<M>;
+template<class M> using ME = message_filters::MessageEvent<M>;
 template<class M> using Creator = message_filters::DefaultMessageCreator<M>;
 
-tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::convertUniversalMsgEvent(
-  const message_filters::MessageEvent<rclcpp::GenericSubscription const>& event,
-  const decltype(compass_interfaces::msg::Azimuth::variance) variance,
-  const decltype(compass_interfaces::msg::Azimuth::unit) unit,
-  const std::optional<decltype(compass_interfaces::msg::Azimuth::orientation)>& orientation,
-  const std::optional<decltype(compass_interfaces::msg::Azimuth::reference)>& reference) const
+template<typename Msg>
+std::shared_ptr<Msg> deserializeMessage(const std::shared_ptr<const rclcpp::SerializedMessage> msg)
 {
+  std::shared_ptr<Msg> deserialized_msg;
+  rclcpp::Serialization<Msg> serializer;
+  serializer.deserialize_message(msg, deserialized_msg);
+  return deserialized_msg;
+}
+
+/* tl::expected<Az, std::string> CompassConverter::convertUniversalMsgEvent(
+  const message_filters::MessageEvent<rclcpp::SerializedMessage const>& event,
+  const std::string& topic,
+  const decltype(Az::variance) variance,
+  const decltype(Az::unit) unit,
+  const std::optional<decltype(Az::orientation)>& orientation,
+  const std::optional<decltype(Az::reference)>& reference) const
+{
+  // TODO dynamic type ... I think it is not possible nor is it advisable
+  std::string type = event.getConnectionHeaderPtr()->at("type").front();
   const auto msg = event.getConstMessage();
   // const auto header = event.getConnectionHeaderPtr();
-  const auto topic = msg->get_topic_name();
   const auto stamp = event.getReceiptTime();
-  const auto type = msg->get_message_type_support_handle().typesupport_identifier;
+  // const auto type = msg->get_message_type_support_handle().typesupport_identifier;
   namespace mt = message_filters::message_traits;
 
   if (type == "compass_interfaces::msg::Azimuth")
   {
-    const compass_interfaces::msg::Azimuth az = Az();
-    return this->convertAzimuth(az, unit, az.orientation, az.reference);
+    std::shared_ptr<Az> deserialized_msg = deserializeMessage<Az>(msg);
+    return this->convertAzimuth(*deserialized_msg, unit, deserialized_msg->orientation, deserialized_msg->reference);
   }
   else if (type == "geometry_msgs::msg::PoseWithCovarianceStamped")
   {
-    const ME<Pose const> poseEvent = ME<Pose const>(std::make_unique<Pose>(), stamp, false, Creator<Pose>());
-    return this->convertPoseMsgEvent(topic, poseEvent, unit, orientation, reference);
+    std::shared_ptr<Pose> deserialized_msg = deserializeMessage<Pose>(msg);
+
+    const ME<Pose const> poseEvent = ME<Pose const>(deserialized_msg, stamp, false, Creator<Pose>());
+    return this->convertPoseMsgEvent(topic.c_str(), poseEvent, unit, orientation, reference);
   }
   else if (type == "geometry_msgs::msg::QuaternionStamped")
   {
+    std::shared_ptr<Quat> deserialized_msg = deserializeMessage<Quat>(msg);
+
     const auto quatEvent = ME<Quat const>(std::make_unique<Quat>(), stamp, false, Creator<Quat>());
-    return this->convertQuaternionMsgEvent(topic, quatEvent, variance, unit, orientation, reference);
+    return this->convertQuaternionMsgEvent(topic.c_str(), quatEvent, variance, unit, orientation, reference);
   }
   else if (type == "sensor_msgs::msg::Imu")
   {
+    std::shared_ptr<Imu> deserialized_msg = deserializeMessage<Imu>(msg);
+
     const auto imuEvent = ME<Imu const>(std::make_unique<Imu>(), stamp, false, Creator<Imu>());
-    return this->convertImuMsgEvent(topic, imuEvent, unit, orientation, reference);
+    return this->convertImuMsgEvent(topic.c_str(), imuEvent, unit, orientation, reference);
   }
   else
     return compass_utils::make_unexpected(std::format("Invalid message type: {}.", type));
@@ -562,6 +588,8 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
 void CompassConverter::setNavSatPos(const sensor_msgs::msg::NavSatFix& fix)
 {
   this->lastFix = fix;
+
+  printf("setting nav sat pos\n");
 
   if (!this->forcedUTMGridConvergence.has_value())
   {

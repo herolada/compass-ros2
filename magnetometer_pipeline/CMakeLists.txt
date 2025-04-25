@@ -58,7 +58,7 @@ ament_target_dependencies(magnetometer_bias_remover_filter
   # Eigen3
 )
 
-target_link_libraries(magnetometer_bias_remover_filter tl::expected)
+target_link_libraries(magnetometer_bias_remover_filter magnetometer_bias_remover tl::expected)
 
 target_include_directories(magnetometer_bias_remover_filter
   PUBLIC
@@ -81,9 +81,8 @@ ament_target_dependencies(magnetometer_bias_remover_nodelet
   rclcpp
   rclcpp_components
   sensor_msgs
-  # Eigen3
 )
-target_link_libraries(magnetometer_bias_remover_nodelet tl::expected)
+target_link_libraries(magnetometer_bias_remover_nodelet magnetometer_bias_remover_filter tl::expected)
 
 target_include_directories(magnetometer_bias_remover_nodelet
   PUBLIC
@@ -93,6 +92,7 @@ target_include_directories(magnetometer_bias_remover_nodelet
 ament_export_targets(export_magnetometer_bias_remover_nodelet HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
   message_filters
+  rclcpp
   sensor_msgs
 )
 rclcpp_components_register_nodes(magnetometer_bias_remover_nodelet "magnetometer_pipeline::MagnetometerBiasRemoverNodelet")
@@ -169,8 +169,6 @@ if(BUILD_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
 
     ament_add_gtest(test_magnetometer_bias_remover_nodelet test/test_bias_remover_nodelet.cpp)
-    ament_target_dependencies(test_magnetometer_bias_remover_nodelet
-    )
     target_link_libraries(test_magnetometer_bias_remover_nodelet magnetometer_bias_remover_nodelet)
     target_include_directories(test_magnetometer_bias_remover_nodelet
         PUBLIC

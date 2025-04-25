@@ -71,16 +71,16 @@ namespace compass_utils
     return structTm.tm_year + 1900;
   }
 
-  int getYear(const std::chrono::steady_clock::time_point &time)
-  {
-    const std::time_t timet = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
-    duration_cast<std::chrono::system_clock::duration>(time - std::chrono::steady_clock::now()));
+  // int getYear(const std::chrono::steady_clock::time_point &time)
+  // {
+  //   const std::time_t timet = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
+  //   duration_cast<std::chrono::system_clock::duration>(time - std::chrono::steady_clock::now()));
 
-    tm structTm{};
-    const auto result = gmtime_r(&timet, &structTm);
+  //   tm structTm{};
+  //   const auto result = gmtime_r(&timet, &structTm);
 
-    return structTm.tm_year + 1900;
-  }
+  //   return structTm.tm_year + 1900;
+  // }
 
   rclcpp::Duration parseTimeZoneOffset(const std::string &s)
   {

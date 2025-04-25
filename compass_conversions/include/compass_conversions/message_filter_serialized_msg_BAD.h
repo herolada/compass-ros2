@@ -51,11 +51,8 @@ class UniversalAzimuthSubscriber :
 {
 public:
   // typedef message_filters::MessageEvent<rclcpp::GenericSubscription const> EventType;
-  typedef message_filters::MessageEvent<compass_interfaces::msg::Azimuth const> AzimuthEventType;
-  typedef message_filters::MessageEvent<geometry_msgs::msg::PoseWithCovarianceStamped const> PoseEventType;
-  typedef message_filters::MessageEvent<geometry_msgs::msg::QuaternionStamped const> QuatEventType;
-  typedef message_filters::MessageEvent<sensor_msgs::msg::Imu const> ImuEventType;
-  // typedef message_filters::MessageEvent<rclcpp::SerializedMessage const> EventType;
+  // typedef message_filters::MessageEvent<compass_interfaces::msg::Azimuth const> AzimuthEventType;
+  typedef message_filters::MessageEvent<rclcpp::SerializedMessage const> EventType;
 
   using Az = compass_interfaces::msg::Azimuth;
   /**
@@ -151,11 +148,11 @@ public:
    */
   // const message_filters::Subscriber<compass_interfaces::msg::Azimuth>& getSubscriber() const;
   // if it doesnt work maybe use GenericSubscription? (does not require specifying the msg template)
-  const message_filters::Subscriber<compass_interfaces::msg::Azimuth>& getAzSubscriber() const {return this->azSub;}
-  const message_filters::Subscriber<geometry_msgs::msg::PoseWithCovarianceStamped>& getPoseSubscriber() const {return this->poseSub;}
-  const message_filters::Subscriber<geometry_msgs::msg::QuaternionStamped>& getQuatSubscriber() const {return this->quatSub;}
-  const message_filters::Subscriber<sensor_msgs::msg::Imu>& getImuSubscriber() const {return this->imuSub;}
-  // const message_filters::Subscriber<rclcpp::SerializedMessage>& getSubscriber() const;
+  // const message_filters::Subscriber<compass_interfaces::msg::Azimuth>& UniversalAzimuthSubscriber::getAzSubscriber() const;
+  // const message_filters::Subscriber<geometry_msgs::msg::PoseWithCovarianceStamped>& UniversalAzimuthSubscriber::getPoseSubscriber() const;
+  // const message_filters::Subscriber<geometry_msgs::msg::QuaternionStamped>& UniversalAzimuthSubscriber::getQuatSubscriber() const;
+  // const message_filters::Subscriber<sensor_msgs::msg::Imu>& UniversalAzimuthSubscriber::getImuSubscriber() const;
+  const message_filters::Subscriber<rclcpp::SerializedMessage>& getSubscriber() const;
 
   template<typename F>
   void connectInput(F& f)
@@ -165,16 +162,13 @@ public:
   // void add(const EventType& event);
 
 protected:
-  void azCb(const AzimuthEventType& event);
-  void poseCb(const PoseEventType& event);
-  void quatCb(const QuatEventType& event);
-  void imuCb(const ImuEventType& event);
+  void cb(const EventType& event);
 
-  message_filters::Subscriber<compass_interfaces::msg::Azimuth> azSub;
-  message_filters::Subscriber<geometry_msgs::msg::PoseWithCovarianceStamped> poseSub;
-  message_filters::Subscriber<geometry_msgs::msg::QuaternionStamped> quatSub;
-  message_filters::Subscriber<sensor_msgs::msg::Imu> imuSub;
-  // rclcpp::GenericSubscription sub;
+  // message_filters::Subscriber<compass_interfaces::msg::Azimuth> azSub;
+  // message_filters::Subscriber<geometry_msgs::msg::PoseWithCovarianceStamped> poseSub;
+  // message_filters::Subscriber<sensor_msgs::msg::Imu> imuSub;
+  // message_filters::Subscriber<geometry_msgs::msg::QuaternionStamped> quatSub;
+  message_filters::Subscriber<rclcpp::SerializedMessage> sub;
 
   // rclcpp::Subscription<compass_interfaces::msg::Azimuth>::SharedPtr sub;  //!< The ROS subscriber.
   //rclcpp::SubscriptionOptions subscribeOps;  //!< Options for recreating the subscriber.

@@ -67,7 +67,7 @@ MagnetometerCompass::MagnetometerCompass(
 
 MagnetometerCompass::~MagnetometerCompass() = default;
 
-void MagnetometerCompass::configFromParams(const rclcpp::Node::SharedPtr node)//const std::map<std::string, rclcpp::Parameter>& params)
+void MagnetometerCompass::configFromParams(const rclcpp::Node* node)//const std::map<std::string, rclcpp::Parameter>& params)
 {
   // if (params.find("initial_variance") == params.end()) {
   //   this->data->variance = this->data->initialVariance = this->data->variance;

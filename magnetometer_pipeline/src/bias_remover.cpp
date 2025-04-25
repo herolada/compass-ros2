@@ -21,6 +21,8 @@
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
+#include <rclcpp/logger.hpp>
+#include "rcutils/logging_macros.h"
 
 namespace magnetometer_pipeline
 {
@@ -42,14 +44,14 @@ struct MagnetometerBiasRemoverPrivate
   Eigen::Matrix3d lastScale{Eigen::Matrix3d::Identity()};
 };
 
-MagnetometerBiasRemover::MagnetometerBiasRemover(const rclcpp::Logger& log) :
-  log(log), data(new MagnetometerBiasRemoverPrivate{})
+MagnetometerBiasRemover::MagnetometerBiasRemover() :
+  data(new MagnetometerBiasRemoverPrivate{})
 {
 }
 
 MagnetometerBiasRemover::~MagnetometerBiasRemover() = default;
 
-void MagnetometerBiasRemover::configFromParams(const rclcpp::Node::SharedPtr node)
+void MagnetometerBiasRemover::configFromParams(const rclcpp::Node* node)
 {
   if (node->has_parameter("initial_mag_bias_x") || node->has_parameter("initial_mag_bias_y") ||
     node->has_parameter("initial_mag_bias_z"))
@@ -75,7 +77,7 @@ void MagnetometerBiasRemover::configFromParams(const rclcpp::Node::SharedPtr nod
 
     this->setBias(msg);
 
-    RCLCPP_INFO(this->log, "Initial magnetometer bias is %0.3f %0.3f %0.3f %s scaling factor",
+    RCLCPP_INFO(node->get_logger(), "Initial magnetometer bias is %0.3f %0.3f %0.3f %s scaling factor",
       msg.magnetic_field.x, msg.magnetic_field.y, msg.magnetic_field.z, this->hasScale() ? "with" : "without");
   }
 }

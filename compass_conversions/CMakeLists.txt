@@ -295,6 +295,8 @@ if(BUILD_TESTING)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     )
+    set_tests_properties(test_compass_converter PROPERTIES ENVIRONMENT "GTEST_CAPTURE=0")
+
     ament_add_gtest(test_compass_transformer_nodelet test/test_compass_transformer_nodelet.cpp)
     target_link_libraries(test_compass_transformer_nodelet
       compass_transformer_nodelet 
@@ -307,6 +309,9 @@ if(BUILD_TESTING)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     )
+
+    set_tests_properties(test_compass_transformer_nodelet PROPERTIES ENVIRONMENT "GTEST_CAPTURE=0")
+
     ament_add_gtest(test_compass_message_filter test/test_message_filter.cpp)
     target_link_libraries(test_compass_message_filter
       compass_message_filter

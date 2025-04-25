@@ -114,7 +114,11 @@ bool TokenBucketLimiter::shouldPublish(const rclcpp::Time& stamp)
   this->lastCheckTime = stamp;
 
   // Refill rate is 1 token per every period
-  this->tokensAvailable += rclcpp::Duration::from_nanoseconds((dt.nanoseconds() / (this->period).nanoseconds()));
+  // printf("dt %ld \n", dt.nanoseconds());
+  // printf("per %ld \n", (this->period).nanoseconds());
+  // printf("div %f \n", (dt.nanoseconds() / (this->period).nanoseconds()));
+  // printf("dur %ld \n", rclcpp::Duration::from_nanoseconds(1e9*((double)dt.nanoseconds() / (double)(this->period).nanoseconds())).nanoseconds());
+  this->tokensAvailable += rclcpp::Duration::from_nanoseconds(1e9*((double)dt.nanoseconds() / (double)(this->period).nanoseconds()));
 
   // Limit by bucket capacity
   this->tokensAvailable = (std::min)(this->tokensAvailable, rclcpp::Duration::from_seconds(this->bucketCapacity));

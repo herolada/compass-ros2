@@ -13,28 +13,23 @@
 #include <string>
 
 #include <compass_conversions/compass_converter.h>
-#include <compass_interfaces/msg/azimuth.hpp>
-// #include <cras_cpp_common/functional.hpp>
-// #include <cras_cpp_common/log_utils.h>
-// #include <cras_cpp_common/param_utils/bound_param_helper.hpp>
-#include <optional>
+#include <compass_msgs/Azimuth.h>
+#include <cras_cpp_common/functional.hpp>
+#include <cras_cpp_common/log_utils.h>
+#include <cras_cpp_common/param_utils/bound_param_helper.hpp>
+#include <cras_cpp_common/optional.hpp>
 #include <message_filters/connection.h>
 #include <message_filters/simple_filter.h>
 #include <message_filters/subscriber.h>
-// #include <ros/callback_queue_interface.h>
-// #include <ros/message_event.h>
-// #include <ros/node_handle.h>
-// #include <ros/subscribe_options.h>
-// #include <ros/subscriber.h>
-// #include <ros/transport_hints.h>
-#include <sensor_msgs/msg/nav_sat_fix.hpp>
-#include <std_msgs/msg/int32.hpp>
-#include <rclcpp/generic_subscription.hpp>
-#include <rclcpp/subscription_options.hpp>
-#include <rclcpp/subscription.hpp>
-#include <rclcpp/clock.hpp>
-#include <rclcpp/serialized_message.hpp>
-#include <message_filters/message_event.h>
+#include <ros/callback_queue_interface.h>
+#include <ros/message_event.h>
+#include <ros/node_handle.h>
+#include <ros/subscribe_options.h>
+#include <ros/subscriber.h>
+#include <ros/transport_hints.h>
+#include <sensor_msgs/NavSatFix.h>
+#include <std_msgs/Int32.h>
+#include <topic_tools/shape_shifter.h>
 
 namespace compass_conversions
 {
@@ -43,21 +38,16 @@ namespace compass_conversions
  * \brief message_filters subscriber that can subscribe to various topic types and convert them all to an Azimuth
  *        message.
  *
- * Currently supported types are: compass_interfaces::msg::Azimuth, geometry_msgs::msg::PoseWithCovarianceStamped,
- * geometry_msgs::msg::QuaternionStamped, sensor_msgs::msg::Imu.
+ * Currently supported types are: compass_msgs::Azimuth, geometry_msgs::PoseWithCovarianceStamped,
+ * geometry_msgs::QuaternionStamped, sensor_msgs::Imu.
  */
 class UniversalAzimuthSubscriber :
-  public message_filters::SimpleFilter<compass_interfaces::msg::Azimuth>, public message_filters::SubscriberBase<compass_interfaces::msg::Azimuth>
+  public message_filters::SimpleFilter<compass_msgs::Azimuth>, public message_filters::SubscriberBase,
+  public cras::HasLogger
 {
 public:
-  // typedef message_filters::MessageEvent<rclcpp::GenericSubscription const> EventType;
-  typedef message_filters::MessageEvent<compass_interfaces::msg::Azimuth const> AzimuthEventType;
-  typedef message_filters::MessageEvent<geometry_msgs::msg::PoseWithCovarianceStamped const> PoseEventType;
-  typedef message_filters::MessageEvent<geometry_msgs::msg::QuaternionStamped const> QuatEventType;
-  typedef message_filters::MessageEvent<sensor_msgs::msg::Imu const> ImuEventType;
-  // typedef message_filters::MessageEvent<rclcpp::SerializedMessage const> EventType;
+  typedef ros::MessageEvent<topic_tools::ShapeShifter const> EventType;
 
-  using Az = compass_interfaces::msg::Azimuth;
   /**
    * \brief Constructor
    *
@@ -68,9 +58,9 @@ public:
    * \param transportHints The transport hints to pass to the subscriber.
    * \param callbackQueue The callback queue to attach to.
    */
-  UniversalAzimuthSubscriber(rclcpp::Node* node, std::string topic, const uint32_t queueSize
-    //  , const ros::TransportHints& transportHints = {}, ros::CallbackQueueInterface* callbackQueue = nullptr
-    );
+  UniversalAzimuthSubscriber(const cras::LogHelperPtr& log, ros::NodeHandle& nh, const std::string& topic,
+    uint32_t queueSize, const ros::TransportHints& transportHints = {},
+    ros::CallbackQueueInterface* callbackQueue = nullptr);
 
   ~UniversalAzimuthSubscriber() override;
 
@@ -85,18 +75,8 @@ public:
    * \param transportHints The transport hints to pass to the subscriber.
    * \param callbackQueue The callback queue to attach to.
    */
-  void subscribe(rclcpp::Node* node, std::string topic, const uint32_t queueSize
-    //,  const ros::TransportHints& transportHints, ros::CallbackQueueInterface* callbackQueue
-    );
-
-  void subscribe(NodePtr node, const std::string& topic, const rmw_qos_profile_t qos = rmw_qos_profile_default) override {};
-  void subscribe(compass_interfaces::msg::Azimuth* node, const std::string& topic, const rmw_qos_profile_t qos = rmw_qos_profile_default) override {};
-
-  void subscribe(
-    compass_interfaces::msg::Azimuth * node,
-    const std::string& topic,
-    const rmw_qos_profile_t qos,
-    rclcpp::SubscriptionOptions options) override {};
+  void subscribe(ros::NodeHandle& nh, const std::string& topic, uint32_t queueSize,
+    const ros::TransportHints& transportHints, ros::CallbackQueueInterface* callbackQueue) override;
 
   /**
    * \brief Re-subscribe to a topic.
@@ -116,9 +96,9 @@ public:
    * \param[in] variance Default variance used for topics which cannot automatically discover it.
    */
   void setInputDefaults(
-    const std::optional<decltype(compass_interfaces::msg::Azimuth::orientation)>& orientation,
-    const std::optional<decltype(compass_interfaces::msg::Azimuth::reference)>& reference,
-    const std::optional<decltype(compass_interfaces::msg::Azimuth::variance)>& variance);
+    const cras::optional<decltype(compass_msgs::Azimuth::orientation)>& orientation,
+    const cras::optional<decltype(compass_msgs::Azimuth::reference)>& reference,
+    const cras::optional<decltype(compass_msgs::Azimuth::variance)>& variance);
 
   /**
    * \brief Configure the subscriber from ROS parameters.
@@ -138,7 +118,7 @@ public:
    *                                                if variance cannot be determined from the input messages (e.g. for
    *                                                `QuaternionStamped`).
    */
-  void configFromParams(const rclcpp::Node* node);
+  void configFromParams(const cras::BoundParamHelper& params);
 
   /**
    * \brief Get the name of the subscribed topic.
@@ -147,59 +127,34 @@ public:
   std::string getTopic() const;
 
   /**
-   * \brief Returns the internal rclcpp::Subscription.
+   * \brief Returns the internal ros::Subscriber.
    */
-  // const message_filters::Subscriber<compass_interfaces::msg::Azimuth>& getSubscriber() const;
-  // if it doesnt work maybe use GenericSubscription? (does not require specifying the msg template)
-  const message_filters::Subscriber<compass_interfaces::msg::Azimuth>& getAzSubscriber() const {return this->azSub;}
-  const message_filters::Subscriber<geometry_msgs::msg::PoseWithCovarianceStamped>& getPoseSubscriber() const {return this->poseSub;}
-  const message_filters::Subscriber<geometry_msgs::msg::QuaternionStamped>& getQuatSubscriber() const {return this->quatSub;}
-  const message_filters::Subscriber<sensor_msgs::msg::Imu>& getImuSubscriber() const {return this->imuSub;}
-  // const message_filters::Subscriber<rclcpp::SerializedMessage>& getSubscriber() const;
+  const ros::Subscriber& getSubscriber() const;
 
   template<typename F>
   void connectInput(F& f)
   {
   }
 
-  // void add(const EventType& event);
+  void add(const EventType& event);
 
 protected:
-  void azCb(const AzimuthEventType& event);
-  void poseCb(const PoseEventType& event);
-  void quatCb(const QuatEventType& event);
-  void imuCb(const ImuEventType& event);
+  void cb(const EventType& event);
 
-  message_filters::Subscriber<compass_interfaces::msg::Azimuth> azSub;
-  message_filters::Subscriber<geometry_msgs::msg::PoseWithCovarianceStamped> poseSub;
-  message_filters::Subscriber<geometry_msgs::msg::QuaternionStamped> quatSub;
-  message_filters::Subscriber<sensor_msgs::msg::Imu> imuSub;
-  // rclcpp::GenericSubscription sub;
-
-  // rclcpp::Subscription<compass_interfaces::msg::Azimuth>::SharedPtr sub;  //!< The ROS subscriber.
-  //rclcpp::SubscriptionOptions subscribeOps;  //!< Options for recreating the subscriber.
-  rclcpp::Node* node;  //!< The nodehandle to use for subscribing,
+  ros::Subscriber sub;  //!< The ROS subscriber.
+  ros::SubscribeOptions subscribeOps;  //!< Options for recreating the subscriber.
+  ros::NodeHandle nh;  //!< The nodehandle to use for subscribing,
   CompassConverter converter;  //!< The azimuth message converter.
 
   //! Orientation of the input azimuth (in case it is a data type which does not tell orientation explicitly).
-  std::optional<decltype(compass_interfaces::msg::Azimuth::orientation)> inputOrientation;
+  cras::optional<decltype(compass_msgs::Azimuth::orientation)> inputOrientation;
 
   //! Reference of the input azimuth (in case it is a data type which does not tell reference explicitly).
-  std::optional<decltype(compass_interfaces::msg::Azimuth::reference)> inputReference;
+  cras::optional<decltype(compass_msgs::Azimuth::reference)> inputReference;
 
   //! Variance of the input azimuth (in case it is a data type which does not tell reference explicitly).
-  std::optional<decltype(compass_interfaces::msg::Azimuth::variance)> inputVariance;
-  std::string topic {std::string()};
-  uint32_t queueSize {10};
+  cras::optional<decltype(compass_msgs::Azimuth::variance)> inputVariance;
 };
-
-
-
-
-
-
-
-
 
 /**
  * \brief Message filter to convert between various compass representations.
@@ -209,23 +164,23 @@ protected:
  * Example usage:
  * \code{.cpp}
  * message_filters::UniversalAzimuthSubscriber azimuthInput(...);
- * message_filters::Subscriber<sensor_msgs::msg::NavSatFix> fixInput(...);
+ * message_filters::Subscriber<sensor_msgs::NavSatFix> fixInput(...);
  * auto converter = std::make_shared<compass_conversions::CompassConverter>(log, true);
  * // converter->configFromParams(params);
  * compass_conversions::CompassFilter filter(log, converter, azimuthInput, fixInput,
- *   compass_interfaces::msg::Azimuth::UNIT_RAD, compass_interfaces::msg::Azimuth::ORIENTATION_ENU,
- *   compass_interfaces::msg::Azimuth::REFERENCE_GEOGRAPHIC);
- * filter.registerCallback([](const compass_interfaces::msg::AzimuthConstSharedPtr& msg) {
+ *   compass_msgs::Azimuth::UNIT_RAD, compass_msgs::Azimuth::ORIENTATION_ENU,
+ *   compass_msgs::Azimuth::REFERENCE_GEOGRAPHIC);
+ * filter.registerCallback([](const compass_msgs::AzimuthConstPtr& msg) {
  *   ...  // Handle the data
  * });
  * \endcode
  */
-class CompassFilter : public message_filters::SimpleFilter<compass_interfaces::msg::Azimuth>
+class CompassFilter : public message_filters::SimpleFilter<compass_msgs::Azimuth>, public cras::HasLogger
 {
 public:
-  typedef message_filters::MessageEvent<compass_interfaces::msg::Azimuth const> AzimuthEventType;
-  typedef message_filters::MessageEvent<sensor_msgs::msg::NavSatFix const> FixEventType;
-  typedef message_filters::MessageEvent<std_msgs::msg::Int32 const> UTMZoneEventType;
+  typedef ros::MessageEvent<compass_msgs::Azimuth const> AzimuthEventType;
+  typedef ros::MessageEvent<sensor_msgs::NavSatFix const> FixEventType;
+  typedef ros::MessageEvent<std_msgs::Int32 const> UTMZoneEventType;
 
   /**
    * \brief Construct azimuth filter that can convert all parameters.
@@ -243,14 +198,14 @@ public:
    * \param[in] reference The output azimuth reference.
    */
   template<class AzimuthInput, class FixInput, class UTMZoneInput>
-  CompassFilter(const rclcpp::Logger& log, const rclcpp::Clock& clock, const std::shared_ptr<CompassConverter>& converter,
+  CompassFilter(const cras::LogHelperPtr& log, const std::shared_ptr<CompassConverter>& converter,
     AzimuthInput& azimuthInput, FixInput& fixInput, UTMZoneInput& utmZoneInput,
-    decltype(compass_interfaces::msg::Azimuth::unit) unit, decltype(compass_interfaces::msg::Azimuth::orientation) orientation,
-    decltype(compass_interfaces::msg::Azimuth::reference) reference):
-    log(log), clock(clock), converter(converter), unit(unit), orientation(orientation), reference(reference)
+    decltype(compass_msgs::Azimuth::unit) unit, decltype(compass_msgs::Azimuth::orientation) orientation,
+    decltype(compass_msgs::Azimuth::reference) reference):
+    HasLogger(log), converter(converter), unit(unit), orientation(orientation), reference(reference)
   {
     if (this->converter == nullptr)
-      this->converter = std::make_shared<CompassConverter>(log, clock, true);
+      this->converter = std::make_shared<CompassConverter>(log, true);
     this->connectAzimuthInput(azimuthInput);
     this->connectFixInput(fixInput);
     this->connectUTMZoneInput(utmZoneInput);
@@ -270,14 +225,14 @@ public:
    * \param[in] reference The output azimuth reference.
    */
   template<class AzimuthInput, class FixInput>
-  CompassFilter(const rclcpp::Logger& log, const rclcpp::Clock& clock, const std::shared_ptr<CompassConverter>& converter,
+  CompassFilter(const cras::LogHelperPtr& log, const std::shared_ptr<CompassConverter>& converter,
     AzimuthInput& azimuthInput, FixInput& fixInput,
-    decltype(compass_interfaces::msg::Azimuth::unit) unit, decltype(compass_interfaces::msg::Azimuth::orientation) orientation,
-    decltype(compass_interfaces::msg::Azimuth::reference) reference):
-    log(log), clock(clock), converter(converter), unit(unit), orientation(orientation), reference(reference)
+    decltype(compass_msgs::Azimuth::unit) unit, decltype(compass_msgs::Azimuth::orientation) orientation,
+    decltype(compass_msgs::Azimuth::reference) reference):
+    HasLogger(log), converter(converter), unit(unit), orientation(orientation), reference(reference)
   {
     if (this->converter == nullptr)
-      this->converter = std::make_shared<CompassConverter>(log, clock, true);
+      this->converter = std::make_shared<CompassConverter>(log, true);
     this->connectAzimuthInput(azimuthInput);
     this->connectFixInput(fixInput);
   }
@@ -294,14 +249,14 @@ public:
    * \param[in] reference The output azimuth reference.
    */
   template<class AzimuthInput>
-  CompassFilter(const rclcpp::Logger& log, const rclcpp::Clock& clock, const std::shared_ptr<CompassConverter>& converter,
+  CompassFilter(const cras::LogHelperPtr& log, const std::shared_ptr<CompassConverter>& converter,
     AzimuthInput& azimuthInput,
-    decltype(compass_interfaces::msg::Azimuth::unit) unit, decltype(compass_interfaces::msg::Azimuth::orientation) orientation,
-    decltype(compass_interfaces::msg::Azimuth::reference) reference):
-    log(log), clock(clock), converter(converter), unit(unit), orientation(orientation), reference(reference)
+    decltype(compass_msgs::Azimuth::unit) unit, decltype(compass_msgs::Azimuth::orientation) orientation,
+    decltype(compass_msgs::Azimuth::reference) reference):
+    HasLogger(log), converter(converter), unit(unit), orientation(orientation), reference(reference)
   {
     if (this->converter == nullptr)
-      this->converter = std::make_shared<CompassConverter>(log, clock, true);
+      this->converter = std::make_shared<CompassConverter>(log, true);
     this->connectAzimuthInput(azimuthInput);
   }
 
@@ -313,7 +268,7 @@ public:
     this->azimuthConnection.disconnect();
     // The explicit cast to boost:function is needed to retain the message event metadata
     this->azimuthConnection = f.registerCallback(
-      std::function<void(const AzimuthEventType&)>(std::bind_front(&CompassFilter::cbAzimuth, this)));
+      boost::function<void(const AzimuthEventType&)>(cras::bind_front(&CompassFilter::cbAzimuth, this)));
   }
 
   template<class FixInput>
@@ -322,7 +277,7 @@ public:
     this->fixConnection.disconnect();
     // The explicit cast to boost:function is needed to retain the message event metadata
     this->fixConnection = f.registerCallback(
-      std::function<void(const FixEventType&)>(std::bind_front(&CompassFilter::cbFix, this)));
+      boost::function<void(const FixEventType&)>(cras::bind_front(&CompassFilter::cbFix, this)));
   }
 
   template<class UTMZoneInput>
@@ -331,7 +286,7 @@ public:
     this->utmZoneConnection.disconnect();
     // The explicit cast to boost:function is needed to retain the message event metadata
     this->utmZoneConnection = f.registerCallback(
-      std::function<void(const UTMZoneEventType&)>(std::bind_front(&CompassFilter::cbUTMZone, this)));
+      boost::function<void(const UTMZoneEventType&)>(cras::bind_front(&CompassFilter::cbUTMZone, this)));
   }
 
 protected:
@@ -346,16 +301,11 @@ protected:
   std::shared_ptr<CompassConverter> converter;  //!< The compass converter instance.
   bool fixReceived {false};  //!< Whether at least one navsat fix message has been received.
 
-  decltype(compass_interfaces::msg::Azimuth::unit) unit;  //!< The target azimuth unit.
-  decltype(compass_interfaces::msg::Azimuth::orientation) orientation;  //!< The target azimuth orientation.
+  decltype(compass_msgs::Azimuth::unit) unit;  //!< The target azimuth unit.
+  decltype(compass_msgs::Azimuth::orientation) orientation;  //!< The target azimuth orientation.
 
   //! The target azimuth reference (unchanged if empty).
-  std::optional<decltype(compass_interfaces::msg::Azimuth::reference)> reference;
-  const rclcpp::Logger& log;
-  const rclcpp::Clock& clock;
-  //const rclcpp::Node* node;
-  //const std::string& topic {std::string()};
-  //const uint32_t queueSize {10};
+  cras::optional<decltype(compass_msgs::Azimuth::reference)> reference;
 };
 
 }

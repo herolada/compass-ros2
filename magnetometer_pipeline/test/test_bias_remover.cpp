@@ -27,14 +27,13 @@ TEST(MagnetometerBiasRemover, Basic)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
 
-  
-  const auto log = rclcpp::get_logger("test_logger");
-
-  auto remover = magnetometer_pipeline::MagnetometerBiasRemover(log);
+  auto remover = magnetometer_pipeline::MagnetometerBiasRemover();
 
   EXPECT_FALSE(remover.hasBias());
 
-  rclcpp::Time time(1664286802, 187375068);
+  builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   Field mag;
   mag.header.stamp = time;
@@ -70,7 +69,8 @@ TEST(MagnetometerBiasRemover, Basic)  // NOLINT
 
   // New data
 
-  time = {1664286802, 197458028};
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   mag.header.stamp = time;
   // These values are exaggerated (in Gauss instead of in Tesla), but they're consistent with ethzasl_xsens_driver
@@ -94,24 +94,26 @@ TEST(MagnetometerBiasRemover, ConfigFromParams)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   
-  auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  rclcpp::Node node = rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
   // const auto log = rclcpp::get_logger("test_logger");
 
-  auto remover = magnetometer_pipeline::MagnetometerBiasRemover(node->get_logger());
+  auto remover = magnetometer_pipeline::MagnetometerBiasRemover();
   EXPECT_FALSE(remover.hasBias());
 
   rclcpp::Parameter param1("initial_mag_bias_x", -0.097227663);
-  node->set_parameter(param1);
+  node.set_parameter(param1);
   rclcpp::Parameter param2("initial_mag_bias_y", -0.692264333);
-  node->set_parameter(param2);
-  rclcpp::Parameter param3("initial_mag_bias_z", 0);
-  node->set_parameter(param3);
+  node.set_parameter(param2);
+  rclcpp::Parameter param3("initial_mag_bias_z", 0.0);
+  node.set_parameter(param3);
 
-  remover.configFromParams(node);
+  remover.configFromParams(&node);
 
   EXPECT_TRUE(remover.hasBias());
 
-  rclcpp::Time time(1664286802, 187375068);
+  builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   Field mag;
   mag.header.stamp = time;
@@ -133,7 +135,8 @@ TEST(MagnetometerBiasRemover, ConfigFromParams)  // NOLINT
 
   // New data
 
-  time = {1664286802, 197458028};
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   mag.header.stamp = time;
   // These values are exaggerated (in Gauss instead of in Tesla), but they're consistent with ethzasl_xsens_driver
@@ -156,10 +159,9 @@ TEST(MagnetometerBiasRemover, ConfigFromParamsWithScale)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
 
-  
-  auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
+  rclcpp::Node node = rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
 
-  auto remover = magnetometer_pipeline::MagnetometerBiasRemover(node->get_logger());
+  auto remover = magnetometer_pipeline::MagnetometerBiasRemover();
   EXPECT_FALSE(remover.hasBias());
 
   // XmlRpc::XmlRpcValue config;
@@ -178,11 +180,11 @@ TEST(MagnetometerBiasRemover, ConfigFromParamsWithScale)  // NOLINT
   // config["initial_mag_scaling_matrix"][2 * 3 + 2] = 1.0;
 
   rclcpp::Parameter param1("initial_mag_bias_x", -0.097227663);
-  node->set_parameter(param1);
+  node.set_parameter(param1);
   rclcpp::Parameter param2("initial_mag_bias_y", -0.692264333);
-  node->set_parameter(param2);
-  rclcpp::Parameter param3("initial_mag_bias_z", 0);
-  node->set_parameter(param3);
+  node.set_parameter(param2);
+  rclcpp::Parameter param3("initial_mag_bias_z", 0.0);
+  node.set_parameter(param3);
 
   // For the scaling matrix (3x3)
   std::vector<double> scaling_matrix(9, 0.0);
@@ -197,13 +199,15 @@ TEST(MagnetometerBiasRemover, ConfigFromParamsWithScale)  // NOLINT
   scaling_matrix[2 * 3 + 2] = 1.0;  // [2][2]
 
   rclcpp::Parameter param4("initial_mag_scaling_matrix", scaling_matrix);
-  node->set_parameter(param4);
+  node.set_parameter(param4);
 
-  remover.configFromParams(node);
+  remover.configFromParams(&node);
 
   EXPECT_TRUE(remover.hasBias());
 
-  rclcpp::Time time(1664286802, 187375068);
+  builtin_interfaces::msg::Time time;
+  time.sec = 1664286802;
+  time.nanosec = 187375068;
 
   Field mag;
   mag.header.stamp = time;
@@ -225,7 +229,8 @@ TEST(MagnetometerBiasRemover, ConfigFromParamsWithScale)  // NOLINT
 
   // New data
 
-  time = {1664286802, 197458028};
+  time.sec = 1664286802;
+  time.nanosec = 197458028;
 
   mag.header.stamp = time;
   // These values are exaggerated (in Gauss instead of in Tesla), but they're consistent with ethzasl_xsens_driver
@@ -246,6 +251,8 @@ TEST(MagnetometerBiasRemover, ConfigFromParamsWithScale)  // NOLINT
 
 int main(int argc, char **argv)
 {
+  rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
+  rclcpp::shutdown();
 }

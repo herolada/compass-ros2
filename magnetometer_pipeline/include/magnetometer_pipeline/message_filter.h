@@ -53,9 +53,9 @@ public:
    * \param[in] biasInput The message filter producing magnetometer bias messages.
    */
   template<class MagInput, class BiasInput>
-  BiasRemoverFilter(const rclcpp::Logger& log, const rclcpp::Clock& clock, MagInput& magInput, BiasInput& biasInput) : log(log), clock(clock)
+  BiasRemoverFilter(const rclcpp::Node* node, MagInput& magInput, BiasInput& biasInput) : node(node)
   {
-    this->remover = std::make_unique<MagnetometerBiasRemover>(log);
+    this->remover = std::make_unique<MagnetometerBiasRemover>();
     this->connectMagnetometerInput(magInput);
     this->connectBiasInput(biasInput);
   }
@@ -88,7 +88,7 @@ public:
    * - `~initial_mag_bias_z` (double, no default, optional): Magnetometer bias in the Z axis.
    * - `~initial_scaling_matrix` (double[9], optional): Magnetometer scaling matrix (row-major).
    */
-  virtual void configFromParams(const rclcpp::Node::SharedPtr node);
+  virtual void configFromParams();
 
 protected:
   virtual void cbMag(const message_filters::MessageEvent<sensor_msgs::msg::MagneticField const>& event);
@@ -98,8 +98,7 @@ protected:
   message_filters::Connection biasConnection;  //!< Connection to the bias input.
 
   std::unique_ptr<MagnetometerBiasRemover> remover;  //!< The bias remover that does the actual computations.
-  const rclcpp::Logger& log;
-  const rclcpp::Clock& clock;
+  const rclcpp::Node* node;
 };
 
 }

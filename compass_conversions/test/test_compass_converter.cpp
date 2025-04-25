@@ -39,40 +39,43 @@ TEST(CompassConverter, ConfigFromParams)  // NOLINT
 {
   // rclcpp::Logger log = rclcpp::get_logger("test_logger");
   // const auto clk = rclcpp::Clock();
-  auto node = std::make_shared<rclcpp::Node>("test_node", rclcpp::NodeOptions());
-  compass_conversions::CompassConverter converter(node->get_logger(), *node->get_clock(), true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  
+  compass_conversions::CompassConverter converter(node.get_logger(), *node.get_clock(), true);
 
-  converter.configFromParams(node);
+  converter.configFromParams(&node);
 
-  node->declare_parameter("magnetic_declination", 1.0);
+  rcl_interfaces::msg::ParameterDescriptor desc;
+  desc.dynamic_typing=true;
+  node.declare_parameter("magnetic_declination", 1.0, desc);
   rclcpp::Parameter parameter1("magnetic_declination", 1.0);
-  node->set_parameter(parameter1);
+  node.set_parameter(parameter1);
 
-  converter.configFromParams(node);
+  converter.configFromParams(&node);
 
-  node->declare_parameter("utm_grid_convergence", 2.0);
+  node.declare_parameter("utm_grid_convergence", 2.0, desc);
   rclcpp::Parameter parameter2("utm_grid_convergence", 2.0);
-  node->set_parameter(parameter2);
-  converter.configFromParams(node);
+  node.set_parameter(parameter2);
+  converter.configFromParams(&node);
 
-  node->undeclare_parameter("magnetic_declination");
-  node->undeclare_parameter("utm_grid_convergence");
+  node.undeclare_parameter("magnetic_declination");
+  node.undeclare_parameter("utm_grid_convergence");
 
-  node->declare_parameter("initial_lat", 0.0);
+  node.declare_parameter("initial_lat", 0.0);
   rclcpp::Parameter parameter3("initial_lat", 0.0);
-  node->set_parameter(parameter3);
+  node.set_parameter(parameter3);
 
-  node->declare_parameter("initial_lon", 0.0);
+  node.declare_parameter("initial_lon", 0.0);
   rclcpp::Parameter parameter4("initial_lon", 0.0);
-  node->set_parameter(parameter4);
+  node.set_parameter(parameter4);
 
-  converter.configFromParams(node);
+  converter.configFromParams(&node);
 
-  node->declare_parameter("alt", 0.0);
+  node.declare_parameter("alt", 0.0);
   rclcpp::Parameter parameter5("alt", 0.0);
-  node->set_parameter(parameter5);
+  node.set_parameter(parameter5);
 
-  converter.configFromParams(node);
+  converter.configFromParams(&node);
 }
 
 TEST(CompassConverter, ComputeMagneticDeclination)  // NOLINT
@@ -1498,9 +1501,15 @@ TEST(CompassConverter, ConvertQuaternion)  // NOLINT
   compass_conversions::CompassConverter converter(log, clk, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
+  // printf("time %ld\n\n\n", time.nanoseconds());
+
   Az azimuth;
   azimuth.header.frame_id = "test";
   azimuth.header.stamp = time;
+
+  // printf("time ns %d\n\n\n", azimuth.header.stamp.nanosec);
+  // printf("time s %d\n\n\n", azimuth.header.stamp.sec);
+
   azimuth.unit = Az::UNIT_RAD;
   azimuth.orientation = Az::ORIENTATION_ENU;
   azimuth.reference = Az::REFERENCE_UTM;
@@ -1598,6 +1607,8 @@ TEST(CompassConverter, ConvertToImu)  // NOLINT
 
 int main(int argc, char **argv)
 {
+  rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
+  rclcpp::shutdown();
 }
