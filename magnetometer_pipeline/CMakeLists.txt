@@ -97,7 +97,6 @@ ament_export_dependencies(
 )
 rclcpp_components_register_nodes(magnetometer_bias_remover_nodelet "magnetometer_pipeline::MagnetometerBiasRemoverNodelet")
 
-
 # INSTALL LIBRARIES
 install(
     DIRECTORY include/
@@ -133,30 +132,43 @@ install(TARGETS
 # https://ros2-tutorial.readthedocs.io/en/latest/
 # While we cant use blocks https://cmake.org/cmake/help/latest/command/block.html#command:block
 # we use set--unset
-# add_executable(magnetometer_bias_remover_nodelet_node nodelets/magnetometer_bias_remover_nodelet.cpp)
+add_executable(magnetometer_bias_remover_nodelet_node nodelets/magnetometer_bias_remover_nodelet.cpp)
 
-# ament_target_dependencies(magnetometer_bias_remover_nodelet_node
-#   compass_utils
-#   geometry_msgs
-#   message_filters
-#   rclcpp
-#   sensor_msgs
-#   tf2_eigen
-#   Eigen3
-# )
+ament_target_dependencies(magnetometer_bias_remover_nodelet_node
+  geometry_msgs
+  message_filters
+  rclcpp
+  rclcpp_components
+  sensor_msgs
+)
 
-# target_include_directories(magnetometer_bias_remover_nodelet_node PUBLIC
-#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#     $<INSTALL_INTERFACE:include>)
+target_link_libraries(magnetometer_bias_remover_nodelet_node magnetometer_bias_remover_nodelet)
 
-# target_compile_features(magnetometer_bias_remover_nodelet_node PUBLIC c_std_99 cxx_std_23)
+target_include_directories(magnetometer_bias_remover_nodelet_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
 
-# install(TARGETS magnetometer_bias_remover_nodelet_node
-#     DESTINATION lib/${PROJECT_NAME})
+target_compile_features(magnetometer_bias_remover_nodelet_node PUBLIC c_std_99 cxx_std_23)
+
+install(TARGETS magnetometer_bias_remover_nodelet_node
+    DESTINATION lib/${PROJECT_NAME})
 
 # ^^^^^^^^^^^^^^^^^^^^^^ #
 # CPP Binary Block [END] #
 ##########################
+
+### PYTHON NODE
+
+# Install Python modules
+# ament_python_install_package(${PROJECT_NAME})
+
+# Install Python executables
+install(PROGRAMS
+  nodes/magnetometer_bias_observer.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+### PYTHON NODE END
 
 install(FILES nodelets.xml
   DESTINATION share/${PROJECT_NAME}
@@ -232,4 +244,10 @@ endif()
 #   target_link_libraries(test_magnetometer_bias_remover_nodelet ${catkin_LIBRARIES})
 #   roslaunch_add_file_check(test/test_bias_remover_nodelet.test USE_TEST_DEPENDENCIES)
 # endif()
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 ament_package()

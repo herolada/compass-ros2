@@ -11,7 +11,7 @@
 #include <functional>
 // #include <cras_cpp_common/nodelet_utils.hpp>
 #include <magnetometer_pipeline/message_filter.h>
-#include <magnetometer_pipeline/magnetometer_bias_remover_nodelet.hpp>
+#include <cpp_launch_example/magnetometer_bias_remover_nodelet.hpp>
 #include <message_filters/subscriber.h>
 // #include <pluginlib/class_list_macros.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
@@ -57,12 +57,3 @@ MagnetometerBiasRemoverNodelet::~MagnetometerBiasRemoverNodelet() = default;
 
 }
 RCLCPP_COMPONENTS_REGISTER_NODE(magnetometer_pipeline::MagnetometerBiasRemoverNodelet)
-
-
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<magnetometer_pipeline::MagnetometerBiasRemoverNodelet>());
-  rclcpp::shutdown();
-  return 0;
-}

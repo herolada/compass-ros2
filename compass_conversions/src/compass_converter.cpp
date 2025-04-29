@@ -498,12 +498,10 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   const std::optional<decltype(compass_interfaces::msg::Azimuth::orientation)>& orientation,
   const std::optional<decltype(compass_interfaces::msg::Azimuth::reference)>& reference) const
   {
-    printf("convert event\n");
     auto msgOrientation = orientation;
     auto msgReference = reference;
     if (!msgOrientation.has_value() || !msgReference.has_value())
     {
-      printf("parse\n");
 
       const auto maybeAzimuthParams = compass_conversions::parseAzimuthTopicName(topic);
       if (maybeAzimuthParams.has_value())
@@ -586,8 +584,6 @@ std::shared_ptr<Msg> deserializeMessage(const std::shared_ptr<const rclcpp::Seri
 void CompassConverter::setNavSatPos(const sensor_msgs::msg::NavSatFix& fix)
 {
   this->lastFix = fix;
-
-  printf("setting nav sat pos\n");
 
   if (!this->forcedUTMGridConvergence.has_value())
   {

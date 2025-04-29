@@ -324,4 +324,10 @@ endif()
 #   target_link_libraries(test_visualize_azimuth_nodelet ${catkin_LIBRARIES})
 #   roslaunch_add_file_check(test/test_visualize_azimuth_nodelet.test USE_TEST_DEPENDENCIES)
 # endif()
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 ament_package()

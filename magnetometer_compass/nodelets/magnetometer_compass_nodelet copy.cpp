@@ -287,9 +287,7 @@ void AzimuthPublishersConfig::init(
 
 void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbiased)
 {
-  printf("imuMagCb\n");
   if (this->publishMagUnbiased) {
-    printf("publishing MagUnbiased\n");
     this->magUnbiasedPub->publish(magUnbiased);
   }
   const auto maybeAzimuth = this->compass->computeAzimuth(imu, magUnbiased);
@@ -304,7 +302,6 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
   {
     // No timeout because computeAzimuth() has already waited for this exact transform
     this->buffer->transform(imu, imuInBody, this->frame);
-    printf("transformed\n");
   }
   catch (const tf2::TransformException& e)
   {
@@ -314,7 +311,6 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
   }
 
   const auto& nedAzimuthMsg = *maybeAzimuth;
-  printf("magPublishers publish\n");
   this->magPublishers.publishAzimuths(nedAzimuthMsg, imuInBody);
 
   if (this->truePublishers.publish)
@@ -322,7 +318,6 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
     const auto maybeTrueNedAzimuthMsg = this->converter->convertAzimuth(
       nedAzimuthMsg, nedAzimuthMsg.unit, nedAzimuthMsg.orientation, Az::REFERENCE_GEOGRAPHIC);
     if (maybeTrueNedAzimuthMsg) {
-      printf("truePublishers publish\n");
       this->truePublishers.publishAzimuths(*maybeTrueNedAzimuthMsg, imuInBody);
     }
     else {
@@ -335,7 +330,6 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
     const auto maybeUTMNedAzimuthMsg = this->converter->convertAzimuth(
       nedAzimuthMsg, nedAzimuthMsg.unit, nedAzimuthMsg.orientation, Az::REFERENCE_UTM);
     if (maybeUTMNedAzimuthMsg.has_value()) {
-      printf("utmPublishers publish\n");
       this->utmPublishers.publishAzimuths(*maybeUTMNedAzimuthMsg, imuInBody);
     }
     else {
@@ -354,8 +348,6 @@ void AzimuthPublishersConfig::publishAzimuths(const Az& nedAzimuth, const Imu& i
     auto imuNed = imuInBody;  // If IMU message should not be published, we fake it here with the ENU-referenced one
     if (this->ned.publishImu)
     {
-      printf("tady transform\n");
-
       geometry_msgs::msg::TransformStamped tf;
       tf.header.stamp = imuInBody.header.stamp;
       tf.header.frame_id = imuInBody.header.frame_id + "_ned";
@@ -451,7 +443,6 @@ void AzimuthPublishersConfigForOrientation::publishAzimuths(const Az& azimuthRad
 
 void MagnetometerCompassNodelet::fixCb(const sensor_msgs::msg::NavSatFix& fix)
 {
-  printf("fixCb\n");
   this->converter->setNavSatPos(fix);
 };
 

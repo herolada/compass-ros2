@@ -181,7 +181,6 @@ void CompassTransformerNodelet::init()
 
   std::string outputTopicSuffix;
   std::string topicName;
-  printf("target type %s\n", outputTypeToString(this->targetType).c_str());
   switch (this->targetType)
   {
     case OutputType::Imu:
@@ -272,9 +271,7 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
     }
     case OutputType::Quaternion:
     {
-      printf("nanosec3 %u\n", msg->header.stamp.nanosec);
       const auto maybeQuat = this->converter->convertToQuaternion(*msg);
-      printf("nanosec4 %u\n", maybeQuat.value().header.stamp.nanosec);
 
       if (maybeQuat.has_value())
         this->pub_quat->publish(*maybeQuat);
@@ -283,7 +280,6 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
       break;
     }
     default:
-      printf("publishing from node!\n");
       this->pub_az->publish(*msg);
       break;
   }
@@ -291,21 +287,15 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
 
 void CompassTransformerNodelet::transformAndPublish(const Az::ConstSharedPtr& msg)
 {
-  printf("transform and publish\n");
   try
   {
     Az::SharedPtr outMsg(new Az{});
-    printf("chyba next???\n");
 
-    printf("nanosec4 %u\n", msg->header.stamp.nanosec);
 
     //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
     *outMsg = this->buffer->transform(*msg, this->targetFrame);
-    printf("chyba tu???\n");
 
-    printf("nanosec5 %u\n", outMsg->header.stamp.nanosec);
     this->publish(outMsg);
-    printf("chyba tady???\n");
 
   }
   catch (const tf2::TransformException& e)

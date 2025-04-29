@@ -152,7 +152,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   };
 
   std::list<rclcpp::PublisherBase::SharedPtr> pubs;
-  printf("B\n");
 
   auto imuPub = node->create_publisher<Imu>("imu/data", 1); pubs.push_back(imuPub);
   auto magPub = node->create_publisher<Field>("imu/mag", 1); pubs.push_back(magPub);
@@ -186,8 +185,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", 1, quatCb); subs.push_back(azUtmNedQuatSub);
   auto azUtmNedPoseSub = node->create_subscription<Pose>("compass/utm/ned/pose", 1, poseCb); subs.push_back(azUtmNedPoseSub);
 
-  printf("C\n");
-
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
   // rclcpp::executors::SingleThreadedExecutor executor;
@@ -199,7 +196,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     executor.spin_once();
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
   }
-  printf("D\n");
 
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
     
@@ -216,7 +212,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   builtin_interfaces::msg::Time time;
   time.sec = 1664286802;
   time.nanosec = 187375068;
-  printf("E\n");
 
   // First, publish imu + mag before bias + fix + tf, this should do nothing
 
@@ -253,7 +248,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   mag.magnetic_field.y = -0.538677;
   mag.magnetic_field.z = 0.157033;
   magPub->publish(mag);
-  printf("F\n");
 
   for (
     size_t i = 0;
@@ -270,7 +264,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   ASSERT_FALSE(lastPose.has_value());
   ASSERT_FALSE(lastField.has_value());
   ASSERT_TRUE(az.empty());
-  printf("G\n");
 
   // Now, publish bias + fix, but not yet tf
 
@@ -293,7 +286,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   fixPub->publish(fix);
 
   executor.spin_once();
-  printf("H\n");
 
 
   // Wait until the latched messages are received
@@ -302,7 +294,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   imuPub->publish(imu);
   magPub->publish(mag);
-  printf("I\n");
 
   for (
     size_t i = 0;
@@ -319,7 +310,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   ASSERT_FALSE(lastPose.has_value());
   ASSERT_TRUE(lastField.has_value());
   ASSERT_TRUE(az.empty());
-  printf("J\n");
 
   EXPECT_EQ(time, lastField->header.stamp);
   EXPECT_EQ("imu", lastField->header.frame_id);
@@ -344,7 +334,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   baseLinkImuTf.transform.rotation.w = -7.312301077203115e-14;
   tf->setTransform(baseLinkImuTf, "test", true);
 
-  printf("K\n");
 
   imuPub->publish(imu);
   magPub->publish(mag);
@@ -366,7 +355,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
-  printf("KK\n");
   ASSERT_TRUE(lastImu.has_value());
   ASSERT_TRUE(lastQuat.has_value());
   ASSERT_TRUE(lastPose.has_value());
@@ -374,7 +362,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   ASSERT_EQ(numAzimuths, az.size());
   for (const auto& [key, a] : az)
     ASSERT_TRUE(a.has_value());
-  printf("L\n");
 
   EXPECT_EQ(time, lastField->header.stamp);
   EXPECT_EQ("imu", lastField->header.frame_id);
@@ -435,7 +422,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   Imu transImu;
   // FIXED
 
-  printf("LL\n");
 
   tf->transform(imu, transImu, "base_link");
   EXPECT_NEAR(compass_utils::getRoll(transImu.orientation), compass_utils::getRoll(lastImu->orientation), 1e-4);
@@ -625,8 +611,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
-  printf("A\n");
-
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
     rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
@@ -634,8 +618,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
   }
-
-  printf("AA\n");
 
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
@@ -645,8 +627,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
   }
-
-  printf("B\n");
 
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
@@ -669,8 +649,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   tf->setTransform(baseLinkImuTf, "test", true);
 
   // Publish imu + mag + tf without bias + fix, which should be substituted by params
-  printf("C\n");
-
   Imu imu;
   imu.header.stamp = time;
   imu.header.frame_id = "imu";
@@ -695,8 +673,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   imu.orientation_covariance[2 * 3 + 2] = 0.157080;
   imuPub->publish(imu);
 
-  printf("D\n");
-
   Field mag;
   mag.header.stamp = time;
   mag.header.frame_id = "imu";
@@ -707,8 +683,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   mag.magnetic_field.z = 0.157033;
   magPub->publish(mag);
 
-  printf("E\n");
-
   for (size_t i = 0; i < 10 && (!lastField || !lastQuat) && rclcpp::ok(); ++i)
   {
     executor.spin_once();
@@ -716,7 +690,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   }
   ASSERT_TRUE(lastQuat.has_value());
   ASSERT_TRUE(lastField.has_value());
-  printf("F\n");
 
   EXPECT_EQ(time, lastField->header.stamp);
   EXPECT_EQ("imu", lastField->header.frame_id);

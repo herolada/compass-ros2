@@ -261,10 +261,7 @@ TEST(CompassTransformerNodelet, TfConversion)  // NOLINT
     rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
     executor.spin_once();
     RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for azimuth input and output topics.");
-    printf("D");
-
   }
-  printf("E");
 
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
   ASSERT_GT(azimuthSub->get_publisher_count(), 0);
@@ -279,17 +276,13 @@ TEST(CompassTransformerNodelet, TfConversion)  // NOLINT
   in.reference = Az::REFERENCE_MAGNETIC;
 
   azimuthPub->publish(in);
-  printf("F");
 
   for (size_t i = 0; i < 50 && !lastAz.has_value() && rclcpp::ok() ; ++i)
   {
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
-    printf("G");
-
   }
   ASSERT_TRUE(lastAz.has_value());
-  printf("H");
 
   // EXPECT_EQ(in.header.stamp, lastAz->header.stamp); //TODO buffer->transform changes timestamp...
   EXPECT_EQ("test2", lastAz->header.frame_id);
@@ -532,8 +525,6 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
     RCLCPP_ERROR_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for fix and azimuth input and output topics.");
   }
 
-  printf("A");
-
   ASSERT_GT(azimuthPub->get_subscription_count(), 0);
   ASSERT_GT(fixPub->get_subscription_count(), 0);
   ASSERT_GT(azimuthSub->get_publisher_count(), 0);
@@ -547,7 +538,6 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
   fix.longitude = 15.0;
   fix.altitude = 200.0;
   fixPub->publish(fix);
-  printf("B");
 
   // Wait until the fix message is received
   for (size_t i = 0; i < 10; ++i)
@@ -565,10 +555,7 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
   in.orientation = Az::ORIENTATION_NED;
   in.reference = Az::REFERENCE_MAGNETIC;
 
-  printf("BBB\n");
-
   azimuthPub->publish(in);
-  printf("C");
 
   for (size_t i = 0; i < 50 && !lastAz.has_value() && rclcpp::ok() ; ++i)
   {

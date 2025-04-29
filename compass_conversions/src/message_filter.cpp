@@ -204,11 +204,8 @@ std::string UniversalAzimuthSubscriber::getTopic() const
 // }
 
 void UniversalAzimuthSubscriber::azCb(const AzimuthEventType& event) {
-  printf("UniversalAzimuthSubscriber cb\n");
 
   const auto msg = event.getConstMessage();
-  printf("nanosec1 %u\n", msg->header.stamp.nanosec);
-
   const auto stamp = event.getReceiptTime();
   const auto maybeAzimuth = this->converter.convertAzimuth(*msg, Az::UNIT_RAD, msg->orientation, msg->reference);
 
@@ -218,7 +215,6 @@ void UniversalAzimuthSubscriber::azCb(const AzimuthEventType& event) {
     return;
   }
   // const auto header = event.getConnectionHeaderPtr();
-  printf("nanosec2 %u\n", maybeAzimuth.value().header.stamp.nanosec);
 
   this->signalMessage(message_filters::MessageEvent<Az const>(
     std::make_shared<Az const>(*maybeAzimuth), stamp, false, message_filters::DefaultMessageCreator<Az>()));
@@ -242,12 +238,8 @@ void UniversalAzimuthSubscriber::poseCb(const PoseEventType& event) {
 void UniversalAzimuthSubscriber::quatCb(const QuatEventType& event) {
   const auto msg = event.getConstMessage();
   const auto stamp = event.getReceiptTime();
-  printf("nanosec1 %u\n", msg->header.stamp.nanosec);
-
   const auto maybeAzimuth = this->converter.convertQuaternionMsgEvent(
     this->topic.c_str(), event, this->inputVariance.value_or(0.0), Az::UNIT_RAD, this->inputOrientation, this->inputReference);
-
-  printf("nanosec2 %u\n", maybeAzimuth.value().header.stamp.nanosec);
 
   if (!maybeAzimuth.has_value())
   {
@@ -260,7 +252,6 @@ void UniversalAzimuthSubscriber::quatCb(const QuatEventType& event) {
 }
 
 void UniversalAzimuthSubscriber::imuCb(const ImuEventType& event) {
-  printf("imuCb\n");
   const auto msg = event.getConstMessage();
   const auto stamp = event.getReceiptTime();
   const auto maybeAzimuth = this->converter.convertImuMsgEvent(this->topic.c_str(), event, Az::UNIT_RAD, this->inputOrientation, this->inputReference);
@@ -296,7 +287,6 @@ CompassFilter::~CompassFilter() = default;
 
 void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
 {
-  printf("CompassFilter cb\n");
   const auto& msg = azimuthEvent.getConstMessage();
   const auto output = this->converter->convertAzimuth(
     *msg, this->unit, this->orientation, this->reference.value_or(msg->reference));
@@ -305,11 +295,7 @@ void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
     RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000.,
       "Azimuth conversion failed%s: %s", fixReceived ? "" : "(no fix message received yet)", output.error().c_str());
     return;
-  } else {
-    printf("\nhas value!!\n");
   }
-
-  printf("nanosec3 %u\n", output.value().header.stamp.nanosec);
 
   this->signalMessage(AzimuthEventType(
     std::make_shared<Az const>(*output), //azimuthEvent.getConnectionHeaderPtr(),
@@ -318,7 +304,6 @@ void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
 
 void CompassFilter::cbFix(const FixEventType& fixEvent)
 {
-  printf("Fix received\n");
   this->fixReceived = true;
   this->converter->setNavSatPos(*fixEvent.getConstMessage());
 }

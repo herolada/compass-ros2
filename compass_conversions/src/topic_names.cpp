@@ -76,10 +76,6 @@ std::optional<std::tuple<decltype(Az::unit), decltype(Az::orientation), decltype
 parseAzimuthTopicName(const std::string& topic)
 {
   const auto parts = compass_utils::split(topic, "/");
-
-  for (const auto& part : parts) {
-    printf("part %s", part.c_str());
-  }
   
   if (parts.size() < 3)
     return std::nullopt;

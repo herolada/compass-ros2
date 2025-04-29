@@ -1,0 +1,263 @@
+#!/usr/bin/env python3
+
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Czech Technical University in Prague
+
+"""Magnetometer bias estimation node."""
+
+import os
+import time
+import yaml
+
+import numpy as np
+
+import rclpy
+from std_msgs.msg import String
+from sensor_msgs.msg import MagneticField
+from std_srvs.srv import Trigger
+
+import threading
+from rclpy.executors import ExternalShutdownException
+from rclpy.node import Node
+from rclpy.time import Time
+from rclpy.qos import QoSProfile, DurabilityPolicy
+from rclpy.duration import Duration
+
+class MagBiasObserver(Node):
+    def __init__(self):
+        super().__init__('magnetometer_bias_observer')
+        self.x_min = 10000
+        self.y_min = 10000
+        self.z_min = 10000
+
+        self.x_max = -10000
+        self.y_max = -10000
+        self.z_max = -10000
+
+        self.x_mean = None
+        self.y_mean = None
+        self.z_mean = None
+
+        self.last_mag = None
+        self.msg = MagneticField()
+
+        self.frame_id = "imu"
+        self.started = False
+
+        self.measuring_time = Duration(seconds=self.get_parameter_or('~measuring_time', 30))
+        self.finish_measuring_time = Time(seconds=0, clock_type=self.get_clock().clock_type)
+        self.two_d_mode = bool(self.get_parameter_or('~2d_mode', True))  # only calibrate in a plane
+        # If None, the axis will be autodetected; otherwise, specify either "X", "Y" or "Z"
+        self.ignore_axis = self.get_parameter_or('~2d_mode_ignore_axis', None)
+
+        load_from_params = self.get_parameter_or("~load_from_params", False)
+        load_from_params = load_from_params and self.has_parameter("magnetometer_bias_x")
+        load_from_params = load_from_params and self.has_parameter("magnetometer_bias_y")
+        load_from_params = load_from_params and self.has_parameter("magnetometer_bias_z")
+
+        default_file = os.path.join(os.environ.get("HOME", ""), ".ros", "magnetometer_calib.yaml")
+        self.calibration_file = self.get_parameter_or("~calibration_file_path", default_file)
+
+        load_from_file = self.get_parameter_or("~load_from_file", True)
+        load_from_file = load_from_file and len(self.calibration_file) > 0 and os.path.exists(self.calibration_file)
+
+        self.save_to_file = self.get_parameter_or("~save_to_file", True)
+
+        self.pub = self.create_publisher(MagneticField, 'imu/mag_bias', QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
+        self.speak_pub = self.create_publisher(String, 'speak/warn', QoSProfile(depth=1))
+
+        self.sub = None  # will be initialized in subscribe()
+
+        self.calibrate_server = self.create_service(Trigger, "calibrate_magnetometer", self.calibrate_service_cb)
+
+        sleep_rate = self.create_rate(100)
+        if load_from_file:
+            with open(self.calibration_file, 'r') as f:
+                data = yaml.safe_load(f)
+            self.x_mean = float(data.get("magnetometer_bias_x", 0.0))
+            self.y_mean = float(data.get("magnetometer_bias_y", 0.0))
+            self.z_mean = float(data.get("magnetometer_bias_z", 0.0))
+            sleep_rate.sleep()  # give the publishers some time to get set up
+            self.get_logger().warn("Magnetometer calibration loaded from file {}.".format(self.calibration_file))
+            self.pub_msg(allow_save=False)
+        elif load_from_params:
+            self.x_mean = float(self.get_parameter("magnetometer_bias_x"))
+            self.y_mean = float(self.get_parameter("magnetometer_bias_y"))
+            self.z_mean = float(self.get_parameter("magnetometer_bias_z"))
+            sleep_rate.sleep()  # give the publishers some time to get set up
+            self.get_logger().warn("Magnetometer calibration loaded from parameters.")
+            self.pub_msg()
+
+    def subscribe(self):
+        self.started = False
+        self.sub = self.create_subscription(MagneticField, 'imu/mag', self.mag_callback, QoSProfile(depth=1))
+
+    def calibrate_service_cb(self, request, response):
+        if self.sub or self.get_clock().now() < self.finish_measuring_time:
+            self.get_logger().warn("Calibration in progress, ignoring another request")
+            response.success = False
+            response.message = "Calibration already running"
+            return response
+
+        self.subscribe()
+        response.success = True
+        response.message = f"Calibration started, rotate the robot for the following {self.measuring_time.nanoseconds/1e9} seconds"
+        return response 
+
+    def speak(self, message):
+        msg = String()
+        msg.data = message
+        self.speak_pub.publish(msg)
+
+    def mag_callback(self, msg):
+        self.frame_id = msg.header.frame_id
+        self.last_mag = msg
+
+        if not self.started and self.get_clock().now() == 0:
+            return
+
+        if not self.started:
+            self.started = True
+            self.finish_measuring_time = self.get_clock().now() + self.measuring_time
+
+            log = f"Started magnetometer calibration, rotate the robot several times in the following {self.measuring_time.secs} seconds."
+            self.get_logger().warn(log)
+            self.speak(log)
+
+        if self.get_clock().now() < self.finish_measuring_time:
+            mag = msg.magnetic_field
+
+            if mag.x > self.x_max:
+                self.x_max = mag.x
+            elif mag.x < self.x_min:
+                self.x_min = mag.x
+
+            if mag.y > self.y_max:
+                self.y_max = mag.y
+            elif mag.y < self.y_min:
+                self.y_min = mag.y
+
+            if mag.z > self.z_max:
+                self.z_max = mag.z
+            elif mag.z < self.z_min:
+                self.z_min = mag.z
+        else:
+            self.get_logger().warn("Magnetometer calibrated")
+            self.speak("Magnetometer calibrated")
+            self.destroy_subscription(self.sub)  # unsubscribe the mag messages
+
+            self.set_means()
+            self.pub_msg()
+
+    def set_means(self):
+        self.x_mean = (self.x_min + self.x_max)/2
+        self.y_mean = (self.y_min + self.y_max)/2
+        self.z_mean = (self.z_min + self.z_max)/2
+
+        if self.two_d_mode:
+            x_range = self.x_max - self.x_min
+            y_range = self.y_max - self.y_min
+            z_range = self.z_max - self.z_min
+
+            self.get_logger().info(f"range {x_range} {y_range} {z_range}")
+
+            free_axis = None
+            if self.ignore_axis is not None:
+                free_axis = self.ignore_axis.upper()
+            elif x_range < min(0.75 * y_range, 0.75 * z_range):
+                free_axis = "X"
+            elif y_range < min(0.75 * x_range, 0.75 * z_range):
+                free_axis = "Y"
+            elif z_range < min(0.75 * x_range, 0.75 * y_range):
+                free_axis = "Z"
+
+            if free_axis == "X":
+                self.x_mean = 0
+            elif free_axis == "Y":
+                self.y_mean = 0
+            elif free_axis == "Z":
+                self.z_mean = 0
+
+            if free_axis is not None:
+                self.get_logger().info(f"Magnetometer calibration finished in 2D mode with {free_axis} axis uncalibrated.")
+            else:
+                self.get_logger().warn(
+                    "Magnetometer calibration in 2D mode requested, but autodetection of the free axis failed. "
+                    "Did you rotate the robot? Or did you do move with the robot in all 3 axes?")
+
+        if self.last_mag is not None:
+            magnitude = np.linalg.norm([
+                self.last_mag.magnetic_field.x - self.x_mean,
+                self.last_mag.magnetic_field.y - self.y_mean,
+                self.last_mag.magnetic_field.z - self.z_mean])
+            logfn = self.get_logger().info if magnitude < 1e-4 else self.get_logger().warn
+            logfn(f"Magnitude of the calibrated magnetic field is {magnitude} T.")
+
+    def pub_msg(self, allow_save=True):
+        self.msg.header.stamp = self.get_clock().now()
+        self.msg.header.frame_id = self.frame_id
+
+        self.msg.magnetic_field.x = self.x_mean
+        self.msg.magnetic_field.y = self.y_mean
+        self.msg.magnetic_field.z = self.z_mean
+
+        self.pub.publish(self.msg)
+
+        self.declare_parameter("magnetometer_bias_x", self.x_mean)
+        self.declare_parameter("magnetometer_bias_y", self.y_mean)
+        self.declare_parameter("magnetometer_bias_z", self.z_mean)
+
+        if self.save_to_file and allow_save:
+            dir = os.path.dirname(self.calibration_file)
+            if not os.path.exists(dir):
+                try:
+                    os.makedirs(dir)
+                except OSError:
+                    rclpy.logerr("Could not create folder for storing calibration " + dir)
+
+            if os.path.exists(dir):
+                data = {
+                    "magnetometer_bias_x": self.x_mean,
+                    "magnetometer_bias_y": self.y_mean,
+                    "magnetometer_bias_z": self.z_mean,
+                }
+                try:
+                    with open(self.calibration_file, 'w') as f:
+                        yaml.safe_dump(data, f)
+                    self.get_logger().warn("Saved magnetometer calibration to file " + self.calibration_file)
+                except Exception as e:
+                    self.get_logger().error("An error occured while saving magnetometer calibration to file " +
+                                 self.calibration_file)
+            else:
+                self.get_logger().error("Could not store magnetometer calibration to file {}. Cannot create the file.".format(
+                    self.calibration_file))
+
+    """ def run(self):
+        rclpy.spin() """
+
+def spin_in_background():
+    executor = rclpy.get_global_executor()
+    try:
+        executor.spin()
+    except ExternalShutdownException:
+        pass
+
+def main(args=None):
+    rclpy.init(args=args)
+    # In rclpy callbacks are always called in background threads.
+    # Spin the executor in another thread for similar behavior in ROS 2.
+    t = threading.Thread(target=spin_in_background)
+    t.start()
+
+    mag_bias_observer_node = MagBiasObserver()
+    rclpy.get_global_executor().add_node(mag_bias_observer_node)
+
+    # mag_bias_observer_node.run()
+    t.join()
+    
+    mag_bias_observer_node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

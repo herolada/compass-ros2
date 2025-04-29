@@ -1489,15 +1489,10 @@ TEST(CompassConverter, ConvertQuaternion)  // NOLINT
   compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
-  // printf("time %ld\n\n\n", time.nanoseconds());
 
   Az azimuth;
   azimuth.header.frame_id = "test";
   azimuth.header.stamp = time;
-
-  // printf("time ns %d\n\n\n", azimuth.header.stamp.nanosec);
-  // printf("time s %d\n\n\n", azimuth.header.stamp.sec);
-
   azimuth.unit = Az::UNIT_RAD;
   azimuth.orientation = Az::ORIENTATION_ENU;
   azimuth.reference = Az::REFERENCE_UTM;

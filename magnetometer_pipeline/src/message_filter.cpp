@@ -33,14 +33,11 @@ void BiasRemoverFilter::configFromParams()
 
 void BiasRemoverFilter::cbMag(const message_filters::MessageEvent<Field const>& event)
 {
-  printf("aa\n");
   const auto maybeMagUnbiased = this->remover->removeBias(*event.getConstMessage());
   if (!maybeMagUnbiased.has_value())
   {
-    printf("cc\n");
     // auto log = rclcpp::get_logger("BiasRemoverFilter");
     RCLCPP_ERROR_SKIPFIRST_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000., "Bias remover cannot work: %s. Waiting...", maybeMagUnbiased.error().c_str());
-    printf("dd\n");
     return;
   }
 
@@ -52,7 +49,6 @@ void BiasRemoverFilter::cbMag(const message_filters::MessageEvent<Field const>& 
 
 void BiasRemoverFilter::cbBias(const message_filters::MessageEvent<Field const>& event)
 {
-  printf("bb\n");
   this->remover->setBias(*event.getConstMessage());
 }
 
