@@ -25,6 +25,7 @@
 #include <rclcpp/logger.hpp>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/node.hpp"
 #include "rcutils/error_handling.h"
 #include <sensor_msgs/msg/magnetic_field.h>
 #include <sensor_msgs/msg/nav_sat_fix.h>
@@ -62,8 +63,8 @@ struct MagneticModelPrivate
 };
 
 MagneticModel::MagneticModel(
-  const rclcpp::Logger& log, const std::string& name, const std::string& modelPath, const bool strict, const rclcpp::Clock& clock) :
-  log(log), strict(strict), data(new MagneticModelPrivate{}), clock(clock) //clock(std::make_unique<rclcpp::Clock>(RCL_ROS_TIME))
+  const rclcpp::Node* node, const std::string& name, const std::string& modelPath, const bool strict) :
+  node(node), strict(strict), data(new MagneticModelPrivate{})
 
 {
   try
@@ -125,7 +126,7 @@ MagneticModel::MagneticModel(
     this->data->errors.D_lin = 5417;
   }
 
-  RCLCPP_INFO(this->log, "Initialized magnetic model %s.", name.c_str());
+  RCLCPP_INFO(this->node->get_logger(), "Initialized magnetic model %s.", name.c_str());
 }
 
 MagneticModel::~MagneticModel() = default;
@@ -157,7 +158,7 @@ tl::expected<MagneticField, std::string> MagneticModel::getMagneticField(
     }
     else
     {
-      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000., "%s", err.c_str());
+      RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000., "%s", err.c_str());
       errorCoef *= std::max(1.0, std::max(std::abs(year - minYear), std::abs(year - maxYear)));
     }
   }
@@ -175,7 +176,7 @@ tl::expected<MagneticField, std::string> MagneticModel::getMagneticField(
     }
     else
     {
-      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000., "%s", err.c_str());
+      RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000., "%s", err.c_str());
       errorCoef *= std::max(1.0, std::max(std::abs(fix.altitude - minAlt), std::abs(fix.altitude - maxAlt)) / 1000.0);
     }
   }
@@ -220,7 +221,7 @@ tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMa
     }
     else
     {
-      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000., "%s", err.c_str());
+      RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000., "%s", err.c_str());
       errorCoef *= std::max(1.0, std::max(std::abs(fix.altitude - minAlt), std::abs(fix.altitude - maxAlt)) / 1000.0);
     }
   }
@@ -258,7 +259,7 @@ tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMa
     }
     else
     {
-      RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000., "%s", err.c_str());
+      RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000., "%s", err.c_str());
       errorCoef *= std::max(1.0, std::max(std::abs(year - minYear), std::abs(year - maxYear)));
     }
   }
@@ -301,9 +302,9 @@ tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMa
   double yearFrac {0.0};
   if (yearStart.has_value() && nextYearStart.has_value())
   {
-    RCLCPP_INFO(this->log, "nextYearStart %f.", (nextYearStart->seconds()));
-    RCLCPP_INFO(this->log, "yearStart %f.", (yearStart->seconds()));
-    RCLCPP_INFO(this->log, "stamp %f.", (stamp.seconds()));
+    RCLCPP_INFO(this->node->get_logger(), "nextYearStart %f.", (nextYearStart->seconds()));
+    RCLCPP_INFO(this->node->get_logger(), "yearStart %f.", (yearStart->seconds()));
+    RCLCPP_INFO(this->node->get_logger(), "stamp %f.", (stamp.seconds()));
     const double yearDuration = nextYearStart->seconds() - yearStart->seconds();
     const double nowSinceYearStart = stamp.seconds() - yearStart->seconds();
     yearFrac = (nowSinceYearStart / yearDuration);

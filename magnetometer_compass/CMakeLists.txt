@@ -15,6 +15,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(imu_transformer REQUIRED)
 find_package(magnetometer_pipeline REQUIRED)
 find_package(message_filters REQUIRED)
+find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -72,6 +73,7 @@ ament_target_dependencies(${PROJECT_NAME}_nodelet
   imu_transformer
   magnetometer_pipeline
   message_filters
+  pluginlib
   rclcpp
   rclcpp_components
   sensor_msgs
@@ -79,7 +81,9 @@ ament_target_dependencies(${PROJECT_NAME}_nodelet
   tf2_geometry_msgs
   tf2_ros
 )
-target_link_libraries(${PROJECT_NAME}_nodelet tl::expected)
+pluginlib_export_plugin_description_file(rclcpp plugins.xml)
+
+target_link_libraries(${PROJECT_NAME}_nodelet ${PROJECT_NAME} tl::expected)
 
 target_include_directories(${PROJECT_NAME}_nodelet
   PUBLIC
@@ -271,6 +275,11 @@ if(BUILD_TESTING)
     )
 
     ament_add_gtest(test_visualize_azimuth_nodelet test/test_visualize_azimuth_nodelet.cpp)
+    # ament_target_dependencies(test_magnetometer_compass_nodelet
+    #   builtin_interfaces
+    #   imu_transformer
+    #   tf2_sensor_msgs
+    # )
     target_link_libraries(test_visualize_azimuth_nodelet visualize_azimuth_nodelet)
     target_include_directories(test_visualize_azimuth_nodelet
         PUBLIC

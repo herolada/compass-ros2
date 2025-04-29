@@ -17,6 +17,7 @@
 #include <magnetic_model/magnetic_model.h>
 #include <rclcpp/time.hpp>
 #include <rclcpp/logger.hpp>
+#include <rclcpp/node.hpp>
 
 namespace magnetic_model
 {
@@ -39,7 +40,7 @@ public:
    *                      system location is determined by GeographicLib and can be influenced by setting environment
    *                      variables `GEOGRAPHICLIB_MAGNETIC_PATH` or `GEOGRAPHICLIB_DATA`.
    */
-  explicit MagneticModelManager(const rclcpp::Logger& log, const rclcpp::Clock& clock, const std::optional<std::string>& modelPath = {});
+  explicit MagneticModelManager(const rclcpp::Node* node, const std::optional<std::string>& modelPath = {});
   virtual ~MagneticModelManager();
 
   /**
@@ -85,8 +86,7 @@ public:
 protected:
   //! \brief PIMPL data
   std::unique_ptr<MagneticModelManagerPrivate> data;
-  const rclcpp::Logger& log;
-  const rclcpp::Clock& clock;
+  const rclcpp::Node* node;
 };
 
 }

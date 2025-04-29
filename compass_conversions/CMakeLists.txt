@@ -72,7 +72,7 @@ ament_target_dependencies(compass_converter
   tf2
   tf2_geometry_msgs
 )
-target_link_libraries(compass_converter tl::expected)
+target_link_libraries(compass_converter compass_topic_names tl::expected)
 
 target_include_directories(compass_converter
   PUBLIC

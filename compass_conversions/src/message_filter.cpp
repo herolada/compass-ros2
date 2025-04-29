@@ -41,7 +41,7 @@ using Quat = geometry_msgs::msg::QuaternionStamped;
 UniversalAzimuthSubscriber::UniversalAzimuthSubscriber(rclcpp::Node* node,
   std::string topic, const uint32_t queueSize
   //, const ros::TransportHints& transportHints, ros::CallbackQueueInterface* callbackQueue
-  ): node(node), converter(node->get_logger(), *node->get_clock(), true), topic(topic), queueSize(queueSize),
+  ): node(node), converter(node, true), topic(topic), queueSize(queueSize),
   azSub(message_filters::Subscriber<Az>()),
   poseSub(message_filters::Subscriber<Pose>()),
   quatSub(message_filters::Subscriber<Quat>()),
@@ -302,7 +302,7 @@ void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
     *msg, this->unit, this->orientation, this->reference.value_or(msg->reference));
   if (!output.has_value())
   {
-    RCLCPP_ERROR_THROTTLE(this->log, this->clock, 10000.,
+    RCLCPP_ERROR_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000.,
       "Azimuth conversion failed%s: %s", fixReceived ? "" : "(no fix message received yet)", output.error().c_str());
     return;
   } else {

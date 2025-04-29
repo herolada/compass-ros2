@@ -243,14 +243,14 @@ public:
    * \param[in] reference The output azimuth reference.
    */
   template<class AzimuthInput, class FixInput, class UTMZoneInput>
-  CompassFilter(const rclcpp::Logger& log, const rclcpp::Clock& clock, const std::shared_ptr<CompassConverter>& converter,
+  CompassFilter(const rclcpp::Node* node, const std::shared_ptr<CompassConverter>& converter,
     AzimuthInput& azimuthInput, FixInput& fixInput, UTMZoneInput& utmZoneInput,
     decltype(compass_interfaces::msg::Azimuth::unit) unit, decltype(compass_interfaces::msg::Azimuth::orientation) orientation,
     decltype(compass_interfaces::msg::Azimuth::reference) reference):
-    log(log), clock(clock), converter(converter), unit(unit), orientation(orientation), reference(reference)
+    node(node), converter(converter), unit(unit), orientation(orientation), reference(reference)
   {
     if (this->converter == nullptr)
-      this->converter = std::make_shared<CompassConverter>(log, clock, true);
+      this->converter = std::make_shared<CompassConverter>(node, true);
     this->connectAzimuthInput(azimuthInput);
     this->connectFixInput(fixInput);
     this->connectUTMZoneInput(utmZoneInput);
@@ -270,14 +270,14 @@ public:
    * \param[in] reference The output azimuth reference.
    */
   template<class AzimuthInput, class FixInput>
-  CompassFilter(const rclcpp::Logger& log, const rclcpp::Clock& clock, const std::shared_ptr<CompassConverter>& converter,
+  CompassFilter(const rclcpp::Node* node, const std::shared_ptr<CompassConverter>& converter,
     AzimuthInput& azimuthInput, FixInput& fixInput,
     decltype(compass_interfaces::msg::Azimuth::unit) unit, decltype(compass_interfaces::msg::Azimuth::orientation) orientation,
     decltype(compass_interfaces::msg::Azimuth::reference) reference):
-    log(log), clock(clock), converter(converter), unit(unit), orientation(orientation), reference(reference)
+    node(node), converter(converter), unit(unit), orientation(orientation), reference(reference)
   {
     if (this->converter == nullptr)
-      this->converter = std::make_shared<CompassConverter>(log, clock, true);
+      this->converter = std::make_shared<CompassConverter>(node, true);
     this->connectAzimuthInput(azimuthInput);
     this->connectFixInput(fixInput);
   }
@@ -294,14 +294,14 @@ public:
    * \param[in] reference The output azimuth reference.
    */
   template<class AzimuthInput>
-  CompassFilter(const rclcpp::Logger& log, const rclcpp::Clock& clock, const std::shared_ptr<CompassConverter>& converter,
+  CompassFilter(const rclcpp::Node* node, const std::shared_ptr<CompassConverter>& converter,
     AzimuthInput& azimuthInput,
     decltype(compass_interfaces::msg::Azimuth::unit) unit, decltype(compass_interfaces::msg::Azimuth::orientation) orientation,
     decltype(compass_interfaces::msg::Azimuth::reference) reference):
-    log(log), clock(clock), converter(converter), unit(unit), orientation(orientation), reference(reference)
+    node(node), converter(converter), unit(unit), orientation(orientation), reference(reference)
   {
     if (this->converter == nullptr)
-      this->converter = std::make_shared<CompassConverter>(log, clock, true);
+      this->converter = std::make_shared<CompassConverter>(node, true);
     this->connectAzimuthInput(azimuthInput);
   }
 
@@ -351,9 +351,9 @@ protected:
 
   //! The target azimuth reference (unchanged if empty).
   std::optional<decltype(compass_interfaces::msg::Azimuth::reference)> reference;
-  const rclcpp::Logger& log;
-  const rclcpp::Clock& clock;
-  //const rclcpp::Node* node;
+  // const rclcpp::Logger& log;
+  // const rclcpp::Clock& clock;
+  const rclcpp::Node* node;
   //const std::string& topic {std::string()};
   //const uint32_t queueSize {10};
 };

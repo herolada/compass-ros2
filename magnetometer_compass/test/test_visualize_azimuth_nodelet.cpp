@@ -20,6 +20,7 @@
 //#include <cras_cpp_common/param_utils/param_helper.hpp>
 //#include <cras_cpp_common/string_utils/ros.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <magnetometer_compass/visualize_azimuth_nodelet.hpp>
 //#include <ros/ros.h>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -30,9 +31,17 @@ using Quat = geometry_msgs::msg::QuaternionStamped;
 using Pose = geometry_msgs::msg::PoseWithCovarianceStamped;
 using Fix = sensor_msgs::msg::NavSatFix;
 
+std::shared_ptr<magnetometer_compass::VisualizeAzimuthNodelet> createNodelet(rclcpp::NodeOptions node_options = rclcpp::NodeOptions())
+{
+  auto nodelet = std::make_shared<magnetometer_compass::VisualizeAzimuthNodelet>(node_options);
+  return nodelet;
+}
+
+
 TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 {
-  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("test_node");
+  auto node = createNodelet();
+  node->init();
 
   std::optional<Pose> lastPose;
   auto poseCb = [&lastPose](const Pose::ConstSharedPtr& msg)
@@ -70,7 +79,10 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
 
-  rclcpp::Time time = compass_utils::parseTime("2024-11-18T13:00:00Z");
+  rclcpp::Time time_rclcpp = compass_utils::parseTime("2024-11-18T13:00:00Z");
+  builtin_interfaces::msg::Time time;
+  time.sec = time_rclcpp.seconds();
+  time.nanosec = time_rclcpp.nanoseconds() % 1'000'000'000;
 
   Az azimuth;
   azimuth.header.frame_id = "base_link";
@@ -131,6 +143,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
+
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
   EXPECT_EQ("base_link", lastPose->header.frame_id);
@@ -180,6 +193,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
+
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
   EXPECT_EQ("base_link", lastPose->header.frame_id);
@@ -196,10 +210,8 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 
 int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-
   rclcpp::init(argc, argv);
-  rclcpp::Node node("prevent_uninitalized");  // Just prevent ROS being uninited when the test-private nodehandles go out of scope
-
+  testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
+  rclcpp::shutdown();
 }

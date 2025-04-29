@@ -52,14 +52,14 @@ struct MagnetometerCompassPrivate
 };
 
 MagnetometerCompass::MagnetometerCompass(
-  const rclcpp::Logger& log, const rclcpp::Clock::SharedPtr clk, const std::string& frame, const std::shared_ptr<tf2::BufferCore>& tf) :
-  MagnetometerCompass(log, frame, std::make_shared<tf2_ros::Buffer>(clk, tf ? tf->getCacheLength() : std::chrono::duration_cast<std::chrono::nanoseconds>(tf2::BUFFER_CORE_DEFAULT_CACHE_TIME)))
+  rclcpp::Node* node, const std::string& frame, const std::shared_ptr<tf2::BufferCore>& tf) :
+  MagnetometerCompass(node, frame, std::make_shared<tf2_ros::Buffer>(node->get_clock(), tf ? tf->getCacheLength() : std::chrono::duration_cast<std::chrono::nanoseconds>(tf2::BUFFER_CORE_DEFAULT_CACHE_TIME)))
 {
 }
 
 MagnetometerCompass::MagnetometerCompass(
-  const rclcpp::Logger& log, const std::string& frame, const std::shared_ptr<tf2_ros::Buffer>& tf) :
-  log(log), data(new MagnetometerCompassPrivate{})
+  rclcpp::Node* node, const std::string& frame, const std::shared_ptr<tf2_ros::Buffer>& tf) :
+  node(node), data(new MagnetometerCompassPrivate{})
 {
   this->data->tf = tf;
   this->data->frame = frame;
@@ -67,21 +67,10 @@ MagnetometerCompass::MagnetometerCompass(
 
 MagnetometerCompass::~MagnetometerCompass() = default;
 
-void MagnetometerCompass::configFromParams(const rclcpp::Node* node)//const std::map<std::string, rclcpp::Parameter>& params)
+void MagnetometerCompass::configFromParams()
 {
-  // if (params.find("initial_variance") == params.end()) {
-  //   this->data->variance = this->data->initialVariance = this->data->variance;
-  // } else {
-  //   this->data->variance = this->data->initialVariance = params["initial_variance"];
-  // }
-
-  // if (params.find("low_pass_ratio") == params.end()) {
-  //   ;
-  // } else {
-  //   this->data->lowPassRatio = params["low_pass_ratio"];
-  // }
-  this->data->variance = this->data->initialVariance = node->get_parameter_or<double>("initial_variance", this->data->variance);
-  this->data->lowPassRatio = node->get_parameter_or<double>("low_pass_ratio", this->data->lowPassRatio);
+  this->data->variance = this->data->initialVariance = this->node->get_parameter_or<double>("initial_variance", this->data->variance);
+  this->data->lowPassRatio = this->node->get_parameter_or<double>("low_pass_ratio", this->data->lowPassRatio);
 }
 
 void MagnetometerCompass::setLowPassRatio(const double ratio)
@@ -96,7 +85,8 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> MagnetometerCompass:
 
   try
   {
-    this->data->tf->transform(imu, imuInBody, this->data->frame, tf2::Duration(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(100))));
+    //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
+    this->data->tf->transform(imu, imuInBody, this->data->frame);
   }
   catch (const tf2::TransformException& e)
   {
@@ -107,7 +97,8 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> MagnetometerCompass:
   Field magUnbiasedInBody;
   try
   {
-    this->data->tf->transform(magUnbiased, magUnbiasedInBody, this->data->frame, tf2::Duration(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(100))));
+    //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
+    this->data->tf->transform(magUnbiased, magUnbiasedInBody, this->data->frame);
   }
   catch (const tf2::TransformException& e)
   {

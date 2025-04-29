@@ -68,43 +68,43 @@ struct CompassConverterPrivate
   std::map<uint32_t, std::shared_ptr<magnetic_model::MagneticModel>> magneticModels;
 };
 
-CompassConverter::CompassConverter(const rclcpp::Logger& log, const rclcpp::Clock& clock, bool strict) :
-  log(log), clock(clock), strict(strict), data(new CompassConverterPrivate{})
+CompassConverter::CompassConverter(const rclcpp::Node* node, bool strict) :
+  node(node), strict(strict), data(new CompassConverterPrivate{})
 {
-  this->data->magneticModelManager = std::make_unique<magnetic_model::MagneticModelManager>(this->log, this->clock);
+  this->data->magneticModelManager = std::make_unique<magnetic_model::MagneticModelManager>(node);
 };
 
 CompassConverter::~CompassConverter() = default;
 
-void CompassConverter::configFromParams(const rclcpp::Node* node)
+void CompassConverter::configFromParams()
 {
   // cras::TempLocale l(LC_ALL, "en_US.UTF-8");  // Support printing ° signs
 
-  if (node->has_parameter("magnetic_declination"))
-    this->forceMagneticDeclination(std::make_optional<double>(node->get_parameter("magnetic_declination").get_value<double>()));
+  if (this->node->has_parameter("magnetic_declination"))
+    this->forceMagneticDeclination(std::make_optional<double>(this->node->get_parameter("magnetic_declination").get_value<double>()));
   else
-    this->forcedMagneticModelName = node->get_parameter_or<std::string>("magnetic_model", std::string());
+    this->forcedMagneticModelName = this->node->get_parameter_or<std::string>("magnetic_model", std::string());
 
-  if (node->has_parameter("magnetic_models_path"))
-    this->setMagneticModelPath(std::make_optional<std::string>(node->get_parameter("magnetic_models_path").get_value<std::string>()));
+  if (this->node->has_parameter("magnetic_models_path"))
+    this->setMagneticModelPath(std::make_optional<std::string>(this->node->get_parameter("magnetic_models_path").get_value<std::string>()));
 
-  if (node->has_parameter("utm_grid_convergence"))
-    this->forceUTMGridConvergence(std::make_optional<double>(node->get_parameter("utm_grid_convergence").get_value<double>()));
+  if (this->node->has_parameter("utm_grid_convergence"))
+    this->forceUTMGridConvergence(std::make_optional<double>(this->node->get_parameter("utm_grid_convergence").get_value<double>()));
 
-  if (node->has_parameter("utm_zone"))
-    this->forceUTMZone(std::make_optional<int>(node->get_parameter("utm_zone").get_value<int>()));
+  if (this->node->has_parameter("utm_zone"))
+    this->forceUTMZone(std::make_optional<int>(this->node->get_parameter("utm_zone").get_value<int>()));
 
-  this->setKeepUTMZone(node->get_parameter_or<bool>("keep_utm_zone", this->keepUTMZone));
+  this->setKeepUTMZone(this->node->get_parameter_or<bool>("keep_utm_zone", this->keepUTMZone));
 
   if (!this->forcedMagneticDeclination.has_value() || !this->forcedUTMGridConvergence.has_value())
   {
-    if (node->has_parameter("initial_lat") && node->has_parameter("initial_lon"))
+    if (this->node->has_parameter("initial_lat") && this->node->has_parameter("initial_lon"))
     {
       sensor_msgs::msg::NavSatFix msg;
 
-      msg.latitude = node->get_parameter_or<double>("initial_lat", 0.0); 
-      msg.longitude = node->get_parameter_or<double>("initial_lon", 0.0); 
-      msg.altitude = node->get_parameter_or<double>("initial_alt", 0.0);
+      msg.latitude = this->node->get_parameter_or<double>("initial_lat", 0.0); 
+      msg.longitude = this->node->get_parameter_or<double>("initial_lon", 0.0); 
+      msg.altitude = this->node->get_parameter_or<double>("initial_alt", 0.0);
 
       std::list<std::string> computedValues;
       if (!this->forcedMagneticDeclination.has_value())
@@ -113,7 +113,7 @@ void CompassConverter::configFromParams(const rclcpp::Node* node)
         computedValues.emplace_back("UTM grid convergence");
 
       RCLCPP_INFO(
-        this->log, "Initial GPS coords for computation of %s are %.6f°, %.6f°, altitude %.0f m.",
+        this->node->get_logger(), "Initial GPS coords for computation of %s are %.6f°, %.6f°, altitude %.0f m.",
         compass_utils::join(computedValues, "and").c_str(), msg.latitude, msg.longitude, msg.altitude);
 
       this->setNavSatPos(msg);
@@ -208,7 +208,7 @@ tl::expected<int, std::string> CompassConverter::getUTMZone() const
 void CompassConverter::forceUTMZone(const std::optional<int>& zone)
 {
   if (zone.has_value() && (zone < GeographicLib::UTMUPS::MINZONE || zone > GeographicLib::UTMUPS::MAXZONE))
-    RCLCPP_WARN(this->log, "Invalid UTM zone: %d", *zone);
+    RCLCPP_WARN(this->node->get_logger(), "Invalid UTM zone: %d", *zone);
   else
     this->forcedUTMZone = this->lastUTMZone = zone;
 };
@@ -244,8 +244,6 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   const decltype(compass_interfaces::msg::Azimuth::reference) reference) const
 {
 
-  printf("1 unit %d, orientation %d, reference %d\n", unit, orientation, reference);
-  printf("2 unit %d, orientation %d, reference %d\n", azimuth.unit, azimuth.orientation, azimuth.reference);
   // Fast track for no conversion
   if (azimuth.unit == unit && azimuth.orientation == orientation && azimuth.reference == reference)
     return azimuth;
@@ -596,7 +594,7 @@ void CompassConverter::setNavSatPos(const sensor_msgs::msg::NavSatFix& fix)
     const auto maybeConvergenceAndZone = this->computeUTMGridConvergenceAndZone(fix, this->forcedUTMZone);
     if (!maybeConvergenceAndZone.has_value())
     {
-      RCLCPP_WARN_THROTTLE(this->log, this->clock, 10000., "Error computing UTM grid convergence: %s", maybeConvergenceAndZone.error().c_str());
+      RCLCPP_WARN_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 10000., "Error computing UTM grid convergence: %s", maybeConvergenceAndZone.error().c_str());
     }
     else
     {

@@ -17,6 +17,8 @@
 #include <rclcpp/time.hpp>
 #include <rclcpp/clock.hpp>
 #include <rclcpp/logger.hpp>
+#include "rclcpp/node.hpp"
+
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 
@@ -75,7 +77,7 @@ public:
    * \param[in] modelPath Path to the folder with stored models. If empty, a default system location will be used.
    * \param[in] strict Whether to fail if the magnetic model is used outside its natural validity bounds.
    */
-  MagneticModel(const rclcpp::Logger& log, const std::string& name, const std::string& modelPath, bool strict, const rclcpp::Clock& clock);
+  MagneticModel(const rclcpp::Node* node, const std::string& name, const std::string& modelPath, bool strict);
   virtual ~MagneticModel();
 
   /**
@@ -125,8 +127,7 @@ protected:
 
   //! \brief PIMPL data
   std::unique_ptr<MagneticModelPrivate> data;
-  const rclcpp::Clock& clock;
-  const rclcpp::Logger& log;
+  const rclcpp::Node* node;
 };
 
 }

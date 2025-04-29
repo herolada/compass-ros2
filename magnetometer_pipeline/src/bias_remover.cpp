@@ -106,6 +106,7 @@ tl::expected<Field, std::string> MagnetometerBiasRemover::removeBias(const Field
   magUnbiased.magnetic_field.y = field.y();
   magUnbiased.magnetic_field.z = field.z();
 
+  printf("removed bias\n");
   return magUnbiased;
 }
 

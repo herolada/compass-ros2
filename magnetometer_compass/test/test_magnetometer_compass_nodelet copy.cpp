@@ -148,6 +148,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   std::optional<Field> lastField;
   auto magCb = [&lastField](const Field::ConstSharedPtr& msg)
   {
+    printf("received MagUnbiased\n");
     lastField = *msg;
   };
 
@@ -169,17 +170,17 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   subs.push_back(azMagEnuRadSub); numAzimuths++;
   auto azMagNedDegSub = node->create_subscription<Az>("compass/mag/ned/deg", 1,
     [&az](const Az::ConstSharedPtr& msg) {
-      az[std::make_tuple(Az::UNIT_DEG, Az::ORIENTATION_NED, Az::REFERENCE_MAGNETIC)] = *msg;
+      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC)] = *msg;
     });
   subs.push_back(azMagNedDegSub); numAzimuths++;
   auto azTrueEnuRadSub = node->create_subscription<Az>("compass/true/enu/rad", 1,
     [&az](const Az::ConstSharedPtr& msg) {
-      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC)] = *msg;
+      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC)] = *msg;
     });
   subs.push_back(azTrueEnuRadSub); numAzimuths++;
   auto azUtmEnuRadSub = node->create_subscription<Az>("compass/utm/enu/rad", 1,
     [&az](const Az::ConstSharedPtr& msg) {
-      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_UTM)] = *msg;
+      az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC)] = *msg;
     });
   subs.push_back(azUtmEnuRadSub); numAzimuths++;
   auto azTrueEnuImuSub = node->create_subscription<Imu>("compass/true/enu/imu", 1, imuCb); subs.push_back(azTrueEnuImuSub);
@@ -351,18 +352,10 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   for (
     size_t i = 0;
-    i < 30 && (!lastField || !lastImu || !lastQuat || !lastPose || az.size() < numAzimuths)
+    i < 100 && (!lastField || !lastImu || !lastQuat || !lastPose || az.size() < numAzimuths)
       && rclcpp::ok();
     ++i)
   {
-
-    // if (az.find(key) != myMap.end()) {
-    //   std::cout << "Key exists!\n";
-    // } else {
-    //   std::cout << "Key does not exist.\n";
-    // }
-
-
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
@@ -574,6 +567,11 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
 
 
+
+
+
+
+
 TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
@@ -590,11 +588,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   node_options.append_parameter_override("initial_lon", 14.133202857);
   node_options.append_parameter_override("initial_alt", 445.6146);
   auto node = createNodelet(node_options);
-
-  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
-  tf->setUsingDedicatedThread(true);
-
-  node->setBuffer(tf);
   node->init();
 
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -621,11 +614,20 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
   size_t numAzimuths {0u};
   auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", 1, magCb); subs.push_back(magUnbiasedSub);
-  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", 1, quatCb); subs.push_back(azUtmNedQuatSub);
+  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/mag/enu/rad", 1, quatCb); subs.push_back(azUtmNedQuatSub);
+
+  
+  // const auto log = std::make_shared<rclcpp::Logger>();
+
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
+  tf->setUsingDedicatedThread(true);
+
+  ASSERT_NE(nullptr, node);
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
-  printf("A\n");
+  // rclcpp::executors::SingleThreadedExecutor executor;
+  // executor.add_node(node);
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
@@ -635,8 +637,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
   }
 
-  printf("AA\n");
-
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
@@ -645,8 +645,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
   }
-
-  printf("B\n");
 
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
@@ -669,7 +667,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   tf->setTransform(baseLinkImuTf, "test", true);
 
   // Publish imu + mag + tf without bias + fix, which should be substituted by params
-  printf("C\n");
 
   Imu imu;
   imu.header.stamp = time;
@@ -695,8 +692,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   imu.orientation_covariance[2 * 3 + 2] = 0.157080;
   imuPub->publish(imu);
 
-  printf("D\n");
-
   Field mag;
   mag.header.stamp = time;
   mag.header.frame_id = "imu";
@@ -707,8 +702,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   mag.magnetic_field.z = 0.157033;
   magPub->publish(mag);
 
-  printf("E\n");
-
   for (size_t i = 0; i < 10 && (!lastField || !lastQuat) && rclcpp::ok(); ++i)
   {
     executor.spin_once();
@@ -716,7 +709,6 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   }
   ASSERT_TRUE(lastQuat.has_value());
   ASSERT_TRUE(lastField.has_value());
-  printf("F\n");
 
   EXPECT_EQ(time, lastField->header.stamp);
   EXPECT_EQ("imu", lastField->header.frame_id);
@@ -742,11 +734,6 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   node_options.append_parameter_override("initial_lon", 14.133202857);
   node_options.append_parameter_override("initial_alt", 445.6146);
   auto node = createNodelet(node_options);
-
-  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
-  tf->setUsingDedicatedThread(true);
-
-  node->setBuffer(tf);
   node->init();
 
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -767,7 +754,18 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
   auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", 1, quatCb); subs.push_back(azUtmNedQuatSub);
 
+  
+  // const auto log = std::make_shared<rclcpp::Logger>();
+
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
+  tf->setUsingDedicatedThread(true);
+
+  ASSERT_NE(nullptr, node);
+
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
+
+  // rclcpp::executors::SingleThreadedExecutor executor;
+  // executor.add_node(node);
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {

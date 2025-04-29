@@ -1,3 +1,5 @@
+#ifndef MAGNETOMETER_COMPASS_H
+#define MAGNETOMETER_COMPASS_H
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: Czech Technical University in Prague
 
@@ -42,8 +44,7 @@ public:
    * \param[in] tf TF buffer for transforming incoming data to `frame`. If you are sure data are already in the target
    *               frame, you can pass an empty buffer.
    */
-  MagnetometerCompass(const rclcpp::Logger& log, const rclcpp::Clock::SharedPtr clk, const std::string& frame,
-                      const std::shared_ptr<tf2::BufferCore>& tf);
+  MagnetometerCompass(rclcpp::Node* node, const std::string& frame, const std::shared_ptr<tf2::BufferCore>& tf);
 
   /**
    * \brief Create the compass.
@@ -53,8 +54,7 @@ public:
    * \param[in] tf TF buffer for transforming incoming data to `frame`. If you are sure data are already in the target
    *               frame, you can pass an empty buffer.
    */
-  MagnetometerCompass(const rclcpp::Logger& log, const std::string& frame,
-    const std::shared_ptr<tf2_ros::Buffer>& tf);
+  MagnetometerCompass(rclcpp::Node* node, const std::string& frame, const std::shared_ptr<tf2_ros::Buffer>& tf);
 
   virtual ~MagnetometerCompass();
 
@@ -67,7 +67,7 @@ public:
    * - `~low_pass_ratio` (double, default 0.95): The azimuth is filtered with a low-pass filter. This sets its
    *                                             aggressivity (0 means raw measurements, 1 means no updates).
    */
-  virtual void configFromParams(const rclcpp::Node* node);//const std::map<std::string, rclcpp::Parameter>& params);
+  virtual void configFromParams();
 
   /**
    * \brief The azimuth is filtered with a low-pass filter. This sets its aggressivity.
@@ -100,6 +100,7 @@ protected:
 
 private:
   std::unique_ptr<MagnetometerCompassPrivate> data;  //!< PIMPL
-  const rclcpp::Logger& log;
+  const rclcpp::Node* node;
 };
 }
+#endif

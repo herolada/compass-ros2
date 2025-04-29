@@ -44,8 +44,8 @@ struct MagneticModelManagerPrivate
   std::string modelPath;
 };
 
-MagneticModelManager::MagneticModelManager(const rclcpp::Logger& log, const rclcpp::Clock& clock, const std::optional<std::string>& modelPath):
-  log(log), clock(clock), data(new MagneticModelManagerPrivate{}) //logger(std::make_unique<rclcpp::Logger>())
+MagneticModelManager::MagneticModelManager(const rclcpp::Node* node, const std::optional<std::string>& modelPath):
+  node(node), data(new MagneticModelManagerPrivate{}) //logger(std::make_unique<rclcpp::Logger>())
 {
   this->setModelPath(modelPath);
 }
@@ -76,14 +76,14 @@ void MagneticModelManager::setModelPath(const std::optional<std::string>& modelP
     }
     else
     {
-      RCLCPP_ERROR(this->log, "Could not resolve package magnetic_model. Is the workspace properly sourced?");
+      RCLCPP_ERROR(this->node->get_logger(), "Could not resolve package magnetic_model. Is the workspace properly sourced?");
       this->data->modelPath = GeographicLib::MagneticModel::DefaultMagneticPath();
     }
   }
 
   this->data->magneticModels.clear();
 
-  RCLCPP_INFO(this->log, "Using WMM models from directory %s.", this->data->modelPath.c_str());
+  RCLCPP_INFO(this->node->get_logger(), "Using WMM models from directory %s.", this->data->modelPath.c_str());
 }
 
 std::string MagneticModelManager::getBestMagneticModelName(const rclcpp::Time& date) const
@@ -120,7 +120,7 @@ tl::expected<std::shared_ptr<MagneticModel>, std::string> MagneticModelManager::
   {
     try
     {
-      this->data->magneticModels[key] = std::make_shared<MagneticModel>(this->log, name, this->data->modelPath, strict, this->clock);
+      this->data->magneticModels[key] = std::make_shared<MagneticModel>(this->node, name, this->data->modelPath, strict);
     }
     catch (const std::invalid_argument& e)
     {

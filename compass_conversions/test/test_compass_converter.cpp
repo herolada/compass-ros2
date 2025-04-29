@@ -29,21 +29,20 @@ using Az = compass_interfaces::msg::Azimuth;
 
 TEST(CompassConverter, Construct)  // NOLINT
 {
-  const rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  ASSERT_NO_THROW(compass_conversions::CompassConverter converter(log, clk, true));
-  ASSERT_NO_THROW(compass_conversions::CompassConverter converter(log, clk, false));
+  rclcpp::Node node = rclcpp::Node("test_node");
+  ASSERT_NO_THROW(compass_conversions::CompassConverter converter(&node, true));
+  ASSERT_NO_THROW(compass_conversions::CompassConverter converter(&node, false));
 }
 
 TEST(CompassConverter, ConfigFromParams)  // NOLINT
 {
-  // rclcpp::Logger log = rclcpp::get_logger("test_logger");
+  // rclcpp::Node node = rclcpp::Node("test_node");
   // const auto clk = rclcpp::Clock();
   rclcpp::Node node = rclcpp::Node("test_node");
   
-  compass_conversions::CompassConverter converter(node.get_logger(), *node.get_clock(), true);
+  compass_conversions::CompassConverter converter(&node, true);
 
-  converter.configFromParams(&node);
+  converter.configFromParams();
 
   rcl_interfaces::msg::ParameterDescriptor desc;
   desc.dynamic_typing=true;
@@ -51,12 +50,12 @@ TEST(CompassConverter, ConfigFromParams)  // NOLINT
   rclcpp::Parameter parameter1("magnetic_declination", 1.0);
   node.set_parameter(parameter1);
 
-  converter.configFromParams(&node);
+  converter.configFromParams();
 
   node.declare_parameter("utm_grid_convergence", 2.0, desc);
   rclcpp::Parameter parameter2("utm_grid_convergence", 2.0);
   node.set_parameter(parameter2);
-  converter.configFromParams(&node);
+  converter.configFromParams();
 
   node.undeclare_parameter("magnetic_declination");
   node.undeclare_parameter("utm_grid_convergence");
@@ -69,20 +68,19 @@ TEST(CompassConverter, ConfigFromParams)  // NOLINT
   rclcpp::Parameter parameter4("initial_lon", 0.0);
   node.set_parameter(parameter4);
 
-  converter.configFromParams(&node);
+  converter.configFromParams();
 
   node.declare_parameter("alt", 0.0);
   rclcpp::Parameter parameter5("alt", 0.0);
   node.set_parameter(parameter5);
 
-  converter.configFromParams(&node);
+  converter.configFromParams();
 }
 
 TEST(CompassConverter, ComputeMagneticDeclination)  // NOLINT
 {
-  const rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   sensor_msgs::msg::NavSatFix fix;
@@ -91,14 +89,14 @@ TEST(CompassConverter, ComputeMagneticDeclination)  // NOLINT
   fix.altitude = 200.0;
   auto maybeDeclination = converter.computeMagneticDeclination(fix, time);
   if (!maybeDeclination.has_value())
-    RCLCPP_ERROR(log, "%s", maybeDeclination.error().c_str());
+    RCLCPP_ERROR(node.get_logger(), "%s", maybeDeclination.error().c_str());
   ASSERT_TRUE(maybeDeclination.has_value());
   EXPECT_NEAR(5.333, angles::to_degrees(*maybeDeclination), 1e-3);
 
   time = compass_utils::parseTime("2019-11-18T13:00:00Z");
   maybeDeclination = converter.computeMagneticDeclination(fix, time);
   if (!maybeDeclination.has_value())
-    RCLCPP_ERROR(log, "%s", maybeDeclination.error().c_str());
+    RCLCPP_ERROR(node.get_logger(), "%s", maybeDeclination.error().c_str());
   ASSERT_TRUE(maybeDeclination.has_value());
   EXPECT_NEAR(4.507, angles::to_degrees(*maybeDeclination), 1e-3);
 
@@ -110,9 +108,8 @@ TEST(CompassConverter, ComputeMagneticDeclination)  // NOLINT
 
 TEST(CompassConverter, GetMagneticDeclination)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
 
@@ -127,14 +124,14 @@ TEST(CompassConverter, GetMagneticDeclination)  // NOLINT
 
   maybeDeclination = converter.getMagneticDeclination(time);
   if (!maybeDeclination.has_value())
-    RCLCPP_ERROR(log, "%s", maybeDeclination.error().c_str());
+    RCLCPP_ERROR(node.get_logger(), "%s", maybeDeclination.error().c_str());
   ASSERT_TRUE(maybeDeclination.has_value());
   EXPECT_NEAR(5.333, angles::to_degrees(*maybeDeclination), 1e-3);
 
   time = compass_utils::parseTime("2019-11-18T13:00:00Z");
   maybeDeclination = converter.getMagneticDeclination(time);
   if (!maybeDeclination.has_value())
-    RCLCPP_ERROR(log, "%s", maybeDeclination.error().c_str());
+    RCLCPP_ERROR(node.get_logger(), "%s", maybeDeclination.error().c_str());
   ASSERT_TRUE(maybeDeclination.has_value());
   EXPECT_NEAR(4.507, angles::to_degrees(*maybeDeclination), 1e-3);
 
@@ -146,9 +143,8 @@ TEST(CompassConverter, GetMagneticDeclination)  // NOLINT
 
 TEST(CompassConverter, ComputeUTMGridConvergence)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   sensor_msgs::msg::NavSatFix fix;
   fix.latitude = 51.0;
@@ -183,9 +179,8 @@ TEST(CompassConverter, ComputeUTMGridConvergence)  // NOLINT
 
 TEST(CompassConverter, GetUTMGridConvergence)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
   converter.setKeepUTMZone(false);
 
   auto maybeConvergence = converter.getUTMGridConvergence();
@@ -235,9 +230,8 @@ TEST(CompassConverter, GetUTMGridConvergence)  // NOLINT
 
 TEST(CompassConverter, ConvertNotRequiresNavSat)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   Az azimuth;
@@ -301,9 +295,8 @@ TEST(CompassConverter, ConvertNotRequiresNavSat)  // NOLINT
 
 TEST(CompassConverter, ConvertNavSatMissing)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   Az azimuth;
@@ -349,9 +342,8 @@ TEST(CompassConverter, ConvertNavSatMissing)  // NOLINT
 
 TEST(CompassConverter, ConvertRequiresNavSatFromMag)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   Az azimuth;
@@ -687,9 +679,8 @@ TEST(CompassConverter, ConvertRequiresNavSatFromMag)  // NOLINT
 
 TEST(CompassConverter, ConvertRequiresNavSatFromGeo)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   Az azimuth;
@@ -1025,9 +1016,8 @@ TEST(CompassConverter, ConvertRequiresNavSatFromGeo)  // NOLINT
 
 TEST(CompassConverter, ConvertRequiresNavSatFromUTM)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   Az azimuth;
@@ -1363,7 +1353,7 @@ TEST(CompassConverter, ConvertRequiresNavSatFromUTM)  // NOLINT
 
 TEST(CompassConverter, ConvertWithInitialVals)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
+  rclcpp::Node node = rclcpp::Node("test_node");
 
   sensor_msgs::msg::NavSatFix fix;
   fix.latitude = 51.0;
@@ -1371,7 +1361,7 @@ TEST(CompassConverter, ConvertWithInitialVals)  // NOLINT
   fix.altitude = 200.0;
 
   const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  compass_conversions::CompassConverter converter(&node, true);
   converter.setNavSatPos(fix);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
@@ -1397,7 +1387,7 @@ TEST(CompassConverter, ConvertWithInitialVals)  // NOLINT
 
 TEST(CompassConverter, ConvertForcedDeclination)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
+  rclcpp::Node node = rclcpp::Node("test_node");
 
   sensor_msgs::msg::NavSatFix fix;
   fix.latitude = 51.0;
@@ -1405,7 +1395,7 @@ TEST(CompassConverter, ConvertForcedDeclination)  // NOLINT
   fix.altitude = 200.0;
 
   const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  compass_conversions::CompassConverter converter(&node, true);
   converter.forceMagneticDeclination(angles::from_degrees(5.0));
   converter.setNavSatPos(fix);
 
@@ -1432,7 +1422,7 @@ TEST(CompassConverter, ConvertForcedDeclination)  // NOLINT
 
 TEST(CompassConverter, ConvertForcedConvergence)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
+  rclcpp::Node node = rclcpp::Node("test_node");
 
   sensor_msgs::msg::NavSatFix fix;
   fix.latitude = 51.0;
@@ -1440,7 +1430,7 @@ TEST(CompassConverter, ConvertForcedConvergence)  // NOLINT
   fix.altitude = 200.0;
 
   const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  compass_conversions::CompassConverter converter(&node, true);
   converter.forceUTMGridConvergence(angles::from_degrees(5.0));
   converter.setNavSatPos(fix);
 
@@ -1467,9 +1457,8 @@ TEST(CompassConverter, ConvertForcedConvergence)  // NOLINT
 
 TEST(CompassConverter, ConvertForcedBoth)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
   converter.forceMagneticDeclination(angles::from_degrees(5.0));
   converter.forceUTMGridConvergence(angles::from_degrees(1.0));
 
@@ -1496,9 +1485,8 @@ TEST(CompassConverter, ConvertForcedBoth)  // NOLINT
 
 TEST(CompassConverter, ConvertQuaternion)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   // printf("time %ld\n\n\n", time.nanoseconds());
@@ -1546,9 +1534,8 @@ TEST(CompassConverter, ConvertQuaternion)  // NOLINT
 
 TEST(CompassConverter, ConvertToPose)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   Az azimuth;
@@ -1577,9 +1564,8 @@ TEST(CompassConverter, ConvertToPose)  // NOLINT
 
 TEST(CompassConverter, ConvertToImu)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  const auto clk = rclcpp::Clock();
-  compass_conversions::CompassConverter converter(log, clk, true);
+  rclcpp::Node node = rclcpp::Node("test_node");
+  compass_conversions::CompassConverter converter(&node, true);
 
   const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
   Az azimuth;

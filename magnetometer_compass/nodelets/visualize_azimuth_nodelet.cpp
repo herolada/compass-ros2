@@ -22,6 +22,7 @@
 #include <compass_utils/rate_limiter.h>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.h>
 #include <message_filters/subscriber.h>
+#include <magnetometer_compass/visualize_azimuth_nodelet.hpp>
 // #include <pluginlib/class_list_macros.hpp>
 //#include <ros/ros.h>
 #include <std_msgs/msg/int32.hpp>
@@ -84,61 +85,37 @@ using Zone = std_msgs::msg::Int32;
  *                                                if variance cannot be determined from the input messages (e.g. for
  *                                                `QuaternionStamped`).
  */
-class VisualizeAzimuthNodelet : public rclcpp::Node
+
+VisualizeAzimuthNodelet::VisualizeAzimuthNodelet() : Node("visualize_azimuth_nodelet")
 {
-public:
-  VisualizeAzimuthNodelet();
-  VisualizeAzimuthNodelet(const rclcpp::NodeOptions & options);
-  ~VisualizeAzimuthNodelet() override;
-
-protected:
-
-  void onInit();
-  /**
-   * \brief Callback Azimuth messages are received.
-   * \param[in] azimuth The Azimuth converted to pose.
-   */
-  void azimuthCb(const Az& azimuth);
-
-  std::unique_ptr<compass_utils::RateLimiter> rateLimiter;
-  std::shared_ptr<compass_conversions::CompassConverter> converter;
-  std::unique_ptr<compass_conversions::UniversalAzimuthSubscriber> azSub;
-  std::unique_ptr<message_filters::Subscriber<Fix>> fixSub;
-  std::unique_ptr<message_filters::Subscriber<Zone>> zoneSub;
-  std::unique_ptr<compass_conversions::CompassFilter> filter;
-
-  rclcpp::Publisher<Pose>::SharedPtr visPub;
-};
-
-VisualizeAzimuthNodelet::VisualizeAzimuthNodelet() : rclcpp::Node("visualize_azimuth_nodelet") {
-  onInit();
-};
-VisualizeAzimuthNodelet::VisualizeAzimuthNodelet(const rclcpp::NodeOptions & options) : rclcpp::Node("visualize_azimuth_nodelet", options) {
-  onInit();
-};
-
+}
+VisualizeAzimuthNodelet::VisualizeAzimuthNodelet(const rclcpp::NodeOptions & options) : Node("visualize_azimuth_nodelet", options)
+{
+}
 VisualizeAzimuthNodelet::~VisualizeAzimuthNodelet() = default;
 
-void VisualizeAzimuthNodelet::onInit()
+void VisualizeAzimuthNodelet::init()
 {
   //auto nh = this->get_node_base_interface();
   //auto node = std::make_shared<rclcpp::Node>("handle_for_message_filter");
   
   // set rateLimiter
   double rate;
-  if (this->has_parameter("max_rate"))
+  if (this->has_parameter("max_rate")) {
     this->get_parameter<double>("max_rate", rate);
     this->rateLimiter = std::make_unique<compass_utils::TokenBucketLimiter>(this->get_clock(), rclcpp::Rate(rate));
-
+  }
   // set compass converter
-  this->converter = std::make_shared<compass_conversions::CompassConverter>(this->get_logger(), *this->get_clock(), true);
-  this->converter->configFromParams(this);
+  this->converter = std::make_shared<compass_conversions::CompassConverter>(this, true);
+  this->converter->configFromParams();
+
+  // rclcpp::Node::SharedPtr visNh = this->create_sub_node("visualize_azimuth");
 
   // publisher
-  this->visPub = this->create_publisher<Pose>("azimuth_vis", 10);
+  this->visPub = this->create_publisher<Pose>("visualize_azimuth/azimuth_vis", 10);
 
   // subscribe azimuth, gps fix, utm_zone
-  this->azSub = std::make_unique<compass_conversions::UniversalAzimuthSubscriber>(this, "azimuth", 100);
+  this->azSub = std::make_unique<compass_conversions::UniversalAzimuthSubscriber>(this, "visualize_azimuth/azimuth", 100);
   this->azSub->configFromParams(this);
 
   this->fixSub = std::make_unique<message_filters::Subscriber<Fix>>(this, "gps/fix");//, 10);
@@ -146,7 +123,7 @@ void VisualizeAzimuthNodelet::onInit()
 
   // set compass filter
   this->filter = std::make_unique<compass_conversions::CompassFilter>(
-    this->get_logger(), *this->get_clock(), this->converter, *this->azSub, *this->fixSub, *this->zoneSub,
+    this, this->converter, *this->azSub, *this->fixSub, *this->zoneSub,
     Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_UTM);
   this->filter->registerCallback(&VisualizeAzimuthNodelet::azimuthCb, this);
 

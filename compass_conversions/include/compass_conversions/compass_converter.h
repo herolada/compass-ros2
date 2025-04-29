@@ -55,7 +55,7 @@ public:
    * \param[in] log The logger.
    * \param[in] strict Whether to fail if the magnetic model is used outside its natural validity bounds.
    */
-  CompassConverter(const rclcpp::Logger& log, const rclcpp::Clock& clock, bool strict);
+  CompassConverter(const rclcpp::Node* node, bool strict);
   virtual ~CompassConverter();
 
   /**
@@ -78,7 +78,7 @@ public:
    * - `initial_lon` (double, degrees, optional): If set, use this longitude before the first navsat pose is received.
    * - `initial_alt` (double, meters, optional): If set, use this altitude before the first navsat pose is received.
    */
-  void configFromParams(const rclcpp::Node* node);
+  void configFromParams();
 
   /**
    * \brief Force magnetic declination instead of computing it.
@@ -365,8 +365,9 @@ protected:
 
   //! \brief PIMPL data
   std::unique_ptr<CompassConverterPrivate> data;
-  const rclcpp::Logger& log;
-  const rclcpp::Clock& clock;
+  const rclcpp::Node* node;
+  // const rclcpp::Logger& log;
+  // const rclcpp::Clock& clock;
 };
 
 }

@@ -41,11 +41,11 @@ public:
 
 TEST(MessageFilter, NoNavSatNeeded)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  rclcpp::Clock clk = rclcpp::Clock(RCL_ROS_TIME);
+  rclcpp::Node node = rclcpp::Node("test_node");
+
   TestInput<Az> azimuthInput;
   compass_conversions::CompassFilter filter(
-    log, clk, nullptr, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
+    &node, nullptr, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
   Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
@@ -73,12 +73,11 @@ TEST(MessageFilter, NoNavSatNeeded)  // NOLINT
 
 TEST(MessageFilter, NavSatNeededButNotGiven)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  rclcpp::Clock clk = rclcpp::Clock(RCL_ROS_TIME);
+  rclcpp::Node node = rclcpp::Node("test_node");
   TestInput<Az> azimuthInput;
   TestInput<sensor_msgs::msg::NavSatFix> fixInput;
   compass_conversions::CompassFilter filter(
-    log, clk, nullptr, azimuthInput, fixInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
+    &node, nullptr, azimuthInput, fixInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
   Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
@@ -102,12 +101,11 @@ TEST(MessageFilter, NavSatNeededButNotGiven)  // NOLINT
 
 TEST(MessageFilter, NavSatNeeded)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  rclcpp::Clock clk = rclcpp::Clock(RCL_ROS_TIME);
+  rclcpp::Node node = rclcpp::Node("test_node");
   TestInput<Az> azimuthInput;
   TestInput<sensor_msgs::msg::NavSatFix> fixInput;
   compass_conversions::CompassFilter filter(
-    log, clk, nullptr, azimuthInput, fixInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
+    &node, nullptr, azimuthInput, fixInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
   Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
@@ -156,12 +154,11 @@ TEST(MessageFilter, NavSatNeeded)  // NOLINT
 
 TEST(MessageFilter, NavSatNeededAndGivenAsInitValue)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  rclcpp::Clock clk = rclcpp::Clock(RCL_ROS_TIME);
+  rclcpp::Node node = rclcpp::Node("test_node");
   TestInput<Az> azimuthInput;
-  auto converter = std::make_shared<compass_conversions::CompassConverter>(log, clk, true);
+  auto converter = std::make_shared<compass_conversions::CompassConverter>(&node, true);
   compass_conversions::CompassFilter filter(
-    log, clk, converter, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
+    &node, converter, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
   Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
@@ -210,12 +207,11 @@ TEST(MessageFilter, NavSatNeededAndGivenAsInitValue)  // NOLINT
 
 TEST(MessageFilter, ForcedDeclination)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  rclcpp::Clock clk = rclcpp::Clock(RCL_ROS_TIME);
+  rclcpp::Node node = rclcpp::Node("test_node");
   TestInput<Az> azimuthInput;
-  auto converter = std::make_shared<compass_conversions::CompassConverter>(log, clk, true);
+  auto converter = std::make_shared<compass_conversions::CompassConverter>(&node, true);
   compass_conversions::CompassFilter filter(
-    log, clk, converter, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
+    &node, converter, azimuthInput, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
 
   Az::ConstSharedPtr outMessage;
   const auto cb = [&outMessage](const message_filters::MessageEvent<Az const>& filteredMessage)
@@ -259,6 +255,8 @@ TEST(MessageFilter, ForcedDeclination)  // NOLINT
 
 int main(int argc, char **argv)
 {
+  rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
+  rclcpp::shutdown();
 }

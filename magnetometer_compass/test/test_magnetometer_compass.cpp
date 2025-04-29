@@ -31,16 +31,17 @@ using Field = sensor_msgs::msg::MagneticField;
 
 TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  auto const clk = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME); 
+  rclcpp::Node node = rclcpp::Node("test_node");
+  // rclcpp::Logger log = rclcpp::get_logger("test_logger");
+  // auto const clk = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME); 
 
-  auto tf = std::make_shared<tf2_ros::Buffer>(clk);
+  auto tf = std::make_shared<tf2_ros::Buffer>(node.get_clock());
   tf->setUsingDedicatedThread(true);
 
-  magnetometer_compass::MagnetometerCompass compass(log, "base_link", tf);
+  magnetometer_compass::MagnetometerCompass compass(&node, "base_link", tf);
   compass.setLowPassRatio(0.0);
 
-    builtin_interfaces::msg::Time time;
+  builtin_interfaces::msg::Time time;
   time.sec = 1664286802;
   time.nanosec = 187375068;
 
@@ -154,7 +155,7 @@ TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
   auto tf = std::make_shared<tf2_ros::Buffer>(node.get_clock());
   tf->setUsingDedicatedThread(true);
 
-  magnetometer_compass::MagnetometerCompass compass(node.get_logger(), "base_link", tf);
+  magnetometer_compass::MagnetometerCompass compass(&node, "base_link", tf);
 
   // const std::map<std::string, rclcpp::Parameter> params;
   // params["low_pass_ratio"] = 0.0;
@@ -168,9 +169,9 @@ TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
   // auto paramAdapter = std::make_shared<cras::XmlRpcValueGetParamAdapter>(params, "");
   // std::map<std::string, rclcpp::Parameter> paramHelper(log, paramAdapter);
 
-  compass.configFromParams(&node);
+  compass.configFromParams();
 
-    builtin_interfaces::msg::Time time;
+  builtin_interfaces::msg::Time time;
   time.sec = 1664286802;
   time.nanosec = 187375068;
 
@@ -269,16 +270,16 @@ TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
 
 TEST(MagnetometerCompass, Reset)  // NOLINT
 {
-  rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  auto const clk = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME); 
+  rclcpp::Node node = rclcpp::Node("test_node");
 
-  auto tf = std::make_shared<tf2_ros::Buffer>(clk);
+
+  auto tf = std::make_shared<tf2_ros::Buffer>(node.get_clock());
   tf->setUsingDedicatedThread(true);
 
-  magnetometer_compass::MagnetometerCompass compass(log, "base_link", tf);
+  magnetometer_compass::MagnetometerCompass compass(&node, "base_link", tf);
   compass.setLowPassRatio(0.5);
 
-    builtin_interfaces::msg::Time time;
+  builtin_interfaces::msg::Time time;
   time.sec = 1664286802;
   time.nanosec = 187375068;
 
@@ -380,9 +381,9 @@ TEST(MagnetometerCompass, Reset)  // NOLINT
 
 int main(int argc, char **argv)
 {
+  rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
-
-  // rclcpp::Time::init();
-
   return RUN_ALL_TESTS();
+  rclcpp::shutdown();
+
 }

@@ -176,8 +176,8 @@ void CompassTransformerNodelet::init()
 
   const auto log = this->get_logger();
   const auto clock = this->get_clock();
-  this->converter = std::make_shared<CompassConverter>(log, *clock, this->get_parameter_or<bool>("strict", true));
-  this->converter->configFromParams(this);
+  this->converter = std::make_shared<CompassConverter>(this, this->get_parameter_or<bool>("strict", true));
+  this->converter->configFromParams();
 
   std::string outputTopicSuffix;
   std::string topicName;
@@ -211,19 +211,15 @@ void CompassTransformerNodelet::init()
         topicName, queue_size);
       break;
   }
-  printf("topic name %s\n", topicName.c_str());
 
   this->azimuthInput = std::make_unique<UniversalAzimuthSubscriber>(this, "azimuth_in", queue_size);
   this->azimuthInput->configFromParams(this);
 
-  printf("compass filter constructor unit %d, orientation %d, reference %d\n", targetUnit, targetOrientation, targetReference);
-
   this->compassFilter = std::make_unique<CompassFilter>(
-    log, *clock, this->converter, *this->azimuthInput, targetUnit, targetOrientation, targetReference);
+    this, this->converter, *this->azimuthInput, targetUnit, targetOrientation, targetReference);
 
   if (subscribeFix)
   {
-    printf("subscribing fix\n");
     this->fixInput = std::make_unique<message_filters::Subscriber<Fix>>(this, "fix");
     this->compassFilter->connectFixInput(*this->fixInput);
   }
@@ -240,7 +236,6 @@ void CompassTransformerNodelet::init()
   }
   else
   {
-    printf("there is a transform yep\n");
     this->tfFilter = std::make_unique<tf2_ros::MessageFilter<Az>>(
       *this->compassFilter, *this->buffer, targetFrame, queue_size, this->get_node_logging_interface(),
       this->get_node_clock_interface(), std::chrono::milliseconds(100));
