@@ -70,7 +70,13 @@ MagnetometerCompass::~MagnetometerCompass() = default;
 void MagnetometerCompass::configFromParams()
 {
   this->data->variance = this->data->initialVariance = this->node->get_parameter_or<double>("initial_variance", this->data->variance);
+  if (this->node->has_parameter("low_pass_ratio")) {
+    double lpr;
+    this->node->get_parameter("low_pass_ratio", lpr);
+    RCLCPP_WARN(node->get_logger(), "argument low pass ratio: %f", lpr);
+  }
   this->data->lowPassRatio = this->node->get_parameter_or<double>("low_pass_ratio", this->data->lowPassRatio);
+  RCLCPP_WARN(node->get_logger(), "default low pass ratio: %f", this->data->lowPassRatio);
 }
 
 void MagnetometerCompass::setLowPassRatio(const double ratio)

@@ -504,3 +504,13 @@ void MagnetometerCompassNodelet::fixCb(const sensor_msgs::msg::NavSatFix& fix)
 // #include <pluginlib/class_list_macros.hpp>
 // PLUGINLIB_EXPORT_CLASS(magnetometer_compass::MagnetometerCompassNodelet, rclcpp::Node)
 RCLCPP_COMPONENTS_REGISTER_NODE(magnetometer_compass::MagnetometerCompassNodelet)
+
+int main(int argc, char * argv[])
+{
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<magnetometer_compass::MagnetometerCompassNodelet>();
+  node->init();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
+  return 0;
+}

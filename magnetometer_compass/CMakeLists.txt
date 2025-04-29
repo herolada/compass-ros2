@@ -181,63 +181,65 @@ install(TARGETS
 # https://ros2-tutorial.readthedocs.io/en/latest/
 # While we cant use blocks https://cmake.org/cmake/help/latest/command/block.html#command:block
 # we use set--unset
-# add_executable(${PROJECT_NAME}_nodelet ${PROJECT_NAME}_nodelet.cpp)
+add_executable(${PROJECT_NAME}_nodelet_node nodelets/${PROJECT_NAME}_nodelet.cpp)
 
-# ament_target_dependencies(${PROJECT_NAME}_nodelet
-#   angles
-#   compass_conversions
-#   compass_interfaces
-#   compass_utils
-#   geometry_msgs
-#   imu_transformer
-#   magnetometer_pipeline
-#   message_filters
-#   rclcpp
-#   sensor_msgs
-#   tf2
-#   tf2_geometry_msgs
-#   tf2_ros
-# )
+ament_target_dependencies(${PROJECT_NAME}_nodelet_node
+  angles
+  compass_conversions
+  compass_interfaces
+  compass_utils
+  geometry_msgs
+  imu_transformer
+  magnetometer_pipeline
+  message_filters
+  rclcpp
+  sensor_msgs
+  tf2
+  tf2_geometry_msgs
+  tf2_ros
+)
+target_link_libraries(${PROJECT_NAME}_nodelet_node ${PROJECT_NAME}_nodelet)
 
-# target_include_directories(${PROJECT_NAME}_nodelet PUBLIC
-#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#     $<INSTALL_INTERFACE:include>)
+target_include_directories(${PROJECT_NAME}_nodelet_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
 
-# target_compile_features(${PROJECT_NAME}_nodelet PUBLIC c_std_99 cxx_std_23)
+target_compile_features(${PROJECT_NAME}_nodelet_node PUBLIC c_std_99 cxx_std_23)
 
-# install(TARGETS ${PROJECT_NAME}_nodelet
-#     DESTINATION lib/${PROJECT_NAME})
+install(TARGETS ${PROJECT_NAME}_nodelet_node
+    DESTINATION lib/${PROJECT_NAME})
 
 # ^^^^^^^^^^^^^^^^^^^^^^ #
 # CPP Binary Block [END] #
 ##########################
 
-# add_executable(visualize_azimuth_nodelet visualize_azimuth_nodelet.cpp)
+add_executable(visualize_azimuth_nodelet_node nodelets/visualize_azimuth_nodelet.cpp)
 
-# ament_target_dependencies(visualize_azimuth_nodelet
-#   angles
-#   compass_conversions
-#   compass_interfaces
-#   compass_utils
-#   geometry_msgs
-#   imu_transformer
-#   magnetometer_pipeline
-#   message_filters
-#   rclcpp
-#   sensor_msgs
-#   tf2
-#   tf2_geometry_msgs
-#   tf2_ros
-# )
+ament_target_dependencies(visualize_azimuth_nodelet_node
+  angles
+  compass_conversions
+  compass_interfaces
+  compass_utils
+  geometry_msgs
+  imu_transformer
+  magnetometer_pipeline
+  message_filters
+  rclcpp
+  sensor_msgs
+  tf2
+  tf2_geometry_msgs
+  tf2_ros
+)
+target_link_libraries(visualize_azimuth_nodelet_node visualize_azimuth_nodelet)
 
-# target_include_directories(visualize_azimuth_nodelet PUBLIC
-#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#     $<INSTALL_INTERFACE:include>)
+target_include_directories(visualize_azimuth_nodelet_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
 
-# target_compile_features(visualize_azimuth_nodelet PUBLIC c_std_99 cxx_std_23)
+target_compile_features(visualize_azimuth_nodelet_node PUBLIC c_std_99 cxx_std_23)
 
-# install(TARGETS visualize_azimuth_nodelet
-#     DESTINATION lib/${PROJECT_NAME})
+install(TARGETS visualize_azimuth_nodelet_node
+    DESTINATION lib/${PROJECT_NAME})
 
 # ^^^^^^^^^^^^^^^^^^^^^^ #
 # CPP Binary Block [END] #
