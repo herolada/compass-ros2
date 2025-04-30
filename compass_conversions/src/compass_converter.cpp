@@ -80,25 +80,27 @@ void CompassConverter::configFromParams()
 {
   // cras::TempLocale l(LC_ALL, "en_US.UTF-8");  // Support printing ° signs
 
-  if (this->node->has_parameter("magnetic_declination"))
+  if (this->node->has_parameter("magnetic_declination") && this->node->get_parameter("magnetic_declination").get_value<double>() != -1.) {
     this->forceMagneticDeclination(std::make_optional<double>(this->node->get_parameter("magnetic_declination").get_value<double>()));
-  else
+  }  else {
     this->forcedMagneticModelName = this->node->get_parameter_or<std::string>("magnetic_model", std::string());
-
-  if (this->node->has_parameter("magnetic_models_path"))
+  }
+  if (this->node->has_parameter("magnetic_models_path") && !this->node->get_parameter("magnetic_models_path").get_value<std::string>().empty())
     this->setMagneticModelPath(std::make_optional<std::string>(this->node->get_parameter("magnetic_models_path").get_value<std::string>()));
 
-  if (this->node->has_parameter("utm_grid_convergence"))
+  if (this->node->has_parameter("utm_grid_convergence") && this->node->get_parameter("utm_grid_convergence").get_value<double>() != -1.)
     this->forceUTMGridConvergence(std::make_optional<double>(this->node->get_parameter("utm_grid_convergence").get_value<double>()));
 
-  if (this->node->has_parameter("utm_zone"))
+  if (this->node->has_parameter("utm_zone") && this->node->get_parameter("utm_zone").get_value<int>() != -1)
     this->forceUTMZone(std::make_optional<int>(this->node->get_parameter("utm_zone").get_value<int>()));
 
   this->setKeepUTMZone(this->node->get_parameter_or<bool>("keep_utm_zone", this->keepUTMZone));
 
   if (!this->forcedMagneticDeclination.has_value() || !this->forcedUTMGridConvergence.has_value())
   {
-    if (this->node->has_parameter("initial_lat") && this->node->has_parameter("initial_lon"))
+    if (this->node->has_parameter("initial_lat") && this->node->has_parameter("initial_lon")
+    && this->node->get_parameter("initial_lat").get_value<double>() != -1.
+    && this->node->get_parameter("initial_lon").get_value<double>() != -1.)
     {
       sensor_msgs::msg::NavSatFix msg;
 
@@ -123,6 +125,7 @@ void CompassConverter::configFromParams()
 
 void CompassConverter::forceMagneticDeclination(const std::optional<double>& declination)
 {
+  printf("FORCE MAG DEC\n");
   this->forcedMagneticDeclination = declination;
 };
 
@@ -148,12 +151,14 @@ void CompassConverter::setKeepUTMZone(const bool keep)
 
 tl::expected<double, std::string> CompassConverter::getMagneticDeclination(const rclcpp::Time& stamp) const
 {
-  if (this->forcedMagneticDeclination.has_value())
-    return *this->forcedMagneticDeclination;
-
-  if (!this->lastFix.has_value())
-    return compass_utils::make_unexpected("Cannot determine magnetic declination without GNSS pose.");
-
+  if (this->forcedMagneticDeclination.has_value()) {
+      printf("1\n");
+      return *this->forcedMagneticDeclination;
+  }
+  if (!this->lastFix.has_value()) {
+      printf("2\n");
+      return compass_utils::make_unexpected("Cannot determine magnetic declination without GNSS pose.");
+  }
   return this->computeMagneticDeclination(*this->lastFix, stamp);
 };
 
@@ -243,7 +248,10 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   const decltype(compass_interfaces::msg::Azimuth::orientation) orientation,
   const decltype(compass_interfaces::msg::Azimuth::reference) reference) const
 {
-
+  printf("Convert Azimuth\n");
+  printf("in azimuth %f\n", azimuth.azimuth);
+  printf("in unit %u orientation %u ref %u\n", azimuth.unit, azimuth.orientation, azimuth.reference);
+  printf("out unit %u orientation %u ref %u\n", unit, orientation, reference);
   // Fast track for no conversion
   if (azimuth.unit == unit && azimuth.orientation == orientation && azimuth.reference == reference)
     return azimuth;
@@ -262,6 +270,8 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   if (azimuth.orientation == Az::ORIENTATION_ENU)
     result.azimuth = M_PI_2 - result.azimuth;
 
+  printf("out azimuth %f\n", result.azimuth);
+
   // When going magnetic->true, we need to add declination in NED.
   // When going true->UTM, we need to subtract grid convergence in NED.
 
@@ -270,66 +280,80 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   {
     if (azimuth.reference == Az::REFERENCE_MAGNETIC)
     {
+      printf("A\n");
       const auto magneticDeclination = this->getMagneticDeclination(azimuth.header.stamp);
-      if (!magneticDeclination.has_value())
+      if (!magneticDeclination.has_value()) {
+        printf("B\n");  
         return compass_utils::make_unexpected(std::format(
           "Cannot convert magnetic azimuth to true without knowing magnetic declination. Error: {}",
           magneticDeclination.error().c_str()));
-
+      }
+      printf("magdec %f\n", magneticDeclination.value());
       result.azimuth += *magneticDeclination;
 
       if (result.reference == Az::REFERENCE_UTM)
       {
+        printf("C\n");
         const auto convergence = this->getUTMGridConvergence();
-        if (!convergence.has_value())
+        if (!convergence.has_value()) {
+          printf("D\n");
           return compass_utils::make_unexpected(std::format(
             "Cannot convert true azimuth to UTM without knowing UTM grid convergence. Error: {}",
             convergence.error().c_str()));
-
+        }
+        printf("conv %f\n", *convergence);
         result.azimuth -= *convergence;
       }
     }
     else if (azimuth.reference == Az::REFERENCE_GEOGRAPHIC)
     {
+      printf("E\n");
       if (result.reference == Az::REFERENCE_MAGNETIC)
       {
+        printf("F\n");
         const auto magneticDeclination = this->getMagneticDeclination(azimuth.header.stamp);
-        if (!magneticDeclination.has_value())
+        if (!magneticDeclination.has_value()) {
+          printf("G\n");  
           return compass_utils::make_unexpected(std::format(
             "Cannot convert true azimuth to magnetic without knowing magnetic declination. Error: {}",
             magneticDeclination.error().c_str()));
-
+        }
+        printf("magdec %f\n", *magneticDeclination);
         result.azimuth -= *magneticDeclination;
       }
       else if (result.reference == Az::REFERENCE_UTM)
       {
+        printf("H\n");
         const auto convergence = this->getUTMGridConvergence();
-        if (!convergence.has_value())
+        if (!convergence.has_value()) {
+          printf("I\n");  
           return compass_utils::make_unexpected(std::format(
             "Cannot convert true azimuth to UTM without knowing UTM grid convergence. Error: {}",
             convergence.error().c_str()));
-
+        }
+        printf("conv %f\n", *convergence);
         result.azimuth -= *convergence;
       }
     }
     else if (azimuth.reference == Az::REFERENCE_UTM)
     {
       const auto convergence = this->getUTMGridConvergence();
-      if (!convergence.has_value())
+      if (!convergence.has_value()) {
+        printf("J\n");
         return compass_utils::make_unexpected(std::format(
           "Cannot convert UTM azimuth to true without knowing UTM grid convergence. Error: {}",
           convergence.error().c_str()));
-
+      }
       result.azimuth += *convergence;
 
       if (result.reference == Az::REFERENCE_MAGNETIC)
       {
         const auto magneticDeclination = this->getMagneticDeclination(azimuth.header.stamp);
-        if (!magneticDeclination.has_value())
+        if (!magneticDeclination.has_value()) {
           return compass_utils::make_unexpected(std::format(
             "Cannot convert true azimuth to magnetic without knowing magnetic declination. Error: {}",
             magneticDeclination.error().c_str()));
-
+        }
         result.azimuth -= *magneticDeclination;
       }
     }
@@ -346,6 +370,8 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
     result.variance = std::pow(angles::to_degrees(std::sqrt(azimuth.variance)), 2);
   else if (azimuth.unit == Az::UNIT_DEG && result.unit == Az::UNIT_RAD)
     result.variance = std::pow(angles::from_degrees(std::sqrt(azimuth.variance)), 2);
+
+  printf("final out azimuth %f\n", result.azimuth);
 
   return result;
 };

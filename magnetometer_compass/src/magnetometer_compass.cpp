@@ -69,14 +69,23 @@ MagnetometerCompass::~MagnetometerCompass() = default;
 
 void MagnetometerCompass::configFromParams()
 {
-  this->data->variance = this->data->initialVariance = this->node->get_parameter_or<double>("initial_variance", this->data->variance);
-  if (this->node->has_parameter("low_pass_ratio")) {
-    double lpr;
-    this->node->get_parameter("low_pass_ratio", lpr);
-    RCLCPP_WARN(node->get_logger(), "argument low pass ratio: %f", lpr);
+  if (this->node->has_parameter("initial_variance") &&
+      this->node->get_parameter("initial_variance").get_value<double>() != -1.) {
+    printf("present initial_variance\n");
+    this->data->variance = this->data->initialVariance = this->node->get_parameter("initial_variance").get_value<double>();    
+  } else {
+    printf("missing initial_variance\n");
+    this->data->variance = this->data->initialVariance = this->data->variance;
   }
-  this->data->lowPassRatio = this->node->get_parameter_or<double>("low_pass_ratio", this->data->lowPassRatio);
-  RCLCPP_WARN(node->get_logger(), "default low pass ratio: %f", this->data->lowPassRatio);
+
+  if (this->node->has_parameter("low_pass_ratio") &&
+      this->node->get_parameter("low_pass_ratio").get_value<double>() != -1.) {
+    RCLCPP_WARN(this->node->get_logger(), "present low_pass_ratio %f\n", this->node->get_parameter("low_pass_ratio").get_value<double>());
+    this->data->lowPassRatio = this->node->get_parameter("low_pass_ratio").get_value<double>();
+  } else {
+    RCLCPP_WARN(this->node->get_logger(), "missing low_pass_ratio %f\n", this->node->get_parameter("low_pass_ratio").get_value<double>());
+    this->data->lowPassRatio = this->data->lowPassRatio;
+  }
 }
 
 void MagnetometerCompass::setLowPassRatio(const double ratio)

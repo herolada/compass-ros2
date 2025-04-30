@@ -137,20 +137,23 @@ void UniversalAzimuthSubscriber::setInputDefaults(
 void UniversalAzimuthSubscriber::configFromParams(const rclcpp::Node* node)
 {
   std::optional<decltype(Az::orientation)> inputOrientation;
-  if (node->has_parameter("input_orientation"))
+  if (node->has_parameter("input_orientation") && 
+      !node->get_parameter("input_orientation").get_value<std::string>().empty())
     inputOrientation = std::make_optional<uint8_t>(compass_utils::parseOrientation(node->get_parameter("input_orientation").get_value<std::string>()));
       // cras::GetParamConvertingOptions<decltype(Az::orientation), std::string>(
       //   &compass_interfaces::msg::orientationToString, &compass_interfaces::msg::parseOrientation));
 
   std::optional<decltype(Az::reference)> inputReference;
-  if (node->has_parameter("input_reference"))
+  if (node->has_parameter("input_reference") && 
+      !node->get_parameter("input_reference").get_value<std::string>().empty())
     inputReference = std::make_optional<uint8_t>(compass_utils::parseReference(node->get_parameter("input_reference").get_value<std::string>()));
 
       // cras::GetParamConvertingOptions<decltype(Az::reference), std::string>(
       //   &compass_interfaces::msg::referenceToString, &compass_interfaces::msg::parseReference));
 
   std::optional<decltype(Az::variance)> inputVariance;
-  if (node->has_parameter("input_variance"))
+  if (node->has_parameter("input_variance") &&
+      node->get_parameter("input_variance").get_value<double>() != -1.)
     inputVariance = std::make_optional<double>(node->get_parameter("input_variance").get_value<double>());
 
   this->setInputDefaults(inputOrientation, inputReference, inputVariance);
@@ -204,7 +207,7 @@ std::string UniversalAzimuthSubscriber::getTopic() const
 // }
 
 void UniversalAzimuthSubscriber::azCb(const AzimuthEventType& event) {
-
+  printf("azCb!\n");
   const auto msg = event.getConstMessage();
   const auto stamp = event.getReceiptTime();
   const auto maybeAzimuth = this->converter.convertAzimuth(*msg, Az::UNIT_RAD, msg->orientation, msg->reference);
@@ -287,6 +290,7 @@ CompassFilter::~CompassFilter() = default;
 
 void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
 {
+  printf("CompassFilter\n");
   const auto& msg = azimuthEvent.getConstMessage();
   const auto output = this->converter->convertAzimuth(
     *msg, this->unit, this->orientation, this->reference.value_or(msg->reference));

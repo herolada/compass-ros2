@@ -80,6 +80,34 @@ void MagnetometerCompassNodelet::init()
 
   //  this->frame = params->getParam("frame", "base_link");
 
+  // CompassConverter params:
+  this->declare_parameter<double>("magnetic_declination", -1.);
+  this->declare_parameter<std::string>("magnetic_model", std::string());
+  this->declare_parameter<std::string>("magnetic_models_path", std::string());
+  this->declare_parameter<double>("utm_grid_convergence", -1.);
+  this->declare_parameter<int>("utm_zone", -1);
+  this->declare_parameter<bool>("keep_utm_zone", true);
+  this->declare_parameter<double>("initial_lat", -1.);
+  this->declare_parameter<double>("initial_lon", -1.);
+  this->declare_parameter<double>("initial_alt", -1.);
+  // UniversalAzimuthSubscriber params:
+  // this->declare_parameter<std::string>("input_orientation", std::string());
+  // this->declare_parameter<std::string>("input_reference", std::string());
+  // this->declare_parameter<double>("input_variance", -1.);
+  // MagnetometerCompass params:
+  this->declare_parameter<double>("initial_variance", -1.);
+  this->declare_parameter<double>("low_pass_ratio", -1.);
+  // Custom params:
+  this->declare_parameter<std::string>("frame", "base_link");
+  this->declare_parameter<bool>("strict", true);
+  this->declare_parameter<bool>("publish_mag_unbiased", this->publishMagUnbiased);
+  this->declare_parameter<bool>("subscribe_mag_unbiased", this->subscribeMagUnbiased);
+  // MagnetometerBiasRemover params:
+  this->declare_parameter<double>("initial_mag_bias_x", -1.);
+  this->declare_parameter<double>("initial_mag_bias_y", -1.);
+  this->declare_parameter<double>("initial_mag_bias_z", -1.);
+  this->declare_parameter<std::vector<double>>("initial_mag_scaling_matrix", std::vector<double>(1, 1.0));
+
   rclcpp::Node::SharedPtr imuNh = this->create_sub_node("imu");
   rclcpp::Node::SharedPtr compassNh = this->create_sub_node("compass");
 
@@ -95,6 +123,8 @@ void MagnetometerCompassNodelet::init()
 
   this->publishMagUnbiased = this->get_parameter_or<bool>("publish_mag_unbiased", this->publishMagUnbiased);
   this->subscribeMagUnbiased = this->get_parameter_or<bool>("subscribe_mag_unbiased", this->subscribeMagUnbiased);
+
+  printf("pub unbias %u\n", this->publishMagUnbiased);
 
   if (this->publishMagUnbiased && this->subscribeMagUnbiased)
     throw std::runtime_error("Cannot simultaneously subscribe and publish unbiased magnetometer.");
@@ -239,11 +269,20 @@ void AzimuthPublishersConfigForOrientation::init(
 
   auto prefix = paramPrefix + "_" + referenceStr + "_azimuth_" + orientationStr + "_";
 
+  param_node->declare_parameter<bool>(prefix + "quat", this->publishQuat);
+  param_node->declare_parameter<bool>(prefix + "imu", this->publishImu);
+  param_node->declare_parameter<bool>(prefix + "pose", this->publishPose);
+  param_node->declare_parameter<bool>(prefix + "rad", this->publishRad);
+  param_node->declare_parameter<bool>(prefix + "deg", this->publishDeg);
+
   this->publishQuat = param_node->get_parameter_or<bool>(prefix + "quat", this->publishQuat);
   this->publishImu = param_node->get_parameter_or<bool>(prefix + "imu", this->publishImu);
   this->publishPose = param_node->get_parameter_or<bool>(prefix + "pose", this->publishPose);
   this->publishRad = param_node->get_parameter_or<bool>(prefix + "rad", this->publishRad);
   this->publishDeg = param_node->get_parameter_or<bool>(prefix + "deg", this->publishDeg);
+
+  // printf("%s\n", prefix.c_str());
+  // printf("%u %u %u %u %u\n", this->publishQuat, this->publishImu, this->publishPose, this->publishRad, this->publishDeg);
 
   this->publish = this->publishQuat || this->publishImu || this->publishPose || this->publishDeg || this->publishRad;
 
@@ -340,7 +379,11 @@ void AzimuthPublishersConfig::init(
 
 void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbiased)
 {
+  printf("imuMagCb\n");
+  printf("pub unbias %u\n", this->publishMagUnbiased);
+
   if (this->publishMagUnbiased) {
+    printf("publishing mag unbiased\n");
     this->magUnbiasedPub->publish(magUnbiased);
   }
   const auto maybeAzimuth = this->compass->computeAzimuth(imu, magUnbiased);
@@ -393,6 +436,7 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
 
 void AzimuthPublishersConfig::publishAzimuths(const Az& nedAzimuth, const Imu& imuInBody)
 {
+  printf("publishAzimuth\n");
   if (!this->publish)
     return;
 

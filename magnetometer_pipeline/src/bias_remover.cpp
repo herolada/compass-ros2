@@ -53,21 +53,27 @@ MagnetometerBiasRemover::~MagnetometerBiasRemover() = default;
 
 void MagnetometerBiasRemover::configFromParams(const rclcpp::Node* node)
 {
-  if (node->has_parameter("initial_mag_bias_x") || node->has_parameter("initial_mag_bias_y") ||
-    node->has_parameter("initial_mag_bias_z"))
+  printf("%f %f %f\n", node->get_parameter("initial_mag_bias_x").get_value<double>(),
+                      node->get_parameter("initial_mag_bias_y").get_value<double>(),
+                      node->get_parameter("initial_mag_bias_z").get_value<double>());
+  if ((node->has_parameter("initial_mag_bias_x") && node->get_parameter("initial_mag_bias_x").get_value<double>() != -1.) ||
+      (node->has_parameter("initial_mag_bias_y") && node->get_parameter("initial_mag_bias_y").get_value<double>() != -1.) ||
+      (node->has_parameter("initial_mag_bias_z") && node->get_parameter("initial_mag_bias_z").get_value<double>() != -1.))
   {
+    printf("NOOOOOOOOOOOOOOOO\n");
     sensor_msgs::msg::MagneticField msg;
     msg.magnetic_field.x = node->get_parameter_or<double>("initial_mag_bias_x", 0.0);
     msg.magnetic_field.y = node->get_parameter_or<double>("initial_mag_bias_y", 0.0);
     msg.magnetic_field.z = node->get_parameter_or<double>("initial_mag_bias_z", 0.0);
 
     std::vector<double> scaling_vec;
-    node->get_parameter_or(
-        "initial_mag_scaling_matrix",
-        scaling_vec,
-        std::vector<double>(this->data->lastScale.data(), this->data->lastScale.data() + 9)
-    );
-
+    if (node->has_parameter("initial_mag_scaling_matrix") &&
+        node->get_parameter("initial_mag_scaling_matrix").get_value<std::vector<double>>().size() != 1) {
+      node->get_parameter("initial_mag_scaling_matrix", scaling_vec);
+    } else {
+      scaling_vec = std::vector<double>(this->data->lastScale.data(), this->data->lastScale.data() + 9);
+    }
+    
     Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>> scalingMatrix(msg.magnetic_field_covariance.data());
     if (scaling_vec.size() == 9) {
         scalingMatrix = Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(scaling_vec.data());

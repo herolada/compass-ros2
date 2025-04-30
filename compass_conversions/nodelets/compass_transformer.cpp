@@ -160,9 +160,35 @@ CompassTransformerNodelet::~CompassTransformerNodelet() = default;
 
 void CompassTransformerNodelet::init()
 {
-  const auto queue_size = this->get_parameter_or<uint32_t>("queue_size", 10);
-  std::string teststring;
-  this->get_parameter<std::string>("target_reference", teststring);
+  // CompassConverter params:
+  this->declare_parameter<double>("magnetic_declination", -1.);
+  this->declare_parameter<std::string>("magnetic_model", std::string());
+  this->declare_parameter<std::string>("magnetic_models_path", std::string());
+  this->declare_parameter<double>("utm_grid_convergence", -1.);
+  this->declare_parameter<int>("utm_zone", -1);
+  this->declare_parameter<bool>("keep_utm_zone", true);
+  this->declare_parameter<double>("initial_lat", -1.);
+  this->declare_parameter<double>("initial_lon", -1.);
+  this->declare_parameter<double>("initial_alt", -1.);
+  // UniversalAzimuthSubscriber params:
+  this->declare_parameter<std::string>("input_orientation", std::string());
+  this->declare_parameter<std::string>("input_reference", std::string());
+  this->declare_parameter<double>("input_variance", -1.);
+  // Custom params:
+  this->declare_parameter<int>("queue_size", 10);
+  this->declare_parameter<std::string>("target_unit", compass_utils::unitToString(Az::UNIT_RAD));
+  this->declare_parameter<std::string>("target_orientation", compass_utils::orientationToString(Az::ORIENTATION_ENU));
+  this->declare_parameter<std::string>("target_reference", compass_utils::referenceToString(Az::REFERENCE_GEOGRAPHIC));
+  this->declare_parameter<std::string>("target_type", outputTypeToString(this->targetType));
+  this->declare_parameter<bool>("target_append_suffix", false);
+  this->declare_parameter<std::string>("target_frame", std::string());
+  this->declare_parameter<bool>("subscribe_fix", true);
+  this->declare_parameter<bool>("subscribe_utm", true);
+  this->declare_parameter<bool>("strict", true);
+
+
+
+  const auto queue_size = this->get_parameter_or<int>("queue_size", 10);
 
   const uint8_t targetUnit = compass_utils::parseUnit(this->get_parameter_or<std::string>("target_unit", compass_utils::unitToString(Az::UNIT_RAD)));
   const uint8_t targetOrientation = compass_utils::parseOrientation(this->get_parameter_or<std::string>("target_orientation", compass_utils::orientationToString(Az::ORIENTATION_ENU)));

@@ -39,7 +39,7 @@ void MagnetometerBiasRemoverNodelet::onInit() {
   this->declare_parameter<double>("initial_mag_bias_x", 0.0);
   this->declare_parameter<double>("initial_mag_bias_y", 0.0);
   this->declare_parameter<double>("initial_mag_bias_z", 0.0);
-  this->declare_parameter<std::vector<double>>("initial_mag_scaling_matrix", std::vector<double>(9, 0.0));
+  this->declare_parameter<std::vector<double>>("initial_mag_scaling_matrix", std::vector<double>(1, 1.0));
 
   rclcpp::Node::SharedPtr topicNh = this->create_sub_node("imu");
 

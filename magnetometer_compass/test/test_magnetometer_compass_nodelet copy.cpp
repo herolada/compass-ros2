@@ -98,7 +98,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  node_options.automatically_declare_parameters_from_overrides(true);
+  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_mag_azimuth_enu_rad", true);
   node_options.append_parameter_override("publish_mag_azimuth_ned_deg", true);
   node_options.append_parameter_override("publish_true_azimuth_enu_rad", true);
@@ -561,7 +561,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  node_options.automatically_declare_parameters_from_overrides(true);
+  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_utm_azimuth_ned_quat", true);
   node_options.append_parameter_override("publish_mag_unbiased", true);
   node_options.append_parameter_override("low_pass_ratio", 0.0);
@@ -710,7 +710,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  node_options.automatically_declare_parameters_from_overrides(true);
+  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_utm_azimuth_ned_quat", true);
   node_options.append_parameter_override("subscribe_mag_unbiased", true);
   node_options.append_parameter_override("low_pass_ratio", 0.0);
@@ -843,7 +843,7 @@ TEST(MagnetometerCompassNodelet, ThrowWhenSubPubBias)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  node_options.automatically_declare_parameters_from_overrides(true);
+  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_mag_unbiased", true);
   node_options.append_parameter_override("subscribe_mag_unbiased", true);
   auto node = createNodelet(node_options);

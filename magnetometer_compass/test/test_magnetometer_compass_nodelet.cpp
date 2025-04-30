@@ -98,7 +98,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  node_options.automatically_declare_parameters_from_overrides(true);
+  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_mag_azimuth_enu_rad", true);
   node_options.append_parameter_override("publish_mag_azimuth_ned_deg", true);
   node_options.append_parameter_override("publish_true_azimuth_enu_rad", true);
@@ -148,6 +148,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   std::optional<Field> lastField;
   auto magCb = [&lastField](const Field::ConstSharedPtr& msg)
   {
+    printf("received mag unbiased\n");
     lastField = *msg;
   };
 
@@ -251,7 +252,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   for (
     size_t i = 0;
-    i < 10 && (!lastField || !lastImu || !lastQuat || !lastPose || az.size() < numAzimuths)
+    i < 100 && (!lastField || !lastImu || !lastQuat || !lastPose || az.size() < numAzimuths)
       && rclcpp::ok();
     ++i)
   {
@@ -297,11 +298,12 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   for (
     size_t i = 0;
-    i < 10 && (!lastField || !lastImu || !lastQuat || !lastPose || az.size() < numAzimuths)
+    i < 100 && (!lastField || !lastImu || !lastQuat || !lastPose || az.size() < numAzimuths)
       && rclcpp::ok();
     ++i)
   {
-    executor.spin_once(std::chrono::nanoseconds(10'000'000));
+    printf("%u\n", lastField.has_value());
+    executor.spin_once(std::chrono::nanoseconds());
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
     }
   // Missing tf, nothing published except unbiased magnetometer
@@ -310,7 +312,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   ASSERT_FALSE(lastPose.has_value());
   ASSERT_TRUE(lastField.has_value());
   ASSERT_TRUE(az.empty());
-
+  
   EXPECT_EQ(time, lastField->header.stamp);
   EXPECT_EQ("imu", lastField->header.frame_id);
   EXPECT_NEAR(0.360320, lastField->magnetic_field.x, 1e-6);
@@ -474,7 +476,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   magPub->publish(mag);
 
   for (size_t i = 0;
-    i < 10 && (!lastField.has_value() || !lastImu.has_value() || az.size() < numAzimuths) && rclcpp::ok();
+    i < 100 && (!lastField.has_value() || !lastImu.has_value() || az.size() < numAzimuths) && rclcpp::ok();
     ++i)
   {
     executor.spin_once(std::chrono::nanoseconds(10'000'000));
@@ -565,7 +567,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  node_options.automatically_declare_parameters_from_overrides(true);
+  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_utm_azimuth_ned_quat", true);
   node_options.append_parameter_override("publish_mag_unbiased", true);
   node_options.append_parameter_override("low_pass_ratio", 0.0);
@@ -683,7 +685,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   mag.magnetic_field.z = 0.157033;
   magPub->publish(mag);
 
-  for (size_t i = 0; i < 10 && (!lastField || !lastQuat) && rclcpp::ok(); ++i)
+  for (size_t i = 0; i < 100 && (!lastField || !lastQuat) && rclcpp::ok(); ++i)
   {
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
@@ -707,7 +709,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  node_options.automatically_declare_parameters_from_overrides(true);
+  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_utm_azimuth_ned_quat", true);
   node_options.append_parameter_override("subscribe_mag_unbiased", true);
   node_options.append_parameter_override("low_pass_ratio", 0.0);
@@ -816,7 +818,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   mag.magnetic_field.z = 0.157033 - 0.0;
   magPub->publish(mag);
 
-  for (size_t i = 0; i < 10 && (!lastQuat) && rclcpp::ok(); ++i)
+  for (size_t i = 0; i < 100 && (!lastQuat) && rclcpp::ok(); ++i)
   {
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
@@ -834,7 +836,7 @@ TEST(MagnetometerCompassNodelet, ThrowWhenSubPubBias)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  node_options.automatically_declare_parameters_from_overrides(true);
+  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_mag_unbiased", true);
   node_options.append_parameter_override("subscribe_mag_unbiased", true);
   auto node = createNodelet(node_options);

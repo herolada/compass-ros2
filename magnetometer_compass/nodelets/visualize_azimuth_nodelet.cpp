@@ -99,9 +99,25 @@ void VisualizeAzimuthNodelet::init()
   //auto nh = this->get_node_base_interface();
   //auto node = std::make_shared<rclcpp::Node>("handle_for_message_filter");
   
-  // set rateLimiter
+
+  this->declare_parameter<double>("max_rate", -1.);
+  // CompassConverter params:
+  this->declare_parameter<double>("magnetic_declination", -1.);
+  this->declare_parameter<std::string>("magnetic_model", std::string());
+  this->declare_parameter<std::string>("magnetic_models_path", std::string());
+  this->declare_parameter<double>("utm_grid_convergence", -1.);
+  this->declare_parameter<int>("utm_zone", -1);
+  this->declare_parameter<bool>("keep_utm_zone", true);
+  this->declare_parameter<double>("initial_lat", -1.);
+  this->declare_parameter<double>("initial_lon", -1.);
+  this->declare_parameter<double>("initial_alt", -1.);
+  // UniversalAzimuthSubscriber params:
+  this->declare_parameter<std::string>("input_orientation", std::string());
+  this->declare_parameter<std::string>("input_reference", std::string());
+  this->declare_parameter<double>("input_variance", -1.);
+
   double rate;
-  if (this->has_parameter("max_rate")) {
+  if (this->has_parameter("max_rate") && this->get_parameter("max_rate").get_value<double>() != -1.) {
     this->get_parameter<double>("max_rate", rate);
     this->rateLimiter = std::make_unique<compass_utils::TokenBucketLimiter>(this->get_clock(), rclcpp::Rate(rate));
   }

@@ -6,19 +6,18 @@
 
 <launch>
     <arg name="frame" default="base_link" description="The frame in which the azimuth should be computed." />
-    <!-- <arg name="unbias" default="true" description="When true, magnetometer bias observer and remover will be launched." /> -->
+    <arg name="unbias" default="true" description="When true, magnetometer bias observer and remover will be launched." />
     <arg name="low_pass_ratio" default="0.2" description="Low pass smoothing ratio. 0 = raw measurements, 1 = no updates." />
     <!-- <arg name="visualize" default="true" description="Whether to publish a visualization of the azimuth" /> -->
 
 
-    <!-- <include file="$(find-pkg-share magnetometer_pipeline)/launch/magnetometer_proc_launch.xml" if="$(var unbias)">
-    </include> -->
+    <include file="$(find-pkg-share magnetometer_pipeline)/launch/magnetometer_proc_launch.xml" if="$(var unbias)">
+    </include>
 
     <node pkg="magnetometer_compass" exec="magnetometer_compass_nodelet_node" name="compass" respawn="true">
         <param name="frame" value="base_link" />
         <param name="low_pass_ratio" value="0.2" />
-        <param name="test" value="test" />
-        <!-- <param name="subscribe_mag_unbiased" value="$(var unbias)" /> -->
+        <param name="subscribe_mag_unbiased" value="$(var unbias)" />
     </node>
 
     <!-- <node pkg="magnetometer_compass" exec="visualize_azimuth_nodelet_node" name="visualize_azimuth" if="$(var visualize)"> -->
