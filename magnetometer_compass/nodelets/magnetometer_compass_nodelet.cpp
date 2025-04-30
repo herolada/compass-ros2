@@ -40,6 +40,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include "rclcpp_components/register_node_macro.hpp"
 #include <tf2_ros/buffer.h>
+#include "tf2_ros/transform_listener.h"
 
 namespace magnetometer_compass
 {
@@ -54,18 +55,23 @@ typedef message_filters::sync_policies::ApproximateTime<Imu, Field> SyncPolicy;
 
 
 MagnetometerCompassNodelet::MagnetometerCompassNodelet() : rclcpp::Node("magnetometer_compass_nodelet"),
-  magPublishers(), truePublishers(), utmPublishers(), buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock()))
+  magPublishers(), truePublishers(), utmPublishers(),
+  buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
+  listener(std::make_shared<tf2_ros::TransformListener>(*buffer))
 {
 }
 
 MagnetometerCompassNodelet::MagnetometerCompassNodelet(const rclcpp::NodeOptions & options) : rclcpp::Node("magnetometer_compass_nodelet", options),
-  magPublishers(), truePublishers(), utmPublishers(), buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock()))
+  magPublishers(), truePublishers(), utmPublishers(),
+  buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
+  listener(std::make_shared<tf2_ros::TransformListener>(*buffer))
 {
 }
 
 void MagnetometerCompassNodelet::setBuffer(tf2_ros::Buffer::SharedPtr buffer)
 {
   this->buffer = buffer;
+  this->listener = std::make_shared<tf2_ros::TransformListener>(*this->buffer);
 }
 
 

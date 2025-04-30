@@ -34,7 +34,8 @@
  #include <sensor_msgs/msg/nav_sat_fix.hpp>
 
  #include <tf2_ros/buffer.h>
- 
+ #include "tf2_ros/transform_listener.h"
+
  namespace magnetometer_compass
  {
 
@@ -276,6 +277,7 @@ protected:
   std::string frame;
 
   tf2_ros::Buffer::SharedPtr buffer;
+  std::shared_ptr<tf2_ros::TransformListener> listener;
 
   std::shared_ptr<compass_conversions::CompassConverter> converter;
   std::shared_ptr<magnetometer_compass::MagnetometerCompass> compass;

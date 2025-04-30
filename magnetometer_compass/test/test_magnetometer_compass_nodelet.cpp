@@ -298,7 +298,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   for (
     size_t i = 0;
-    i < 100 && (!lastField || !lastImu || !lastQuat || !lastPose || az.size() < numAzimuths)
+    i < 30 && (!lastField || !lastImu || !lastQuat || !lastPose || az.size() < numAzimuths)
       && rclcpp::ok();
     ++i)
   {
