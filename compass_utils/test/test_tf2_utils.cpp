@@ -42,7 +42,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <compass_utils/tf2_utils.hpp>
 

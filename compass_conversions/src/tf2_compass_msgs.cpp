@@ -7,13 +7,12 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <string>
-
 #include <angles/angles.h>
 #include <compass_conversions/tf2_compass_msgs.h>
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_utils/tf2_utils.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <string>
 
 using Az = compass_interfaces::msg::Azimuth;
 

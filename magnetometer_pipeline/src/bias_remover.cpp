@@ -7,22 +7,17 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-#include <string>
 #include "tl/expected.hpp"
 #include <Eigen/Core>
-#include <compass_utils/string_utils.hpp>
 #include <compass_conversions/tf2_compass_msgs.h>
-
-// #include <cras_cpp_common/expected.hpp>
-// #include <cras_cpp_common/param_utils.hpp>
-// #include <cras_cpp_common/param_utils/get_param_specializations/eigen.hpp>
+#include <compass_utils/string_utils.hpp>
 #include <magnetometer_pipeline/bias_remover.h>
-#include <sensor_msgs/msg/magnetic_field.hpp>
-#include <rclcpp/rclcpp.hpp>
-#include <tf2_eigen/tf2_eigen.hpp>
+#include <memory>
 #include <rclcpp/logger.hpp>
-#include "rcutils/logging_macros.h"
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/magnetic_field.hpp>
+#include <string>
+#include <tf2_eigen/tf2_eigen.hpp>
 
 namespace magnetometer_pipeline
 {

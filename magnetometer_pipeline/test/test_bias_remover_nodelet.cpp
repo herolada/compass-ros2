@@ -7,25 +7,16 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
 #include <cmath>
+#include <gtest/gtest.h>
+#include <magnetometer_pipeline/magnetometer_bias_remover_nodelet.hpp>
 #include <map>
 #include <memory>
+#include <optional>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/magnetic_field.hpp>
 #include <string>
 #include <utility>
-#include <rclcpp/utilities.hpp>
-// #include <Eigen/Core>
-
-// #include <cras_cpp_common/log_utils/memory.h>
-// #include <cras_cpp_common/log_utils/node.h>
-// #include <cras_cpp_common/param_utils/param_helper.hpp>
-// #include <ros/ros.h>
-#include <rclcpp/logger.hpp>
-#include "rclcpp/rclcpp.hpp"
-#include <optional>
-#include <sensor_msgs/msg/magnetic_field.hpp>
-#include <magnetometer_pipeline/magnetometer_bias_remover_nodelet.hpp>
 
 using Field = sensor_msgs::msg::MagneticField;
 using namespace std::chrono_literals;
@@ -147,7 +138,6 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
   EXPECT_NEAR(0.157033, lastField->magnetic_field.z, 1e-6);
 
   // New data
-
   lastField.reset();
   time.sec = 1664286802;
   time.nanosec = 197458028;

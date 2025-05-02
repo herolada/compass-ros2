@@ -1,5 +1,4 @@
-#ifndef VISUALIZE_AZIMUTH_NODELET_H
-#define VISUALIZE_AZIMUTH_NODELET_H
+#pragma once
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: Czech Technical University in Prague
 
@@ -8,29 +7,26 @@
  * \brief Visualize Azimuth as a PoseWithCovarianceStamped pointing to North.
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
-
- #include <memory>
- #include <string>
- #include <optional>
- #include <rclcpp/logger.hpp>
- #include <rclcpp/rclcpp.hpp>
- #include <rclcpp/node.hpp>
- #include <rclcpp/publisher.hpp>
- #include <rclcpp/subscription.hpp>
  
  #include <compass_conversions/compass_converter.h>
  #include <compass_conversions/message_filter.h>
  #include <compass_interfaces/msg/azimuth.hpp>
  #include <compass_utils/rate_limiter.h>
  #include <geometry_msgs/msg/pose_with_covariance_stamped.h>
+ #include <memory>
  #include <message_filters/subscriber.h>
- // #include <pluginlib/class_list_macros.hpp>
- //#include <ros/ros.h>
- #include <std_msgs/msg/int32.hpp>
+ #include <optional>
+ #include <rclcpp/logger.hpp>
+ #include <rclcpp/node.hpp>
+ #include <rclcpp/publisher.hpp>
+ #include <rclcpp/rclcpp.hpp>
+ #include <rclcpp/subscription.hpp>
+ #include <rclcpp_components/register_node_macro.hpp>
  #include <sensor_msgs/msg/nav_sat_fix.h>
+ #include <std_msgs/msg/int32.hpp>
+ #include <string>
  #include <tf2/LinearMath/Quaternion.h>
  #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
- #include "rclcpp_components/register_node_macro.hpp"
  
  namespace magnetometer_compass
  {
@@ -113,4 +109,3 @@
    rclcpp::Publisher<Pose>::SharedPtr visPub;
  };
 }
-#endif

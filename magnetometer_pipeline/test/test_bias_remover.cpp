@@ -7,19 +7,13 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-#include <memory>
-#include <string>
-
-// #include <cras_cpp_common/log_utils/memory.h>
-// #include <cras_cpp_common/log_utils/node.h>
-// #include <cras_cpp_common/param_utils/param_helper.hpp>
-// #include <cras_cpp_common/param_utils/get_param_adapters/xmlrpc_value.hpp>
+#include <gtest/gtest.h>
 #include <magnetometer_pipeline/bias_remover.h>
-#include <sensor_msgs/msg/magnetic_field.hpp>
+#include <memory>
 #include <rclcpp/logger.hpp>
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/magnetic_field.hpp>
+#include <string>
 
 using Field = sensor_msgs::msg::MagneticField;
 
@@ -163,21 +157,6 @@ TEST(MagnetometerBiasRemover, ConfigFromParamsWithScale)  // NOLINT
 
   auto remover = magnetometer_pipeline::MagnetometerBiasRemover();
   EXPECT_FALSE(remover.hasBias());
-
-  // XmlRpc::XmlRpcValue config;
-  // config.begin();  // set to dict type
-  // config["initial_mag_bias_x"] = -0.097227663;
-  // config["initial_mag_bias_y"] = -0.692264333;
-  // config["initial_mag_bias_z"] = 0;
-  // config["initial_mag_scaling_matrix"][0 * 3 + 0] = 2.0;
-  // config["initial_mag_scaling_matrix"][0 * 3 + 1] = 0.0;
-  // config["initial_mag_scaling_matrix"][0 * 3 + 2] = 0.0;
-  // config["initial_mag_scaling_matrix"][1 * 3 + 0] = 0.0;
-  // config["initial_mag_scaling_matrix"][1 * 3 + 1] = 1.0;
-  // config["initial_mag_scaling_matrix"][1 * 3 + 2] = 0.0;
-  // config["initial_mag_scaling_matrix"][2 * 3 + 0] = 0.0;
-  // config["initial_mag_scaling_matrix"][2 * 3 + 1] = 0.0;
-  // config["initial_mag_scaling_matrix"][2 * 3 + 2] = 1.0;
 
   rclcpp::Parameter param1("initial_mag_bias_x", -0.097227663);
   node.set_parameter(param1);

@@ -9,16 +9,14 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <string>
-
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <rclcpp/time.hpp>
+#include <string>
 #include <tf2/convert.h>
 
 namespace tf2
 {
-
 
 template<>
 tf2::TimePoint getTimestamp(const compass_interfaces::msg::Azimuth& t);

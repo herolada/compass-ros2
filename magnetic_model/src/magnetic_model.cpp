@@ -7,30 +7,26 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <ctime>
-#include <memory>
-#include <string>
-#include <format>
-
+#include "tl/expected.hpp"
 #include <GeographicLib/Constants.hpp>
 #include <GeographicLib/MagneticModel.hpp>
-
 #include <angles/angles.h>
 #include <compass_interfaces/msg/azimuth.hpp>
-#include "tl/expected.hpp"
-#include <magnetic_model/magnetic_model.h>
-#include <magnetic_model/magnetic_model_manager.h>
-#include <rclcpp/time.hpp>
-#include <rclcpp/clock.hpp>
-#include <rclcpp/logger.hpp>
-
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp/node.hpp"
-#include "rcutils/error_handling.h"
-#include <sensor_msgs/msg/magnetic_field.h>
-#include <sensor_msgs/msg/nav_sat_fix.h>
 #include <compass_utils/string_utils.hpp>
 #include <compass_utils/time_utils.hpp>
+#include <ctime>
+#include <format>
+#include <magnetic_model/magnetic_model.h>
+#include <magnetic_model/magnetic_model_manager.h>
+#include <memory>
+#include <rclcpp/clock.hpp>
+#include <rclcpp/logger.hpp>
+#include <rclcpp/node.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/time.hpp>
+#include <sensor_msgs/msg/magnetic_field.h>
+#include <sensor_msgs/msg/nav_sat_fix.h>
+#include <string>
 
 namespace magnetic_model
 {
@@ -302,9 +298,6 @@ tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMa
   double yearFrac {0.0};
   if (yearStart.has_value() && nextYearStart.has_value())
   {
-    RCLCPP_INFO(this->node->get_logger(), "nextYearStart %f.", (nextYearStart->seconds()));
-    RCLCPP_INFO(this->node->get_logger(), "yearStart %f.", (yearStart->seconds()));
-    RCLCPP_INFO(this->node->get_logger(), "stamp %f.", (stamp.seconds()));
     const double yearDuration = nextYearStart->seconds() - yearStart->seconds();
     const double nowSinceYearStart = stamp.seconds() - yearStart->seconds();
     yearFrac = (nowSinceYearStart / yearDuration);

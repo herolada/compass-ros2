@@ -15,7 +15,6 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2_eigen REQUIRED)
-# find_package(Eigen3 REQUIRED)
 find_package(tl-expected REQUIRED)
 
 # LIBRARY 1
@@ -28,7 +27,6 @@ ament_target_dependencies(magnetometer_bias_remover
   rclcpp
   sensor_msgs
   tf2_eigen
-  # Eigen3
 )
 target_link_libraries(magnetometer_bias_remover tl::expected)
 
@@ -39,9 +37,16 @@ target_include_directories(magnetometer_bias_remover
   "/usr/include/eigen3"
 )
 ament_export_targets(export_magnetometer_bias_remover HAS_LIBRARY_TARGET)
+# ament_export_dependencies( 
+#   sensor_msgs
+#   rclcpp
+#   tf2_eigen
+# )
 ament_export_dependencies( 
-  sensor_msgs
+  compass_conversions
+  compass_utils
   rclcpp
+  sensor_msgs
   tf2_eigen
 )
 
@@ -55,7 +60,6 @@ ament_target_dependencies(magnetometer_bias_remover_filter
   rclcpp
   rcutils
   sensor_msgs
-  # Eigen3
 )
 
 target_link_libraries(magnetometer_bias_remover_filter magnetometer_bias_remover tl::expected)
@@ -66,36 +70,50 @@ target_include_directories(magnetometer_bias_remover_filter
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_magnetometer_bias_remover_filter HAS_LIBRARY_TARGET)
+# ament_export_dependencies( 
+#   message_filters
+#   sensor_msgs
+# )
 ament_export_dependencies( 
+  geometry_msgs
   message_filters
+  rclcpp
+  rcutils
   sensor_msgs
 )
 
 # LIBRARY 3
-add_library(magnetometer_bias_remover_nodelet SHARED
+add_library(magnetometer_bias_remover_nodelet_lib SHARED
   nodelets/magnetometer_bias_remover_nodelet.cpp
 )
-ament_target_dependencies(magnetometer_bias_remover_nodelet
+ament_target_dependencies(magnetometer_bias_remover_nodelet_lib
   geometry_msgs
   message_filters
   rclcpp
   rclcpp_components
   sensor_msgs
 )
-target_link_libraries(magnetometer_bias_remover_nodelet magnetometer_bias_remover_filter tl::expected)
+target_link_libraries(magnetometer_bias_remover_nodelet_lib magnetometer_bias_remover_filter tl::expected)
 
-target_include_directories(magnetometer_bias_remover_nodelet
+target_include_directories(magnetometer_bias_remover_nodelet_lib
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_export_targets(export_magnetometer_bias_remover_nodelet HAS_LIBRARY_TARGET)
+ament_export_targets(export_magnetometer_bias_remover_nodelet_lib HAS_LIBRARY_TARGET)
+# ament_export_dependencies( 
+#   message_filters
+#   rclcpp
+#   sensor_msgs
+# )
 ament_export_dependencies( 
+  geometry_msgs
   message_filters
   rclcpp
+  rclcpp_components
   sensor_msgs
 )
-rclcpp_components_register_nodes(magnetometer_bias_remover_nodelet "magnetometer_pipeline::MagnetometerBiasRemoverNodelet")
+rclcpp_components_register_nodes(magnetometer_bias_remover_nodelet_lib "magnetometer_pipeline::MagnetometerBiasRemoverNodelet")
 
 # INSTALL LIBRARIES
 install(
@@ -119,9 +137,9 @@ install(TARGETS
   RUNTIME DESTINATION bin)
 
 install(TARGETS
-  magnetometer_bias_remover_nodelet
+  magnetometer_bias_remover_nodelet_lib
   EXPORT
-  export_magnetometer_bias_remover_nodelet
+  export_magnetometer_bias_remover_nodelet_lib
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
@@ -132,9 +150,9 @@ install(TARGETS
 # https://ros2-tutorial.readthedocs.io/en/latest/
 # While we cant use blocks https://cmake.org/cmake/help/latest/command/block.html#command:block
 # we use set--unset
-add_executable(magnetometer_bias_remover_nodelet_node nodelets/magnetometer_bias_remover_nodelet.cpp)
+add_executable(magnetometer_bias_remover_nodelet nodelets/magnetometer_bias_remover_nodelet.cpp)
 
-ament_target_dependencies(magnetometer_bias_remover_nodelet_node
+ament_target_dependencies(magnetometer_bias_remover_nodelet
   geometry_msgs
   message_filters
   rclcpp
@@ -142,15 +160,15 @@ ament_target_dependencies(magnetometer_bias_remover_nodelet_node
   sensor_msgs
 )
 
-target_link_libraries(magnetometer_bias_remover_nodelet_node magnetometer_bias_remover_nodelet)
+target_link_libraries(magnetometer_bias_remover_nodelet magnetometer_bias_remover_nodelet_lib magnetometer_bias_remover_filter)
 
-target_include_directories(magnetometer_bias_remover_nodelet_node PUBLIC
+target_include_directories(magnetometer_bias_remover_nodelet PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
-target_compile_features(magnetometer_bias_remover_nodelet_node PUBLIC c_std_99 cxx_std_23)
+target_compile_features(magnetometer_bias_remover_nodelet PUBLIC c_std_99 cxx_std_23)
 
-install(TARGETS magnetometer_bias_remover_nodelet_node
+install(TARGETS magnetometer_bias_remover_nodelet
     DESTINATION lib/${PROJECT_NAME})
 
 # ^^^^^^^^^^^^^^^^^^^^^^ #
@@ -181,7 +199,7 @@ if(BUILD_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
 
     ament_add_gtest(test_magnetometer_bias_remover_nodelet test/test_bias_remover_nodelet.cpp)
-    target_link_libraries(test_magnetometer_bias_remover_nodelet magnetometer_bias_remover_nodelet)
+    target_link_libraries(test_magnetometer_bias_remover_nodelet magnetometer_bias_remover_nodelet_lib)
     target_include_directories(test_magnetometer_bias_remover_nodelet
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -206,44 +224,6 @@ if(BUILD_TESTING)
         $<INSTALL_INTERFACE:include>
     )
 endif()
-
-# catkin_install_python(PROGRAMS nodes/magnetometer_bias_observer
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-
-# if(CATKIN_ENABLE_TESTING)
-#   find_package(roslint REQUIRED)
-#   find_package(rostest REQUIRED)
-#   find_package(roslaunch REQUIRED)
-
-#   roslint_custom(catkin_lint "-W2" .)
-
-#   # Roslint C++ - checks formatting and some other rules for C++ files
-#   file(GLOB_RECURSE ROSLINT_FILES include/*.h src/*.cpp nodelets/*.cpp test/*.cpp)
-#   set(ROSLINT_CPP_OPTS "--extensions=h,hpp,hh,c,cpp,cc;--linelength=120;--filter=\
-#     -build/header_guard,-build/include,-readability/namespace,-whitespace/braces,-runtime/references,\
-#     -build/c++11,-readability/nolint,-readability/todo,-legal/copyright")
-#   roslint_cpp(${ROSLINT_FILES})
-
-#   # Run roslint on Python sources
-#   file(GLOB_RECURSE PYTHON_FILES nodes/magnetometer_bias_observer)
-#   roslint_python("${PYTHON_FILES}")
-
-#   roslint_add_test()
-
-#   roslaunch_add_file_check(launch/magnetometer_proc.launch)
-
-#   catkin_add_gtest(test_magnetometer_bias_remover test/test_bias_remover.cpp)
-#   target_link_libraries(test_magnetometer_bias_remover magnetometer_bias_remover)
-
-#   catkin_add_gtest(test_magnetometer_bias_remover_filter test/test_message_filter.cpp)
-#   target_link_libraries(test_magnetometer_bias_remover_filter magnetometer_bias_remover_filter)
-
-#   add_rostest_gtest(test_magnetometer_bias_remover_nodelet
-#     test/test_bias_remover_nodelet.test test/test_bias_remover_nodelet.cpp)
-#   target_link_libraries(test_magnetometer_bias_remover_nodelet ${catkin_LIBRARIES})
-#   roslaunch_add_file_check(test/test_bias_remover_nodelet.test USE_TEST_DEPENDENCIES)
-# endif()
 
 install(DIRECTORY
   launch

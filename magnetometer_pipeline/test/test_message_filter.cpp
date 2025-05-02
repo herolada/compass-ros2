@@ -7,25 +7,14 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-#include <memory>
-#include <string>
-
-// #include <boost/functional.hpp>
-
-// #include <cras_cpp_common/log_utils.h>
-// #include <cras_cpp_common/log_utils/memory.h>
-// #include <cras_cpp_common/log_utils/node.h>
-// #include <cras_cpp_common/param_utils/get_param_adapters/xmlrpc_value.hpp>
+#include <gtest/gtest.h>
 #include <magnetometer_pipeline/message_filter.h>
-#include <message_filters/simple_filter.h>
+#include <memory>
 #include <message_filters/message_event.h>
+#include <message_filters/simple_filter.h>
+#include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
-#include <rclcpp/logger.hpp>
-#include "rclcpp/rclcpp.hpp"
-#include <rclcpp/time.hpp>
-#include <rclcpp/node.hpp>
+#include <string>
 
 using Field = sensor_msgs::msg::MagneticField;
 
@@ -46,9 +35,6 @@ public:
 
 TEST(MessageFilter, Basic)  // NOLINT
 {
-  
-  // const auto log = rclcpp::get_logger("test");
-  // const auto clk = rclcpp::Clock();
   rclcpp::Node node = rclcpp::Node("test_node");
 
   TestInput<Field> magInput;
@@ -102,8 +88,6 @@ TEST(MessageFilter, Basic)  // NOLINT
 
   // New data
 
-  // time.sec = 1664286802;
-  time.nanosec = 197458028;
   time.sec = 1664286802;
   time.nanosec = 197458028;
 

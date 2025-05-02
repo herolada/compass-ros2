@@ -7,59 +7,39 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <limits>
-#include <memory>
-#include <stdexcept>
-#include <string>
-
+#include <compass_conversions/compass_converter.h>
+#include <compass_conversions/compass_transformer.h>
 #include <compass_conversions/message_filter.h>
 #include <compass_conversions/tf2_compass_msgs.h>
 #include <compass_conversions/topic_names.h>
-#include <compass_conversions/compass_converter.h>
-#include <compass_conversions/compass_transformer.h>
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_utils/string_utils.hpp>
-// #include <cras_cpp_common/functional.hpp>
-// #include <cras_cpp_common/nodelet_utils.hpp>
-#include <optional>
-// #include <cras_cpp_common/string_utils.hpp>
-// #include <cras_cpp_common/tf2_utils/message_filter.hpp>
-#include "tf2_ros/message_filter.h"
-#include <message_filters/subscriber.h>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
-// #include <nodelet/nodelet.h>
-// #include <pluginlib/class_list_macros.hpp>
-// #include <ros/names.h>
-// #include <ros/node_handle.h>
+#include <limits>
+#include <memory>
+#include <message_filters/subscriber.h>
+#include <optional>
+#include <rclcpp/duration.hpp>
+#include <rclcpp/generic_publisher.hpp>
+#include <rclcpp/node.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <std_msgs/msg/int32.hpp>
+#include <stdexcept>
+#include <string>
 #include <tf2/exceptions.h>
-#include <tf2_ros/message_filter.h>
-#include "tf2_ros/transform_listener.h"
 #include <tf2_ros/create_timer_ros.h>
-
-#include <rclcpp/duration.hpp>
-// #include <rclcpp/publisher.hpp>
-#include <rclcpp/generic_publisher.hpp>
-#include <rclcpp/node.hpp>
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp_components/register_node_macro.hpp"
+#include <tf2_ros/message_filter.h>
+#include <tf2_ros/transform_listener.h>
 
 using Az = compass_interfaces::msg::Azimuth;
 using Fix = sensor_msgs::msg::NavSatFix;
 
 namespace compass_conversions
 {
-
-// enum class OutputType
-// {
-//   Azimuth,
-//   Imu,
-//   Pose,
-//   Quaternion,
-// };
 
 OutputType parseOutputType(const std::string& outputType)
 {
@@ -294,7 +274,6 @@ void CompassTransformerNodelet::init()
   
 void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
 {
-  RCLCPP_WARN(this->get_logger(), "A\n\n");
   switch (this->targetType)
   {
     case OutputType::Imu:
@@ -326,9 +305,7 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
       break;
     }
     default:
-      RCLCPP_WARN(this->get_logger(), "B\n\n");
       this->pub_az->publish(*msg);
-      RCLCPP_WARN(this->get_logger(), "C\n\n");
       break;
   }
 }
@@ -339,11 +316,8 @@ void CompassTransformerNodelet::transformAndPublish(const Az::ConstSharedPtr& ms
   {
     Az::SharedPtr outMsg(new Az{});
 
-
     //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
-    RCLCPP_WARN(this->get_logger(), "before transform\n\n");
     *outMsg = this->buffer->transform(*msg, this->targetFrame);
-    RCLCPP_WARN(this->get_logger(), "after transform\n\n");
 
     this->publish(outMsg);
 

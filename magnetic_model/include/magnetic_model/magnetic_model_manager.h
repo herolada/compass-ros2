@@ -9,15 +9,14 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-#include <string>
-
-#include "tl/expected.hpp"
-#include <optional>
 #include <magnetic_model/magnetic_model.h>
+#include <memory>
+#include <optional>
 #include <rclcpp/time.hpp>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/node.hpp>
+#include <string>
+#include "tl/expected.hpp"
 
 namespace magnetic_model
 {

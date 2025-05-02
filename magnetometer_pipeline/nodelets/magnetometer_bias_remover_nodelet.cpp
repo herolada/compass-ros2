@@ -7,20 +7,16 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
 #include <functional>
-// #include <cras_cpp_common/nodelet_utils.hpp>
-#include <magnetometer_pipeline/message_filter.h>
 #include <magnetometer_pipeline/magnetometer_bias_remover_nodelet.hpp>
+#include <magnetometer_pipeline/message_filter.h>
+#include <memory>
 #include <message_filters/subscriber.h>
-// #include <pluginlib/class_list_macros.hpp>
-#include <sensor_msgs/msg/magnetic_field.hpp>
-#include <rclcpp/rclcpp.hpp>
 #include <rclcpp/node.hpp>
 #include <rclcpp/publisher.hpp>
-
+#include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
-
+#include <sensor_msgs/msg/magnetic_field.hpp>
 
 namespace magnetometer_pipeline
 {

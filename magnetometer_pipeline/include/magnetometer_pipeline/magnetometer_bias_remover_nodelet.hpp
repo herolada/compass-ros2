@@ -1,6 +1,4 @@
-#ifndef MAGNETOMETER_PIPELINE__MAGNETOMETER_BIAS_REMOVER_NODELET_HPP_
-#define MAGNETOMETER_PIPELINE__MAGNETOMETER_BIAS_REMOVER_NODELET_HPP_
-
+#pragma once
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: Czech Technical University in Prague
 
@@ -10,17 +8,14 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
- #include <memory>
  #include <functional>
- // #include <cras_cpp_common/nodelet_utils.hpp>
  #include <magnetometer_pipeline/message_filter.h>
+ #include <memory>
  #include <message_filters/subscriber.h>
- // #include <pluginlib/class_list_macros.hpp>
- #include <sensor_msgs/msg/magnetic_field.hpp>
- #include <rclcpp/rclcpp.hpp>
  #include <rclcpp/node.hpp>
  #include <rclcpp/publisher.hpp>
- 
+ #include <rclcpp/rclcpp.hpp>
+ #include <sensor_msgs/msg/magnetic_field.hpp> 
  
  namespace magnetometer_pipeline
  {
@@ -70,5 +65,3 @@
    rclcpp::Publisher<Field>::SharedPtr magUnbiasedPub;  //!< \brief Publisher of unbiased measurements.
  };
 }
-
-#endif // MAGNETOMETER_PIPELINE__MAGNETOMETER_BIAS_REMOVER_NODELET_HPP_

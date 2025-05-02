@@ -7,24 +7,16 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-#include <memory>
-#include <string>
-
-// #include <boost/functional.hpp>
-
 #include <angles/angles.h>
 #include <compass_conversions/message_filter.h>
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_utils/time_utils.hpp>
-// #include <cras_cpp_common/log_utils.h>
-// #include <cras_cpp_common/log_utils/memory.h>
-// #include <cras_cpp_common/string_utils/ros.hpp>
+#include <gtest/gtest.h>
+#include <memory>
+#include <message_filters/message_event.h>
 #include <message_filters/simple_filter.h>
-#include <message_filters/message_event.h>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
-#include <message_filters/message_event.h>
+#include <string>
 
 using Az = compass_interfaces::msg::Azimuth;
 

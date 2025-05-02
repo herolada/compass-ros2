@@ -7,27 +7,23 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
+#include "tl/expected.hpp"
+#include <GeographicLib/MagneticModel.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <compass_utils/string_utils.hpp>
+#include <compass_utils/time_utils.hpp>
+#include <format>
+#include <magnetic_model/magnetic_model.h>
+#include <magnetic_model/magnetic_model_manager.h>
 #include <map>
 #include <memory>
+#include <optional>
+#include <rclcpp/logger.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/time.hpp>
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include <format>
-
-#include <GeographicLib/MagneticModel.hpp>
-
-#include "tl/expected.hpp"
-#include <optional>
-#include <magnetic_model/magnetic_model.h>
-#include <magnetic_model/magnetic_model_manager.h>
-//#include <ros/package.h>
-#include <ament_index_cpp/get_package_share_directory.hpp>
-#include <rclcpp/time.hpp>
-#include <rclcpp/logger.hpp>
-#include "rclcpp/rclcpp.hpp"
-//#include "rcutils/error_handling.h"
-#include <compass_utils/string_utils.hpp>
-#include <compass_utils/time_utils.hpp>
 
 namespace magnetic_model
 {

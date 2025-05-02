@@ -9,18 +9,15 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <optional>
-#include <string>
-#include <type_traits>
-#include <utility>
-#include <map>
-
-// #include <boost/shared_ptr.hpp>
-
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
+#include <map>
+#include <optional>
 #include <sensor_msgs/msg/imu.hpp>
+#include <string>
+#include <type_traits>
+#include <utility>
 
 namespace compass_conversions
 {

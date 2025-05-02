@@ -8,45 +8,37 @@
  */
 
 #include "tl/expected.hpp"
-#include <list>
-#include <map>
-#include <memory>
-#include <optional>
-#include <string>
-#include <tuple>
-#include <utility>
-
 #include <GeographicLib/Constants.hpp>
 #include <GeographicLib/UTMUPS.hpp>
-
 #include <angles/angles.h>
 #include <compass_conversions/compass_converter.h>
 #include <compass_conversions/topic_names.h>
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_utils/string_utils.hpp>
-#include <compass_utils/time_utils.hpp>
 #include <compass_utils/tf2_utils.hpp>
-// #include <cras_cpp_common/log_utils.h>
-// #include <cras_cpp_common/string_utils.hpp>
-// #include <cras_cpp_common/tf2_utils.hpp>
-// #include <cras_cpp_common/time_utils.hpp>
+#include <compass_utils/time_utils.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
+#include <list>
 #include <magnetic_model/magnetic_model.h>
 #include <magnetic_model/magnetic_model_manager.h>
+#include <map>
+#include <memory>
 #include <message_filters/message_event.h>
 #include <message_filters/message_traits.h>
-// #include <ros/package.h>
+#include <optional>
+#include <rclcpp/generic_subscription.hpp>
+#include <rclcpp/serialized_message.hpp>
 #include <rclcpp/time.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <std_msgs/msg/header.hpp>
+#include <string>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <rclcpp/generic_subscription.hpp>
-#include <rclcpp/serialized_message.hpp>
-
+#include <tuple>
+#include <utility>
 
 namespace compass_conversions
 {
@@ -537,52 +529,6 @@ std::shared_ptr<Msg> deserializeMessage(const std::shared_ptr<const rclcpp::Seri
   serializer.deserialize_message(msg, deserialized_msg);
   return deserialized_msg;
 }
-
-/* tl::expected<Az, std::string> CompassConverter::convertUniversalMsgEvent(
-  const message_filters::MessageEvent<rclcpp::SerializedMessage const>& event,
-  const std::string& topic,
-  const decltype(Az::variance) variance,
-  const decltype(Az::unit) unit,
-  const std::optional<decltype(Az::orientation)>& orientation,
-  const std::optional<decltype(Az::reference)>& reference) const
-{
-  // TODO dynamic type ... I think it is not possible nor is it advisable
-  std::string type = event.getConnectionHeaderPtr()->at("type").front();
-  const auto msg = event.getConstMessage();
-  // const auto header = event.getConnectionHeaderPtr();
-  const auto stamp = event.getReceiptTime();
-  // const auto type = msg->get_message_type_support_handle().typesupport_identifier;
-  namespace mt = message_filters::message_traits;
-
-  if (type == "compass_interfaces::msg::Azimuth")
-  {
-    std::shared_ptr<Az> deserialized_msg = deserializeMessage<Az>(msg);
-    return this->convertAzimuth(*deserialized_msg, unit, deserialized_msg->orientation, deserialized_msg->reference);
-  }
-  else if (type == "geometry_msgs::msg::PoseWithCovarianceStamped")
-  {
-    std::shared_ptr<Pose> deserialized_msg = deserializeMessage<Pose>(msg);
-
-    const ME<Pose const> poseEvent = ME<Pose const>(deserialized_msg, stamp, false, Creator<Pose>());
-    return this->convertPoseMsgEvent(topic.c_str(), poseEvent, unit, orientation, reference);
-  }
-  else if (type == "geometry_msgs::msg::QuaternionStamped")
-  {
-    std::shared_ptr<Quat> deserialized_msg = deserializeMessage<Quat>(msg);
-
-    const auto quatEvent = ME<Quat const>(std::make_unique<Quat>(), stamp, false, Creator<Quat>());
-    return this->convertQuaternionMsgEvent(topic.c_str(), quatEvent, variance, unit, orientation, reference);
-  }
-  else if (type == "sensor_msgs::msg::Imu")
-  {
-    std::shared_ptr<Imu> deserialized_msg = deserializeMessage<Imu>(msg);
-
-    const auto imuEvent = ME<Imu const>(std::make_unique<Imu>(), stamp, false, Creator<Imu>());
-    return this->convertImuMsgEvent(topic.c_str(), imuEvent, unit, orientation, reference);
-  }
-  else
-    return compass_utils::make_unexpected(std::format("Invalid message type: {}.", type));
-}; */
 
 void CompassConverter::setNavSatPos(const sensor_msgs::msg::NavSatFix& fix)
 {

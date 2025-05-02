@@ -7,51 +7,37 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-// #include <boost/array.hpp>
-#include <builtin_interfaces/msg/time.hpp>
-#include <chrono>
-#include <cmath>
-#include <functional>
-#include <map>
-#include <memory>
-#include <string>
-#include <utility>
 #include <Eigen/Core>
 #include <Eigen/LU> 
-
 #include <angles/angles.h>
+#include <builtin_interfaces/msg/time.hpp>
+#include <chrono>
 #include <class_loader/class_loader_core.hpp>
+#include <cmath>
 #include <compass_interfaces/msg/azimuth.hpp>
-// #include <compass_utils/functional.hpp>
-// #include <compass_utils/log_utils/memory.h>
-// #include <compass_utils/log_utils/node.h>
-// #include <compass_utils/nodelet_utils.hpp>
 #include <compass_utils/tf2_utils.hpp>
-// #include <compass_utils/param_utils/param_helper.hpp>
-// #include <compass_utils/string_utils/rclcpp.hpp>
+#include <functional>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
-
-// #include <imu_transformer/tf2_sensor_msgs.h> // TODO doesnt work for some reason
-#include <magnetometer_compass/tf2_sensor_msgs.h>
+#include <gtest/gtest.h>
 #include <magnetometer_compass/magnetometer_compass_nodelet.hpp>
+#include <magnetometer_compass/tf2_sensor_msgs.h>
+#include <map>
+#include <memory>
 #include <pluginlib/class_loader.hpp>
-// #include <nodelet/nodelet.h>
-// #include <rclcpp/callback_queue.h>
-// #include <rclcpp/names.hpp>
+#include <rclcpp/publisher.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/subscription.hpp>
+#include <rclcpp/utilities.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <string>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 #include <tf2_ros/buffer.h>
-#include <rclcpp/utilities.hpp>
-#include <rclcpp/publisher.hpp>
-#include <rclcpp/subscription.hpp>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
+#include <utility>
 
 using Az = compass_interfaces::msg::Azimuth;
 using Quat = geometry_msgs::msg::QuaternionStamped;
@@ -75,17 +61,6 @@ double det(const std::array<double, 9>& mat)
 {
   return Eigen::Map<const Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(mat.data()).determinant();
 }
-
-/* void azCb(
-  std::map<std::tuple<decltype(Az::unit), decltype(Az::orientation), decltype(Az::reference)>, std::optional<Az>> &az,
-  decltype(Az::unit) unit,
-  decltype(Az::orientation) orientation,
-  decltype(Az::reference) reference,
-  const Az::ConstSharedPtr& msg)
-{
-  az[std::make_tuple(unit, orientation, reference)] = *msg;
-} */
-
 
 std::shared_ptr<magnetometer_compass::MagnetometerCompassNodelet> createNodelet(rclcpp::NodeOptions node_options = rclcpp::NodeOptions())
 {
@@ -117,15 +92,10 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   node->init();
 
   rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(node); //std::make_shared<rclcpp::Node>("test_magnetometer_compass_nodelet");
+  executor.add_node(node);
   ASSERT_NE(nullptr, node);
 
   std::map<std::tuple<decltype(Az::unit), decltype(Az::orientation), decltype(Az::reference)>, std::optional<Az>> az;
-  // auto azCb = [&az](decltype(Az::unit) unit, decltype(Az::orientation) orientation, decltype(Az::reference) reference,
-  //   const Az::ConstSharedPtr& msg)
-  // {
-  //   az[std::make_tuple(unit, orientation, reference)] = *msg;
-  // };
 
   std::optional<Imu> lastImu;
   auto imuCb = [&lastImu](const Imu::ConstSharedPtr& msg)
@@ -186,9 +156,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   auto azUtmNedPoseSub = node->create_subscription<Pose>("compass/utm/ned/pose", 1, poseCb); subs.push_back(azUtmNedPoseSub);
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
-
-  // rclcpp::executors::SingleThreadedExecutor executor;
-  // executor.add_node(node);
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
@@ -344,14 +311,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
       && rclcpp::ok();
     ++i)
   {
-
-    // if (az.find(key) != myMap.end()) {
-    //   std::cout << "Key exists!\n";
-    // } else {
-    //   std::cout << "Key does not exist.\n";
-    // }
-
-
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
@@ -368,7 +327,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   EXPECT_NEAR(0.360320, lastField->magnetic_field.x, 1e-6);
   EXPECT_NEAR(0.153587, lastField->magnetic_field.y, 1e-6);
   EXPECT_NEAR(0.157033, lastField->magnetic_field.z, 1e-6);
-  // OK
 
   const auto radEnuMag = std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC);
   EXPECT_EQ(time, az[radEnuMag]->header.stamp);
@@ -397,8 +355,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   EXPECT_EQ(Az::ORIENTATION_ENU, az[radEnuTrue]->orientation);
   EXPECT_EQ(Az::REFERENCE_GEOGRAPHIC, az[radEnuTrue]->reference);
   
-  // OK
-
   const auto radEnuUtm = std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_UTM);
   EXPECT_EQ(time, az[radEnuUtm]->header.stamp);
   EXPECT_EQ("base_link", az[radEnuUtm]->header.frame_id);
@@ -420,8 +376,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   tf2::fromMsg(lastImu->linear_acceleration, v2);
   EXPECT_NEAR(v1.length(), v2.length(), 1e-6);
   Imu transImu;
-  // FIXED
-
 
   tf->transform(imu, transImu, "base_link");
   EXPECT_NEAR(compass_utils::getRoll(transImu.orientation), compass_utils::getRoll(lastImu->orientation), 1e-4);
@@ -447,8 +401,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   lastQuat.reset();
   lastPose.reset();
   lastField.reset();
-  // time.sec = 1664286802;
-  time.nanosec = 197458028;
+
   time.sec = 1664286802;
   time.nanosec = 197458028;
 
@@ -554,18 +507,11 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   EXPECT_NEAR(0.0, lastPose->pose.covariance[5 * 6 + 5], 1e-6);
 }
 
-
-
-
-
-
-
 TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_utm_azimuth_ned_quat", true);
   node_options.append_parameter_override("publish_mag_unbiased", true);
   node_options.append_parameter_override("low_pass_ratio", 0.0);
@@ -707,7 +653,6 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_utm_azimuth_ned_quat", true);
   node_options.append_parameter_override("subscribe_mag_unbiased", true);
   node_options.append_parameter_override("low_pass_ratio", 0.0);
@@ -834,7 +779,6 @@ TEST(MagnetometerCompassNodelet, ThrowWhenSubPubBias)  // NOLINT
   // The values in this test are extracted from a real-world bag file recording.
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("publish_mag_unbiased", true);
   node_options.append_parameter_override("subscribe_mag_unbiased", true);
   auto node = createNodelet(node_options);

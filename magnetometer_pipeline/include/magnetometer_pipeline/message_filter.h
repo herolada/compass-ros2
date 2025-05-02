@@ -1,5 +1,4 @@
 #pragma once
-
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: Czech Technical University in Prague
 
@@ -9,16 +8,13 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-
-// #include <cras_cpp_common/functional.hpp>
-// #include <cras_cpp_common/log_utils.h>
 #include <magnetometer_pipeline/bias_remover.h>
+#include <memory>
 #include <message_filters/connection.h>
+#include <message_filters/message_event.h>
 #include <message_filters/simple_filter.h>
 #include <message_filters/subscriber.h>
 #include <sensor_msgs/msg/magnetic_field.hpp>
-#include <message_filters/message_event.h>
 
 namespace magnetometer_pipeline
 {
@@ -30,11 +26,11 @@ namespace magnetometer_pipeline
  *
  * Example usage:
  * \code{.cpp}
- * ros::NodeHandle nh;
- * message_filters::Subscriber<sensor_msgs::msg::MagneticField> magInput(nh, "imu/mag", 100);
- * message_filters::Subscriber<sensor_msgs::msg::MagneticField> biasInput(nh, "imu/mag_bias", 10);
- * magnetometer_pipeline::BiasRemoverFilter filter(log, magInput, biasInput);
- * // filter->configFromParams(params);
+ * std::shared_ptr<rclcpp::Node> node = createNodelet();
+ * message_filters::Subscriber<sensor_msgs::msg::MagneticField> magInput = node->create_subscription<sensor_msgs::msg::MagneticField>("imu/mag", 100);
+ * message_filters::Subscriber<sensor_msgs::msg::MagneticField>  biasInput = node->create_subscription<sensor_msgs::msg::MagneticField>("imu/mag_bias", 10);
+ * magnetometer_pipeline::BiasRemoverFilter filter(node->get_logger(), magInput, biasInput);
+ * filter->configFromParams();
  * filter.registerCallback([](const sensor_msgs::msg::MagneticField::ConstSharedPtr& unbiasedMsg) {
  *   ...  // Handle the unbiased data
  * });

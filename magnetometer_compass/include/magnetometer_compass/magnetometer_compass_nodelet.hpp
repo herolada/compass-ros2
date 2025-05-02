@@ -1,5 +1,4 @@
-#ifndef MAGNETOMETER_COMPASS_NODELET_H
-#define MAGNETOMETER_COMPASS_NODELET_H
+#pragma once
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: Czech Technical University in Prague
 
@@ -10,34 +9,31 @@
  */
 
  
- #include <compass_conversions/compass_converter.h>
- #include <compass_conversions/topic_names.h>
- #include <compass_interfaces/msg/azimuth.hpp>
- #include <compass_utils/string_utils.hpp>
- #include <compass_utils/tf2_utils.hpp>
+#include <compass_conversions/compass_converter.h>
+#include <compass_conversions/topic_names.h>
+#include <compass_interfaces/msg/azimuth.hpp>
+#include <compass_utils/string_utils.hpp>
+#include <compass_utils/tf2_utils.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
- #include <magnetometer_compass/tf2_sensor_msgs.h>
- #include <magnetometer_compass/magnetometer_compass.h>
- #include <magnetometer_pipeline/message_filter.h>
- #include <message_filters/subscriber.h>
- #include <message_filters/synchronizer.h>
- #include <message_filters/sync_policies/approximate_time.h>
- // #include <pluginlib/class_list_macros.hpp>
- #include <rclcpp/logger.hpp>
- #include <rclcpp/node.hpp>
- #include <rclcpp/subscription.hpp>
- #include <rclcpp/publisher.hpp>
- // #include <rclcpp/rclcpp.h>
- #include <sensor_msgs/msg/imu.h>
- #include <sensor_msgs/msg/magnetic_field.hpp>
- #include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <magnetometer_compass/magnetometer_compass.h>
+#include <magnetometer_compass/tf2_sensor_msgs.h>
+#include <magnetometer_pipeline/message_filter.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/synchronizer.h>
+#include <rclcpp/logger.hpp>
+#include <rclcpp/node.hpp>
+#include <rclcpp/publisher.hpp>
+#include <rclcpp/subscription.hpp>
+#include <sensor_msgs/msg/imu.h>
+#include <sensor_msgs/msg/magnetic_field.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 
- #include <tf2_ros/buffer.h>
- #include "tf2_ros/transform_listener.h"
-
- namespace magnetometer_compass
- {
+namespace magnetometer_compass
+{
 
 using Az = compass_interfaces::msg::Azimuth;
 using Quat = geometry_msgs::msg::QuaternionStamped;
@@ -299,4 +295,3 @@ protected:
 };
 
 }
-#endif

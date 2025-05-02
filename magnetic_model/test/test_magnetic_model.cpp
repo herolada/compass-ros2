@@ -7,18 +7,16 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-#include <cstdlib>
-#include <memory>
-#include <string>
-#include <optional>
-
 #include <angles/angles.h>
-#include <magnetic_model/magnetic_model.h>
-#include <magnetic_model/magnetic_model_manager.h>
 #include <compass_utils/string_utils.hpp>
 #include <compass_utils/time_utils.hpp>
+#include <cstdlib>
+#include <gtest/gtest.h>
+#include <magnetic_model/magnetic_model.h>
+#include <magnetic_model/magnetic_model_manager.h>
+#include <memory>
+#include <optional>
+#include <string>
 
 TEST(MagneticModel, Construct)  // NOLINT
 {

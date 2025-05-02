@@ -10,29 +10,21 @@
  */
 
 #include "tl/expected.hpp"
-#include <memory>
-#include <string>
-#include <utility>
-#include <optional>
-
 #include <compass_interfaces/msg/azimuth.hpp>
-// #include "tl/expected.hpp"
-// #include <cras_cpp_common/log_utils.h>
-// #include <optional>
-// #include <cras_cpp_common/param_utils/bound_param_helper.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <memory>
 #include <message_filters/message_event.h>
-
-//#include <ros/message_event.h>
+#include <optional>
+#include <rclcpp/generic_subscription.hpp>
+#include <rclcpp/serialized_message.hpp>
 #include <rclcpp/time.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <std_msgs/msg/header.hpp>
-// #include <rclcpp/generic_subscription.hpp>
-#include <rclcpp/generic_subscription.hpp>
-#include <rclcpp/serialized_message.hpp>
+#include <string>
+#include <utility>
 
 namespace compass_conversions
 {
@@ -366,8 +358,6 @@ protected:
   //! \brief PIMPL data
   std::unique_ptr<CompassConverterPrivate> data;
   const rclcpp::Node* node;
-  // const rclcpp::Logger& log;
-  // const rclcpp::Clock& clock;
 };
 
 }

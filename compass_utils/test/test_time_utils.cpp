@@ -6,7 +6,7 @@
  * SPDX-FileCopyrightText: Czech Technical University in Prague
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <limits>
 #include <memory>

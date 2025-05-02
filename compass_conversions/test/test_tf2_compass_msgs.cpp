@@ -7,19 +7,15 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-#include <cmath>
-#include <memory>
-#include <string>
-#include <list>
-
 #include <angles/angles.h>
+#include <cmath>
 #include <compass_conversions/tf2_compass_msgs.h>
 #include <compass_utils/time_utils.hpp>
-// #include <cras_cpp_common/log_utils/memory.h>
-// #include <cras_cpp_common/string_utils/ros.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <gtest/gtest.h>
+#include <list>
+#include <memory>
+#include <string>
 #include <tf2/convert.h>
 
 using Az = compass_interfaces::msg::Azimuth;

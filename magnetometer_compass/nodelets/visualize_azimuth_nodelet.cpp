@@ -7,29 +7,26 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-#include <string>
-#include <optional>
-#include <rclcpp/logger.hpp>
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp/node.hpp>
-#include <rclcpp/publisher.hpp>
-#include <rclcpp/subscription.hpp>
-
 #include <compass_conversions/compass_converter.h>
 #include <compass_conversions/message_filter.h>
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_utils/rate_limiter.h>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.h>
-#include <message_filters/subscriber.h>
 #include <magnetometer_compass/visualize_azimuth_nodelet.hpp>
-// #include <pluginlib/class_list_macros.hpp>
-//#include <ros/ros.h>
-#include <std_msgs/msg/int32.hpp>
+#include <memory>
+#include <message_filters/subscriber.h>
+#include <optional>
+#include <rclcpp/logger.hpp>
+#include <rclcpp/node.hpp>
+#include <rclcpp/publisher.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/subscription.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.h>
+#include <std_msgs/msg/int32.hpp>
+#include <string>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include "rclcpp_components/register_node_macro.hpp"
 
 namespace magnetometer_compass
 {
@@ -95,11 +92,7 @@ VisualizeAzimuthNodelet::VisualizeAzimuthNodelet(const rclcpp::NodeOptions & opt
 VisualizeAzimuthNodelet::~VisualizeAzimuthNodelet() = default;
 
 void VisualizeAzimuthNodelet::init()
-{
-  //auto nh = this->get_node_base_interface();
-  //auto node = std::make_shared<rclcpp::Node>("handle_for_message_filter");
-  
-
+{  
   this->declare_parameter<double>("max_rate", -1.);
   // CompassConverter params:
   this->declare_parameter<double>("magnetic_declination", -9999.);
@@ -125,8 +118,6 @@ void VisualizeAzimuthNodelet::init()
   this->converter = std::make_shared<compass_conversions::CompassConverter>(this, true);
   this->converter->configFromParams();
 
-  // rclcpp::Node::SharedPtr visNh = this->create_sub_node("visualize_azimuth");
-
   // publisher
   this->visPub = this->create_publisher<Pose>("visualize_azimuth/azimuth_vis", 10);
 
@@ -148,46 +139,8 @@ void VisualizeAzimuthNodelet::init()
   
 }
 
-/* void VisualizeAzimuthNodelet::onInit()
-{  
-  cras::Nodelet::onInit();
-
-  auto nh = this->getNodeHandle();
-  auto pnh = this->getPrivateNodeHandle();
-
-  const auto params = this->privateParams();
-
-  // set rateLimiter
-   if (params->hasParam("max_rate"))
-    this->rateLimiter = std::make_unique<compass_utils::TokenBucketLimiter>(
-      params->getParam<rclcpp::Rate>("max_rate", std::nullopt));
-
-  // set compass converter
-  this->converter = std::make_shared<compass_conversions::CompassConverter>(this->getLogger(), true);
-  this->converter->configFromParams(*params);
-
-  // publisher
-  this->visPub = pnh.advertise<Pose>("azimuth_vis", 10);
-
-  // subscribe azimuth, gps fix, utm_zone
-  this->azSub = std::make_unique<compass_conversions::UniversalAzimuthSubscriber>(this->get_logger(), pnh, "azimuth", 100);
-  this->azSub->configFromParams(*params);
-  this->fixSub = std::make_unique<message_filters::Subscriber<Fix>>(nh, "gps/fix", 10);
-  this->zoneSub = std::make_unique<message_filters::Subscriber<Zone>>(nh, "utm_zone", 10);
-
-  // set compass filter
-  this->filter = std::make_unique<compass_conversions::CompassFilter>(
-      this->get_logger(), this->converter, *this->azSub, *this->fixSub, *this->zoneSub,
-      Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_UTM);
-  this->filter->registerCallback(&VisualizeAzimuthNodelet::azimuthCb, this);
-
-  RCLCPP_INFO(this->get_logger(), "Visualizing azimuth messages from [%s] on topic [%s]",
-    this->azSub->getTopic().c_str(), this->visPub.getTopic().c_str());
-} */
-
 void VisualizeAzimuthNodelet::azimuthCb(const Az& azimuthEast)
 {
-  // RCLCPP_WARN(this->get_logger(), "\n", azimuthEast.header.stamp.get_clock_type())
   if (this->rateLimiter != nullptr && !this->rateLimiter->shouldPublish(azimuthEast.header.stamp))
     return;
 

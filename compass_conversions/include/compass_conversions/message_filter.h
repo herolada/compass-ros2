@@ -9,32 +9,22 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-#include <string>
-
 #include <compass_conversions/compass_converter.h>
 #include <compass_interfaces/msg/azimuth.hpp>
-// #include <cras_cpp_common/functional.hpp>
-// #include <cras_cpp_common/log_utils.h>
-// #include <cras_cpp_common/param_utils/bound_param_helper.hpp>
-#include <optional>
+#include <memory>
 #include <message_filters/connection.h>
+#include <message_filters/message_event.h>
 #include <message_filters/simple_filter.h>
 #include <message_filters/subscriber.h>
-// #include <ros/callback_queue_interface.h>
-// #include <ros/message_event.h>
-// #include <ros/node_handle.h>
-// #include <ros/subscribe_options.h>
-// #include <ros/subscriber.h>
-// #include <ros/transport_hints.h>
+#include <optional>
+#include <rclcpp/clock.hpp>
+#include <rclcpp/generic_subscription.hpp>
+#include <rclcpp/serialized_message.hpp>
+#include <rclcpp/subscription.hpp>
+#include <rclcpp/subscription_options.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <std_msgs/msg/int32.hpp>
-#include <rclcpp/generic_subscription.hpp>
-#include <rclcpp/subscription_options.hpp>
-#include <rclcpp/subscription.hpp>
-#include <rclcpp/clock.hpp>
-#include <rclcpp/serialized_message.hpp>
-#include <message_filters/message_event.h>
+#include <string>
 
 namespace compass_conversions
 {
@@ -351,11 +341,7 @@ protected:
 
   //! The target azimuth reference (unchanged if empty).
   std::optional<decltype(compass_interfaces::msg::Azimuth::reference)> reference;
-  // const rclcpp::Logger& log;
-  // const rclcpp::Clock& clock;
   const rclcpp::Node* node;
-  //const std::string& topic {std::string()};
-  //const uint32_t queueSize {10};
 };
 
 }

@@ -250,37 +250,15 @@ class MagBiasObserver(Node):
                 self.get_logger().error("Could not store magnetometer calibration to file {}. Cannot create the file.".format(
                     self.calibration_file))
 
-""" def spin_in_background():
-    executor = rclpy.get_global_executor()
-    try:
-        executor.spin()
-    except ExternalShutdownException:
-        pass """
-
 def main(args=None):
     rclpy.init(args=args)
-    # In rclpy callbacks are always called in background threads.
-    # Spin the executor in another thread for similar behavior in ROS 2.
-    # t = threading.Thread(target=spin_in_background)
-    # t.start()
-
+  
     try:
         rclpy.spin(MagBiasObserver())
     except (ExternalShutdownException, KeyboardInterrupt):
         pass
     finally:
         rclpy.try_shutdown()
-
-    # mag_bias_observer_node = MagBiasObserver()
-    # rclpy.get_global_executor().add_node(mag_bias_observer_node)
-    # mag_bias_observer_node.run()
-
-    # # mag_bias_observer_node.run()
-    # t.join()
-    
-    # mag_bias_observer_node.destroy_node()
-    # rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()

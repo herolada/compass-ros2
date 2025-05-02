@@ -9,18 +9,16 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-#include <string>
-
-#include <tl/expected.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
+#include <memory>
 #include <rclcpp/time.hpp>
 #include <rclcpp/clock.hpp>
 #include <rclcpp/logger.hpp>
 #include "rclcpp/node.hpp"
-
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <string>
+#include <tl/expected.hpp>
 
 namespace magnetic_model
 {

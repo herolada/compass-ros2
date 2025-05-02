@@ -7,24 +7,17 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-#include <memory>
-#include <string>
-#include <optional>
-
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_utils/time_utils.hpp>
-//#include <cras_cpp_common/log_utils/memory.h>
-//#include <cras_cpp_common/log_utils/node.h>
-//#include <cras_cpp_common/param_utils/param_helper.hpp>
-//#include <cras_cpp_common/string_utils/ros.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <gtest/gtest.h>
 #include <magnetometer_compass/visualize_azimuth_nodelet.hpp>
-//#include <ros/ros.h>
-#include <sensor_msgs/msg/nav_sat_fix.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <memory>
+#include <optional>
 #include <rclcpp/utilities.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <string>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 using Az = compass_interfaces::msg::Azimuth;
 using Quat = geometry_msgs::msg::QuaternionStamped;
@@ -36,7 +29,6 @@ std::shared_ptr<magnetometer_compass::VisualizeAzimuthNodelet> createNodelet(rcl
   auto nodelet = std::make_shared<magnetometer_compass::VisualizeAzimuthNodelet>(node_options);
   return nodelet;
 }
-
 
 TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 {

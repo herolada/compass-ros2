@@ -7,7 +7,7 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <string>
 

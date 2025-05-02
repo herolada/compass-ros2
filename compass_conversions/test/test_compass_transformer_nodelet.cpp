@@ -7,38 +7,26 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-#include <cmath>
-#include <memory>
-#include <string>
-#include <chrono>
-#include <builtin_interfaces/msg/time.hpp>
-
 #include <angles/angles.h>
-#include <compass_interfaces/msg/azimuth.hpp>
+#include <builtin_interfaces/msg/time.hpp>
+#include <chrono>
+#include <cmath>
 #include <compass_conversions/compass_transformer.h>
-#include <compass_utils/time_utils.hpp>
+#include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_utils/tf2_utils.hpp>
-// #include <cras_cpp_common/log_utils/memory.h>
-// #include <cras_cpp_common/log_utils/node.h>
-// #include <cras_cpp_common/nodelet_utils.hpp>
-// #include <cras_cpp_common/tf2_utils.hpp>
-// #include <cras_cpp_common/param_utils/param_helper.hpp>
-// #include <cras_cpp_common/string_utils/ros.hpp>
+#include <compass_utils/time_utils.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
-// #include <nodelet/nodelet.h>
-// #include <ros/callback_queue.h>
-// #include <ros/names.h>
-// #include <ros/ros.h>
+#include <gtest/gtest.h>
+#include <memory>
+#include <rclcpp/utilities.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <string>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/create_timer_ros.h>
-#include <rclcpp/utilities.hpp>
 
 namespace ros
 {
@@ -52,56 +40,6 @@ using Az = compass_interfaces::msg::Azimuth;
 
 std::vector< std::string > my_argv;
 
-// template<typename NodeletType = compass_utils::Nodelet>
-// std::unique_ptr<NodeletType> createNodelet(const rclcpp::Logger& log,
-//   const rclcpp::std::map< std::string, std::string >& remaps = {},
-//   const std::shared_ptr<tf2_ros::Buffer>& tf = nullptr)
-// {
-//   // Declaration order of these variables is important to make sure they can be properly stopped and destroyed.
-//   auto nodelet = class_loader::impl::createInstance<nodelet::Nodelet>(
-//     "compass_conversions::CompassTransformerNodelet", nullptr);
-//   if (nodelet == nullptr)
-//     return nullptr;
-
-//   {
-//     const auto paramHelper = dynamic_cast<compass_utils::ParamHelper*>(nodelet);
-//     if (paramHelper != nullptr)
-//       paramHelper->setLogger(log);
-//   }
-
-//   const auto targetNodelet = dynamic_cast<NodeletType*>(nodelet);
-//   if (targetNodelet == nullptr)
-//   {
-//     delete nodelet;
-//     return nullptr;
-//   }
-
-//   if (tf != nullptr)
-//     targetNodelet->setBuffer(tf);
-
-//   nodelet->init(rclcpp::this_node::getName(), remaps, my_argv, nullptr, nullptr);
-
-//   return std::unique_ptr<NodeletType>(targetNodelet);
-// }
-
-/* builtin_interfaces::msg::Time get_current_ros_time()
-{
-    using namespace std::chrono;
-
-    // Get current time since epoch in nanoseconds
-    auto now = system_clock::now();
-    auto duration = now.time_since_epoch();
-    auto sec = duration_cast<seconds>(duration);
-    auto nanosec = duration_cast<nanoseconds>(duration - sec);
-
-    // Fill builtin_interfaces::msg::Time
-    builtin_interfaces::msg::Time ros_time;
-    ros_time.sec = static_cast<int32_t>(sec.count());
-    ros_time.nanosec = static_cast<uint32_t>(nanosec.count());
-
-    return ros_time;
-} */
-
 
 std::shared_ptr<compass_conversions::CompassTransformerNodelet> createNodelet(rclcpp::NodeOptions node_options = rclcpp::NodeOptions())
 {
@@ -109,32 +47,6 @@ std::shared_ptr<compass_conversions::CompassTransformerNodelet> createNodelet(rc
   return nodelet;
 }
 
-/* TEST(CompassTransformerNodelet, JustFix)  // NOLINT
-{
-  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node >("test_node");
-
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(node);
-
-  auto fixPub = node->create_publisher<sensor_msgs::msg::NavSatFix>("fix", 1);
-
-  const auto time = compass_utils::parseTime("2024-11-18T13:00:00Z");
-
-  sensor_msgs::msg::NavSatFix fix;
-  fix.header.stamp = time;
-  fix.header.frame_id = "test";
-  fix.latitude = 51.0;
-  fix.longitude = 15.0;
-  fix.altitude = 200.0;
-  fixPub->publish(fix);
-
-  for (size_t i = 0; i < 100; ++i)
-  {
-    printf("BB\n");
-    executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
-  }
-} */
 
 TEST(CompassTransformerNodelet, BasicConversion)  // NOLINT
 {
@@ -143,7 +55,6 @@ TEST(CompassTransformerNodelet, BasicConversion)  // NOLINT
   // rclcpp::Node::SharedPtr test_node = std::make_shared<rclcpp::Node>("test_node");
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -152,16 +63,6 @@ TEST(CompassTransformerNodelet, BasicConversion)  // NOLINT
 
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(node);
-
-  // node->declare_parameter("target_unit", "rad");
-  // rclcpp::Parameter parameter1("target_unit", "rad");
-  // node->set_parameter(parameter1);
-  // node->declare_parameter("target_orientation", "enu");
-  // rclcpp::Parameter parameter2("target_orientation", "enu");
-  // node->set_parameter(parameter2);
-  // node->declare_parameter("target_reference", "magnetic");
-  // rclcpp::Parameter parameter3("target_reference", "magnetic");
-  // node->set_parameter(parameter3);
 
   std::optional<Az> lastAz;
   auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
@@ -215,7 +116,7 @@ TEST(CompassTransformerNodelet, TfConversion)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "deg");
   node_options.append_parameter_override("target_orientation", "ned");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -297,7 +198,7 @@ TEST(CompassTransformerNodelet, TfConversionFail)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "deg");
   node_options.append_parameter_override("target_orientation", "ned");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -312,9 +213,6 @@ TEST(CompassTransformerNodelet, TfConversionFail)  // NOLINT
   tf2::Quaternion q;
   q.setRPY(0, 0, M_PI_2);
   tf2::convert(q, tf.transform.rotation);
-
-  // printf("node clk sec %u", node->get_clock()->now().seconds());
-  // printf("node clk nanosec %u", node->get_clock()->now().nanoseconds());
 
   auto tfBuffer = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
@@ -353,8 +251,6 @@ TEST(CompassTransformerNodelet, TfConversionFail)  // NOLINT
 
   Az in;
   in.header.stamp = node->now();
-  // printf("node now sec %u", in.header.stamp.sec);
-  // printf("node now nanosec %u", in.header.stamp.nanosec);
   in.header.frame_id = "test";
   in.azimuth = 90.0;
   in.variance = 4.0;
@@ -375,7 +271,7 @@ TEST(CompassTransformerNodelet, TfConversionFail)  // NOLINT
 TEST(CompassTransformerNodelet, FixMissing)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_reference", "utm");
 
   auto node = createNodelet(node_options);
@@ -429,7 +325,7 @@ TEST(CompassTransformerNodelet, FixFromParams)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_reference", "geographic");
   node_options.append_parameter_override("initial_lat", 51.0);
   node_options.append_parameter_override("initial_lon", 15.0);
@@ -494,7 +390,7 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_reference", "geographic");
 
   auto node = createNodelet(node_options);
@@ -577,7 +473,7 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -652,7 +548,7 @@ TEST(CompassTransformerNodelet, SubImuNoDetect)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -717,7 +613,7 @@ TEST(CompassTransformerNodelet, SubImuNoDetect)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -787,7 +683,7 @@ TEST(CompassTransformerNodelet, SubImuNoDetect)  // NOLINT
 TEST(CompassTransformerNodelet, SubPoseNoDetect)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -851,7 +747,7 @@ TEST(CompassTransformerNodelet, SubPoseNoDetect)  // NOLINT
 /* TEST(CompassTransformerNodelet, SubQuatNameDetect)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -921,7 +817,7 @@ TEST(CompassTransformerNodelet, SubPoseNoDetect)  // NOLINT
 TEST(CompassTransformerNodelet, SubQuatNoDetect)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -946,10 +842,6 @@ TEST(CompassTransformerNodelet, SubQuatNoDetect)  // NOLINT
   auto azimuthPub = node->create_publisher<geometry_msgs::msg::QuaternionStamped>("azimuth_in/quat", 1);
   auto azimuthSub = node->create_subscription<Az>("azimuth_out", 1, cb);
 
-  // const auto log = std::make_shared<rclcpp::Logger>();
-  
-
-  // auto nodelet = createNodelet(log);
   ASSERT_NE(nullptr, node);
 
   for (size_t i = 0; i < 1000 && (azimuthPub->get_subscription_count() == 0 || azimuthSub->get_publisher_count() == 0); ++i)
@@ -990,7 +882,7 @@ TEST(CompassTransformerNodelet, SubQuatNoDetect)  // NOLINT
 TEST(CompassTransformerNodelet, PubImu)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -1012,10 +904,6 @@ TEST(CompassTransformerNodelet, PubImu)  // NOLINT
   auto azimuthPub = node->create_publisher<Az>("azimuth_in", 1);
   auto azimuthSub = node->create_subscription<sensor_msgs::msg::Imu>("azimuth_out", 1, cb);
 
-  // const auto log = std::make_shared<rclcpp::Logger>();
-  
-
-  // auto nodelet = createNodelet(log);
   ASSERT_NE(nullptr, node);
 
   for (size_t i = 0; i < 1000 && (azimuthPub->get_subscription_count() == 0 || azimuthSub->get_publisher_count() == 0); ++i)
@@ -1056,7 +944,7 @@ TEST(CompassTransformerNodelet, PubImuSuffix)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -1119,7 +1007,7 @@ TEST(CompassTransformerNodelet, PubPose)  // NOLINT
 {
 
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -1141,10 +1029,6 @@ TEST(CompassTransformerNodelet, PubPose)  // NOLINT
   auto azimuthPub = node->create_publisher<Az>("azimuth_in", 1);
   auto azimuthSub = node->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>("azimuth_out", 1, cb);
 
-  // const auto log = std::make_shared<rclcpp::Logger>();
-  
-
-  // auto nodelet = createNodelet(log);
   ASSERT_NE(nullptr, node);
 
   for (size_t i = 0; i < 1000 && (azimuthPub->get_subscription_count() == 0 || azimuthSub->get_publisher_count() == 0); ++i)
@@ -1184,7 +1068,7 @@ TEST(CompassTransformerNodelet, PubPose)  // NOLINT
 TEST(CompassTransformerNodelet, PubPoseSuffix)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -1246,7 +1130,7 @@ TEST(CompassTransformerNodelet, PubPoseSuffix)  // NOLINT
 TEST(CompassTransformerNodelet, PubQuat)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -1306,7 +1190,7 @@ TEST(CompassTransformerNodelet, PubQuat)  // NOLINT
 TEST(CompassTransformerNodelet, PubQuatSuffix)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");
@@ -1367,7 +1251,7 @@ TEST(CompassTransformerNodelet, PubQuatSuffix)  // NOLINT
 TEST(CompassTransformerNodelet, CrossType)  // NOLINT
 {
   rclcpp::NodeOptions node_options;
-  // node_options.automatically_declare_parameters_from_overrides(true);
+  
   node_options.append_parameter_override("target_unit", "rad");
   node_options.append_parameter_override("target_orientation", "enu");
   node_options.append_parameter_override("target_reference", "magnetic");

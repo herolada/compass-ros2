@@ -7,19 +7,16 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <string>
-#include <tuple>
-#include <map>
-
-// #include <boost/shared_ptr.hpp>
-
 #include <compass_conversions/topic_names.h>
 #include <compass_interfaces/msg/azimuth.hpp>
-#include <optional>
 #include <compass_utils/string_utils.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
+#include <map>
+#include <optional>
 #include <sensor_msgs/msg/imu.hpp>
+#include <string>
+#include <tuple>
 
 using Az = compass_interfaces::msg::Azimuth;
 

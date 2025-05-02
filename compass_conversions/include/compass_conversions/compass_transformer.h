@@ -1,28 +1,33 @@
-#ifndef COMPASS_CONVERSIONS__COMPASS_TRANSFORMER_NODELET_HPP_
-#define COMPASS_CONVERSIONS__COMPASS_TRANSFORMER_NODELET_HPP_
+#pragma once
 
-#include <memory>
-#include <optional>
-#include <string>
+// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-FileCopyrightText: Czech Technical University in Prague
 
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp/generic_publisher.hpp>
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
-#include <geometry_msgs/msg/quaternion_stamped.hpp>
-#include <sensor_msgs/msg/imu.hpp>
-#include <sensor_msgs/msg/nav_sat_fix.hpp>
-#include <std_msgs/msg/int32.hpp>
-#include <tf2_ros/message_filter.h>
-#include <tf2_ros/buffer.h>
-#include "tf2_ros/transform_listener.h"
-#include <message_filters/subscriber.h>
+/**
+ * \file
+ * \brief Support for transforming compass_interfaces::msg::Azimuth messages.
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
+ */
 
 #include <compass_conversions/compass_converter.h>
 #include <compass_conversions/message_filter.h>
 #include <compass_conversions/tf2_compass_msgs.h>
 #include <compass_conversions/topic_names.h>
-#include <compass_utils/string_utils.hpp>
 #include <compass_interfaces/msg/azimuth.hpp>
+#include <compass_utils/string_utils.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <geometry_msgs/msg/quaternion_stamped.hpp>
+#include <memory>
+#include <message_filters/subscriber.h>
+#include <optional>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <std_msgs/msg/int32.hpp>
+#include <string>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/message_filter.h>
+#include <tf2_ros/transform_listener.h>
 
 namespace compass_conversions
 {
@@ -74,5 +79,3 @@ protected:
 };
 
 }  // namespace compass_conversions
-
-#endif  // COMPASS_CONVERSIONS__COMPASS_TRANSFORMER_NODELET_HPP_

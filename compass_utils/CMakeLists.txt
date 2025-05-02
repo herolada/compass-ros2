@@ -32,15 +32,10 @@ ament_target_dependencies(${PROJECT_NAME}
     rclcpp
     tf2
     tf2_geometry_msgs
+    tl-expected
     )
 
 target_link_libraries(${PROJECT_NAME} tl::expected)
-
-# builds without this
-# include_directories(
-#   include
-#   ../third_party/expected/include
-# )
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC
@@ -49,10 +44,18 @@ target_include_directories(${PROJECT_NAME}
 
 # hpp includes
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies( 
+# ament_export_dependencies( 
+#     compass_interfaces
+#     rclcpp
+#     tf2
+#     )
+ament_export_dependencies(
     compass_interfaces
+    geometry_msgs
     rclcpp
     tf2
+    tf2_geometry_msgs
+    tl-expected
     )
 
 install(

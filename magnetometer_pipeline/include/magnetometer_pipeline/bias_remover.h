@@ -8,15 +8,12 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-#include <string>
 #include "tl/expected.hpp"
+#include <memory>
 #include <rclcpp/logger.hpp>
-#include "rclcpp/rclcpp.hpp"
-// #include <cras_cpp_common/expected.hpp>
-// #include <cras_cpp_common/log_utils.h>
-// #include <cras_cpp_common/param_utils/bound_param_helper.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
+#include <string>
 
 namespace magnetometer_pipeline
 {

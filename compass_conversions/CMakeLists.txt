@@ -20,8 +20,8 @@ find_package(std_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(topic_tools REQUIRED)
 find_package(tl-expected REQUIRED)
+find_package(topic_tools REQUIRED)
 
 # Ubuntu libgeographic-dev package installs into non-standard location
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};/usr/share/cmake/geographiclib")
@@ -36,6 +36,7 @@ ament_target_dependencies(compass_topic_names
   compass_utils
   geometry_msgs
   sensor_msgs
+  tl-expected
 )
 target_link_libraries(compass_topic_names tl::expected)
 
@@ -70,6 +71,7 @@ ament_target_dependencies(compass_converter
   std_msgs
   tf2
   tf2_geometry_msgs
+  tl-expected
 )
 target_link_libraries(compass_converter compass_topic_names tl::expected)
 
@@ -79,15 +81,29 @@ target_include_directories(compass_converter
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_compass_converter HAS_LIBRARY_TARGET)
+# ament_export_dependencies( 
+#   compass_utils
+#   magnetic_model
+#   angles
+#   compass_interfaces
+#   std_msgs
+#   rclcpp
+#   geometry_msgs
+#   sensor_msgs
+#   tl-expected
+# )
 ament_export_dependencies( 
-  compass_utils
-  magnetic_model
   angles
   compass_interfaces
-  std_msgs
-  rclcpp
+  compass_utils
   geometry_msgs
+  magnetic_model
+  message_filters
+  rclcpp
   sensor_msgs
+  std_msgs
+  tf2
+  tf2_geometry_msgs
   tl-expected
 )
 
@@ -103,6 +119,7 @@ ament_target_dependencies(compass_message_filter
   rclcpp
   sensor_msgs
   std_msgs
+  tl-expected
 )
 target_link_libraries(compass_message_filter compass_converter tl::expected)
 
@@ -112,13 +129,23 @@ target_include_directories(compass_message_filter
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_compass_message_filter HAS_LIBRARY_TARGET)
+# ament_export_dependencies( 
+#   compass_interfaces
+#   compass_utils
+#   message_filters
+#   rclcpp
+#   sensor_msgs
+#   std_msgs
+#   tl-expected
+# )
 ament_export_dependencies( 
+  angles
   compass_interfaces
   compass_utils
   message_filters
-  std_msgs
-  sensor_msgs
   rclcpp
+  sensor_msgs
+  std_msgs
   tl-expected
 )
 
@@ -133,6 +160,7 @@ ament_target_dependencies(tf2_compass_msgs
   geometry_msgs
   rclcpp
   tf2
+  tl-expected
 )
 target_link_libraries(tf2_compass_msgs tl::expected)
 
@@ -142,20 +170,29 @@ target_include_directories(tf2_compass_msgs
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_tf2_compass_msgs HAS_LIBRARY_TARGET)
+# ament_export_dependencies( 
+#   compass_interfaces
+#   compass_utils
+#   rclcpp
+#   geometry_msgs
+#   tf2
+#   tl-expected
+# )
 ament_export_dependencies( 
-  compass_interfaces
+  angles
   compass_utils
-  rclcpp
+  compass_interfaces
   geometry_msgs
+  rclcpp
   tf2
   tl-expected
 )
 
 # LIBRARY 5
-add_library(compass_transformer_nodelet SHARED
+add_library(compass_transformer_nodelet_lib SHARED
   nodelets/compass_transformer.cpp
 )
-ament_target_dependencies(compass_transformer_nodelet
+ament_target_dependencies(compass_transformer_nodelet_lib
   angles
   compass_interfaces
   compass_utils
@@ -168,17 +205,28 @@ ament_target_dependencies(compass_transformer_nodelet
   tf2
   tf2_ros
 )
-target_link_libraries(compass_transformer_nodelet compass_topic_names compass_converter compass_message_filter tf2_compass_msgs tl::expected)
+target_link_libraries(compass_transformer_nodelet_lib compass_topic_names compass_converter compass_message_filter tf2_compass_msgs tl::expected)
 
-target_include_directories(compass_transformer_nodelet
+target_include_directories(compass_transformer_nodelet_lib
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_export_targets(export_compass_transformer_nodelet HAS_LIBRARY_TARGET)
+ament_export_targets(export_compass_transformer_nodelet_lib HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
+  angles
+  compass_interfaces
+  compass_utils
+  geometry_msgs
+  message_filters
+  rclcpp
+  rclcpp_components
+  sensor_msgs
+  std_msgs
+  tf2
+  tf2_ros
 )
-rclcpp_components_register_nodes(compass_transformer_nodelet "compass_conversions::CompassTransformerNodelet")
+rclcpp_components_register_nodes(compass_transformer_nodelet_lib "compass_conversions::CompassTransformerNodelet")
 #https://github.com/ros2/demos/blob/jazzy/composition/CMakeLists.txt
 #set(node_plugins "${node_plugins}compass_conversions::CompassTransformerNodelet;$<TARGET_FILE:compass_transformer_nodelet>\n")
 
@@ -221,9 +269,9 @@ install(TARGETS
   RUNTIME DESTINATION bin)
 
   install(TARGETS
-  compass_transformer_nodelet
+  compass_transformer_nodelet_lib
   EXPORT
-  export_compass_transformer_nodelet
+  export_compass_transformer_nodelet_lib
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
@@ -236,9 +284,9 @@ install(TARGETS
 # While we cant use blocks https://cmake.org/cmake/help/latest/command/block.html#command:block
 # we use set--unset
 
-add_executable(compass_transformer_nodelet_node nodelets/compass_transformer.cpp)
+add_executable(compass_transformer_nodelet nodelets/compass_transformer.cpp)
 
-ament_target_dependencies(compass_transformer_nodelet_node
+ament_target_dependencies(compass_transformer_nodelet
   angles
   compass_interfaces
   compass_utils
@@ -253,26 +301,20 @@ ament_target_dependencies(compass_transformer_nodelet_node
   tf2_ros
   topic_tools
 )
-target_link_libraries(compass_transformer_nodelet_node compass_transformer_nodelet)
+target_link_libraries(compass_transformer_nodelet compass_transformer_nodelet_lib compass_topic_names compass_converter compass_message_filter tf2_compass_msgs)
 
-target_include_directories(compass_transformer_nodelet_node PUBLIC
+target_include_directories(compass_transformer_nodelet PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
-target_compile_features(compass_transformer_nodelet_node PUBLIC c_std_99 cxx_std_23)
+target_compile_features(compass_transformer_nodelet PUBLIC c_std_99 cxx_std_23)
 
-install(TARGETS compass_transformer_nodelet_node
+install(TARGETS compass_transformer_nodelet
     DESTINATION lib/${PROJECT_NAME})
 
 # ^^^^^^^^^^^^^^^^^^^^^^ #
 # CPP Binary Block [END] #
 ##########################
-
-# include_directories(
-#   include
-#   ${catkin_INCLUDE_DIRS}
-#   ${GeographicLib_INCLUDE_DIRS}
-# )
 
 install(FILES nodelets.xml
 DESTINATION share/${PROJECT_NAME}
@@ -292,7 +334,7 @@ if(BUILD_TESTING)
 
     ament_add_gtest(test_compass_transformer_nodelet test/test_compass_transformer_nodelet.cpp)
     target_link_libraries(test_compass_transformer_nodelet
-      compass_transformer_nodelet 
+      compass_transformer_nodelet_lib
       compass_converter
       compass_message_filter
       compass_topic_names 
@@ -302,8 +344,6 @@ if(BUILD_TESTING)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     )
-
-    set_tests_properties(test_compass_transformer_nodelet PROPERTIES ENVIRONMENT "GTEST_CAPTURE=0")
 
     ament_add_gtest(test_compass_message_filter test/test_message_filter.cpp)
     target_link_libraries(test_compass_message_filter
@@ -330,54 +370,6 @@ if(BUILD_TESTING)
         $<INSTALL_INTERFACE:include>
     )
 endif()
-
-
-
-
-
-# if(CATKIN_ENABLE_TESTING)
-#   find_package(roslint REQUIRED)
-#   find_package(rostest REQUIRED)
-
-#   roslint_custom(catkin_lint "-W2" .)
-
-#   # Roslint C++ - checks formatting and some other rules for C++ files
-
-#   file(GLOB_RECURSE ROSLINT_INCLUDE include/*.h)
-#   file(GLOB_RECURSE ROSLINT_SRC src/*.cpp nodelets/*.cpp)
-#   file(GLOB_RECURSE ROSLINT_TEST test/*.cpp)
-
-#   set(ROSLINT_CPP_OPTS "--extensions=h,hpp,hh,c,cpp,cc;--linelength=120;--filter=\
-#     -build/header_guard,-build/include,-readability/namespace,-whitespace/braces,-runtime/references,\
-#     -build/c++11,-readability/nolint,-readability/todo,-legal/copyright")
-#   roslint_cpp(${ROSLINT_INCLUDE} ${ROSLINT_SRC} ${ROSLINT_TEST})
-
-#   roslint_add_test()
-
-#   catkin_add_gtest(test_compass_converter test/test_compass_converter.cpp)
-#   target_link_libraries(test_compass_converter compass_converter)
-
-#   catkin_add_gtest(test_message_filter test/test_message_filter.cpp)
-#   target_link_libraries(test_message_filter compass_message_filter)
-
-#   catkin_add_gtest(test_tf2_compass_msgs test/test_tf2_compass_msgs.cpp)
-#   target_link_libraries(test_tf2_compass_msgs tf2_compass_msgs)
-
-#   catkin_add_gtest(test_compass_topic_names test/test_topic_names.cpp)
-#   target_link_libraries(test_compass_topic_names compass_topic_names)
-
-#   add_rostest_gtest(test_compass_transformer_nodelet test/test_compass_transformer_nodelet.test test/test_compass_transformer_nodelet.cpp)
-#   target_link_libraries(test_compass_transformer_nodelet ${catkin_LIBRARIES} compass_transformer_nodelet)
-#   if(CMAKE_VERSION VERSION_LESS "3.13.0")
-#     set_property(TARGET test_compass_transformer_nodelet APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--no-as-needed")
-#   else()
-#     #catkin_lint: ignore_once cmake_old
-#     target_link_options(test_compass_transformer_nodelet PUBLIC "LINKER:--no-as-needed")
-#   endif()
-# endif()
-
-# ## Add folders to be run by python nosetests
-# # catkin_add_nosetests(test)
 
 install(DIRECTORY
   launch

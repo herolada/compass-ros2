@@ -7,30 +7,22 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-#include <string>
 #include "tl/expected.hpp"
-#include <optional>
 #include <Eigen/Core>
-#include <rclcpp/duration.hpp>
-#include <map>
-
 #include <angles/angles.h>
 #include <compass_interfaces/msg/azimuth.hpp>
-//#include <cras_cpp_common/expected.hpp>
-//#include <cras_cpp_common/optional.hpp>
-// #include <cras_cpp_common/param_utils.hpp>
-// #include <cras_cpp_common/tf2_utils.hpp>
-// #include <cras_cpp_common/tf2_utils/interruptible_buffer.h>
-#include <compass_utils/tf2_utils.hpp>
 #include <compass_utils/string_utils.hpp>
-// #include <imu_transformer/tf2_sensor_msgs.h>
+#include <compass_utils/tf2_utils.hpp>
 #include <magnetometer_compass/magnetometer_compass.h>
 #include <magnetometer_compass/tf2_sensor_msgs.h>
-
+#include <map>
+#include <memory>
+#include <optional>
+#include <rclcpp/duration.hpp>
 #include <rclcpp/node.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
+#include <string>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/time.hpp>
 #include <tf2_ros/buffer.h>

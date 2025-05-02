@@ -1,5 +1,4 @@
-#ifndef MAGNETOMETER_COMPASS_H
-#define MAGNETOMETER_COMPASS_H
+#pragma once
 // SPDX-License-Identifier: BSD-3-Clause
 // SPDX-FileCopyrightText: Czech Technical University in Prague
 
@@ -9,20 +8,15 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <memory>
-#include <string>
 #include "tl/expected.hpp"
-#include <map>
-
 #include <compass_interfaces/msg/azimuth.hpp>
-//#include <cras_cpp_common/expected.hpp>
-//#include <cras_cpp_common/log_utils.h>
-//#include <cras_cpp_common/param_utils/bound_param_helper.hpp>
-//#include <cras_cpp_common/tf2_utils/interruptible_buffer.h>
+#include <map>
+#include <memory>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/node.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
+#include <string>
 #include <tf2/buffer_core.h>
 #include <tf2_ros/buffer.h>
 namespace magnetometer_compass
@@ -103,4 +97,3 @@ private:
   const rclcpp::Node* node;
 };
 }
-#endif

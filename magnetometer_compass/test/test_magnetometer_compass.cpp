@@ -7,23 +7,15 @@
  * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include "gtest/gtest.h"
-
-#include <list>
-#include <memory>
-#include <string>
-#include <map>
-
 #include <angles/angles.h>
-//#include <cras_cpp_common/log_utils.h>
-//#include <cras_cpp_common/log_utils/memory.h>
-//#include <cras_cpp_common/string_utils/ros.hpp>
-//#include <cras_cpp_common/param_utils/bound_param_helper.hpp>
-//#include <cras_cpp_common/param_utils/get_param_adapters/xmlrpc_value.hpp>
+#include <gtest/gtest.h>
+#include <list>
 #include <magnetometer_compass/magnetometer_compass.h>
-
+#include <map>
+#include <memory>
 #include <sensor_msgs/msg/imu.h>
 #include <sensor_msgs/msg/magnetic_field.hpp>
+#include <string>
 
 using Az = compass_interfaces::msg::Azimuth;
 using Imu = sensor_msgs::msg::Imu;
@@ -32,8 +24,6 @@ using Field = sensor_msgs::msg::MagneticField;
 TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 {
   rclcpp::Node node = rclcpp::Node("test_node");
-  // rclcpp::Logger log = rclcpp::get_logger("test_logger");
-  // auto const clk = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME); 
 
   auto tf = std::make_shared<tf2_ros::Buffer>(node.get_clock());
   tf->setUsingDedicatedThread(true);
@@ -150,24 +140,16 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
 {
   rclcpp::Node node = rclcpp::Node("test_node", rclcpp::NodeOptions().allow_undeclared_parameters(true));
-  // rclcpp::Logger log = rclcpp::get_logger("test_logger");
 
   auto tf = std::make_shared<tf2_ros::Buffer>(node.get_clock());
   tf->setUsingDedicatedThread(true);
 
   magnetometer_compass::MagnetometerCompass compass(&node, "base_link", tf);
 
-  // const std::map<std::string, rclcpp::Parameter> params;
-  // params["low_pass_ratio"] = 0.0;
-  // params["initial_variance"] = 4.0;
-
   rclcpp::Parameter parameter1("low_pass_ratio", 0.0);
   node.set_parameter(parameter1);
   rclcpp::Parameter parameter2("initial_variance", 4.0);
   node.set_parameter(parameter2);
-
-  // auto paramAdapter = std::make_shared<cras::XmlRpcValueGetParamAdapter>(params, "");
-  // std::map<std::string, rclcpp::Parameter> paramHelper(log, paramAdapter);
 
   compass.configFromParams();
 
@@ -271,7 +253,6 @@ TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
 TEST(MagnetometerCompass, Reset)  // NOLINT
 {
   rclcpp::Node node = rclcpp::Node("test_node");
-
 
   auto tf = std::make_shared<tf2_ros::Buffer>(node.get_clock());
   tf->setUsingDedicatedThread(true);
