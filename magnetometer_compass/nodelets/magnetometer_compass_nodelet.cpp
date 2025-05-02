@@ -87,7 +87,7 @@ void MagnetometerCompassNodelet::init()
   //  this->frame = params->getParam("frame", "base_link");
 
   // CompassConverter params:
-  this->declare_parameter<double>("magnetic_declination", -1.);
+  this->declare_parameter<double>("magnetic_declination", -9999.);
   this->declare_parameter<std::string>("magnetic_model", std::string());
   this->declare_parameter<std::string>("magnetic_models_path", std::string());
   this->declare_parameter<double>("utm_grid_convergence", -1.);

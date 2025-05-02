@@ -14,8 +14,10 @@
 #include <std_msgs/msg/int32.hpp>
 #include <tf2_ros/message_filter.h>
 #include <tf2_ros/buffer.h>
+#include "tf2_ros/transform_listener.h"
 #include <message_filters/subscriber.h>
 
+#include <compass_conversions/compass_converter.h>
 #include <compass_conversions/message_filter.h>
 #include <compass_conversions/tf2_compass_msgs.h>
 #include <compass_conversions/topic_names.h>
@@ -67,6 +69,7 @@ protected:
   std::string targetFrame;
   OutputType targetType {OutputType::Azimuth};
   tf2_ros::Buffer::SharedPtr buffer;
+  std::shared_ptr<tf2_ros::TransformListener> listener;
   // std::map< std::string, std::string > remaps {};
 };
 

@@ -40,7 +40,7 @@ void RateLimiter::setJumpBackTolerance(const rclcpp::Duration& tolerance)
 bool RateLimiter::jumpedBack(const ::rclcpp::Time& stamp, const ::rclcpp::Time& previousStamp) const
 {
   // It is important to not subtract the tolerance on the right - we could get into negative time, which is not allowed
-  return stamp + this->jumpBackTolerance < previousStamp;
+  return (stamp + this->jumpBackTolerance).nanoseconds() < previousStamp.nanoseconds();
 }
 
 ThrottleLimiter::ThrottleLimiter(const rclcpp::Clock::SharedPtr clock, const rclcpp::Rate& rate) : clock(clock), RateLimiter(clock, rate)
@@ -98,11 +98,11 @@ bool TokenBucketLimiter::shouldPublish(const rclcpp::Time& stamp)
     this->reset();
 
   // If we're processing the first message, record its stamp and say that dt == 0, so nothing will be added to bucket
-  if (this->lastCheckTime == rclcpp::Time(0))
+  if (this->lastCheckTime.nanoseconds() == rclcpp::Time(0).nanoseconds())
     this->lastCheckTime = stamp;
 
   // Do not allow if time jumped back just a bit (large jumps are solved above)
-  if (stamp < this->lastCheckTime)
+  if (stamp.nanoseconds() < this->lastCheckTime.nanoseconds())
   {
     this->lastCheckTime = stamp;
     return false;
@@ -124,7 +124,7 @@ bool TokenBucketLimiter::shouldPublish(const rclcpp::Time& stamp)
   this->tokensAvailable = (std::min)(this->tokensAvailable, rclcpp::Duration::from_seconds(this->bucketCapacity));
 
   // If there is at least one whole token in the bucket, allow publishing
-  if (this->tokensAvailable >= rclcpp::Duration::from_seconds(1.))
+  if (this->tokensAvailable.nanoseconds() >= rclcpp::Duration::from_seconds(1.).nanoseconds())
   {
     result = true;
     this->tokensAvailable -= rclcpp::Duration::from_seconds(1.);

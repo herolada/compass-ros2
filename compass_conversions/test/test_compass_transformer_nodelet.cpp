@@ -512,7 +512,7 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
   };
 
   auto azimuthPub = node->create_publisher<Az>("azimuth_in", 1);
-  auto fixPub = node->create_publisher<sensor_msgs::msg::NavSatFix>("fix", 1);
+  auto fixPub = node->create_publisher<sensor_msgs::msg::NavSatFix>("gps/fix", 1);
   auto azimuthSub = node->create_subscription<Az>("azimuth_out", 1, cb);
 
 

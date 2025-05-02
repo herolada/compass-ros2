@@ -80,7 +80,8 @@ void CompassConverter::configFromParams()
 {
   // cras::TempLocale l(LC_ALL, "en_US.UTF-8");  // Support printing ° signs
 
-  if (this->node->has_parameter("magnetic_declination") && this->node->get_parameter("magnetic_declination").get_value<double>() != -1.) {
+  if (this->node->has_parameter("magnetic_declination") && this->node->get_parameter("magnetic_declination").get_value<double>() != -9999.) {
+    RCLCPP_WARN(this->node->get_logger(), "Forcing magnetic declination to be %f", this->node->get_parameter("magnetic_declination").get_value<double>());
     this->forceMagneticDeclination(std::make_optional<double>(this->node->get_parameter("magnetic_declination").get_value<double>()));
   }  else {
     this->forcedMagneticModelName = this->node->get_parameter_or<std::string>("magnetic_model", std::string());
@@ -125,7 +126,6 @@ void CompassConverter::configFromParams()
 
 void CompassConverter::forceMagneticDeclination(const std::optional<double>& declination)
 {
-  printf("FORCE MAG DEC\n");
   this->forcedMagneticDeclination = declination;
 };
 
@@ -282,6 +282,15 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
     {
       printf("A\n");
       const auto magneticDeclination = this->getMagneticDeclination(azimuth.header.stamp);
+      printf("we good?\n");
+      if (magneticDeclination) {
+        RCLCPP_WARN(this->node->get_logger(),"declination: %f\n", magneticDeclination.value());
+      }
+      // else {
+      //   RCLCPP_WARN(this->node->get_logger(),"declination error: %s\n", magneticDeclination.error().c_str());
+      // }
+      
+      printf("we better?\n");
       if (!magneticDeclination.has_value()) {
         printf("B\n");  
         return compass_utils::make_unexpected(std::format(

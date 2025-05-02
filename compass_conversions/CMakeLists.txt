@@ -105,7 +105,7 @@ ament_target_dependencies(compass_message_filter
   sensor_msgs
   std_msgs
 )
-target_link_libraries(compass_message_filter tl::expected)
+target_link_libraries(compass_message_filter compass_converter tl::expected)
 
 target_include_directories(compass_message_filter
   PUBLIC
@@ -169,7 +169,7 @@ ament_target_dependencies(compass_transformer_nodelet
   tf2
   tf2_ros
 )
-target_link_libraries(compass_transformer_nodelet tl::expected)
+target_link_libraries(compass_transformer_nodelet compass_topic_names compass_converter compass_message_filter tf2_compass_msgs tl::expected)
 
 target_include_directories(compass_transformer_nodelet
   PUBLIC
@@ -237,39 +237,33 @@ install(TARGETS
 # While we cant use blocks https://cmake.org/cmake/help/latest/command/block.html#command:block
 # we use set--unset
 
+add_executable(compass_transformer_nodelet_node nodelets/compass_transformer.cpp)
 
+ament_target_dependencies(compass_transformer_nodelet_node
+  angles
+  compass_interfaces
+  compass_utils
+  geometry_msgs
+  magnetic_model
+  message_filters
+  rclcpp
+  sensor_msgs
+  std_msgs
+  tf2
+  tf2_geometry_msgs
+  tf2_ros
+  topic_tools
+)
+target_link_libraries(compass_transformer_nodelet_node compass_transformer_nodelet)
 
+target_include_directories(compass_transformer_nodelet_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
 
-# add_executable(compass_transformer_nodelet_node nodelets/compass_transformer.cpp)
+target_compile_features(compass_transformer_nodelet_node PUBLIC c_std_99 cxx_std_23)
 
-# ament_target_dependencies(compass_transformer_nodelet_node
-#   angles
-#   compass_interfaces
-#   compass_utils
-#   geometry_msgs
-#   magnetic_model
-#   message_filters
-#   pluginlib
-#   rclcpp
-#   sensor_msgs
-#   std_msgs
-#   tf2
-#   tf2_geometry_msgs
-#   tf2_ros
-#   topic_tools
-# )
-
-# target_include_directories(compass_transformer_nodelet_node PUBLIC
-#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#     $<INSTALL_INTERFACE:include>)
-
-# target_compile_features(compass_transformer_nodelet_node PUBLIC c_std_99 cxx_std_23)
-
-# install(TARGETS compass_transformer_nodelet_node
-#     DESTINATION lib/${PROJECT_NAME})
-
-
-
+install(TARGETS compass_transformer_nodelet_node
+    DESTINATION lib/${PROJECT_NAME})
 
 # ^^^^^^^^^^^^^^^^^^^^^^ #
 # CPP Binary Block [END] #
@@ -385,5 +379,10 @@ endif()
 
 # ## Add folders to be run by python nosetests
 # # catkin_add_nosetests(test)
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
 
 ament_package()

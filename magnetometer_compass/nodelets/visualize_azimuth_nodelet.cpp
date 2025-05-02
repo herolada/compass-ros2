@@ -102,7 +102,7 @@ void VisualizeAzimuthNodelet::init()
 
   this->declare_parameter<double>("max_rate", -1.);
   // CompassConverter params:
-  this->declare_parameter<double>("magnetic_declination", -1.);
+  this->declare_parameter<double>("magnetic_declination", -9999.);
   this->declare_parameter<std::string>("magnetic_model", std::string());
   this->declare_parameter<std::string>("magnetic_models_path", std::string());
   this->declare_parameter<double>("utm_grid_convergence", -1.);
@@ -187,6 +187,7 @@ void VisualizeAzimuthNodelet::init()
 
 void VisualizeAzimuthNodelet::azimuthCb(const Az& azimuthEast)
 {
+  // RCLCPP_WARN(this->get_logger(), "\n", azimuthEast.header.stamp.get_clock_type())
   if (this->rateLimiter != nullptr && !this->rateLimiter->shouldPublish(azimuthEast.header.stamp))
     return;
 

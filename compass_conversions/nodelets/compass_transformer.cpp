@@ -15,6 +15,7 @@
 #include <compass_conversions/message_filter.h>
 #include <compass_conversions/tf2_compass_msgs.h>
 #include <compass_conversions/topic_names.h>
+#include <compass_conversions/compass_converter.h>
 #include <compass_conversions/compass_transformer.h>
 #include <compass_interfaces/msg/azimuth.hpp>
 #include <compass_utils/string_utils.hpp>
@@ -36,6 +37,9 @@
 #include <std_msgs/msg/int32.hpp>
 #include <tf2/exceptions.h>
 #include <tf2_ros/message_filter.h>
+#include "tf2_ros/transform_listener.h"
+#include <tf2_ros/create_timer_ros.h>
+
 #include <rclcpp/duration.hpp>
 // #include <rclcpp/publisher.hpp>
 #include <rclcpp/generic_publisher.hpp>
@@ -142,18 +146,33 @@ std::string outputTypeToString(const OutputType type)
 void CompassTransformerNodelet::setBuffer(tf2_ros::Buffer::SharedPtr buffer)
 {
   this->buffer = buffer;
+  auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
+    this->get_node_base_interface(),
+    this->get_node_timers_interface());
+    buffer->setCreateTimerInterface(timer_interface);
+  this->listener = std::make_shared<tf2_ros::TransformListener>(*this->buffer);
 }
 
 CompassTransformerNodelet::CompassTransformerNodelet(const rclcpp::NodeOptions & options)
-  : rclcpp::Node("compass_transformer_nodelet", options), buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock()))
+  : rclcpp::Node("compass_transformer_nodelet", options),
+  buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
+  listener(std::make_shared<tf2_ros::TransformListener>(*buffer))
 {
-  // onInit();
+  auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
+    this->get_node_base_interface(),
+    this->get_node_timers_interface());
+    buffer->setCreateTimerInterface(timer_interface);
 }
 
 CompassTransformerNodelet::CompassTransformerNodelet()
-  : rclcpp::Node("compass_transformer_nodelet"), buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock()))
+  : rclcpp::Node("compass_transformer_nodelet"),
+  buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
+  listener(std::make_shared<tf2_ros::TransformListener>(*buffer))
 {
-  // onInit();
+  auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
+    this->get_node_base_interface(),
+    this->get_node_timers_interface());
+    buffer->setCreateTimerInterface(timer_interface);
 }
 
 CompassTransformerNodelet::~CompassTransformerNodelet() = default;
@@ -161,7 +180,7 @@ CompassTransformerNodelet::~CompassTransformerNodelet() = default;
 void CompassTransformerNodelet::init()
 {
   // CompassConverter params:
-  this->declare_parameter<double>("magnetic_declination", -1.);
+  this->declare_parameter<double>("magnetic_declination", -9999.);
   this->declare_parameter<std::string>("magnetic_model", std::string());
   this->declare_parameter<std::string>("magnetic_models_path", std::string());
   this->declare_parameter<double>("utm_grid_convergence", -1.);
@@ -245,7 +264,7 @@ void CompassTransformerNodelet::init()
 
   if (subscribeFix)
   {
-    this->fixInput = std::make_unique<message_filters::Subscriber<Fix>>(this, "fix");
+    this->fixInput = std::make_unique<message_filters::Subscriber<Fix>>(this, "gps/fix");
     this->compassFilter->connectFixInput(*this->fixInput);
   }
 
@@ -275,6 +294,7 @@ void CompassTransformerNodelet::init()
   
 void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
 {
+  RCLCPP_WARN(this->get_logger(), "A\n\n");
   switch (this->targetType)
   {
     case OutputType::Imu:
@@ -306,7 +326,9 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
       break;
     }
     default:
+      RCLCPP_WARN(this->get_logger(), "B\n\n");
       this->pub_az->publish(*msg);
+      RCLCPP_WARN(this->get_logger(), "C\n\n");
       break;
   }
 }
@@ -319,7 +341,9 @@ void CompassTransformerNodelet::transformAndPublish(const Az::ConstSharedPtr& ms
 
 
     //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
+    RCLCPP_WARN(this->get_logger(), "before transform\n\n");
     *outMsg = this->buffer->transform(*msg, this->targetFrame);
+    RCLCPP_WARN(this->get_logger(), "after transform\n\n");
 
     this->publish(outMsg);
 
@@ -337,5 +361,14 @@ void CompassTransformerNodelet::failedCb(const Az::ConstSharedPtr& /*msg*/, cons
 }
 }
 
-
 RCLCPP_COMPONENTS_REGISTER_NODE(compass_conversions::CompassTransformerNodelet)
+
+int main(int argc, char * argv[])
+{
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<compass_conversions::CompassTransformerNodelet>();
+  node->init();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
+  return 0;
+}
