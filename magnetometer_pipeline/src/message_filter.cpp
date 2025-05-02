@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Message filter to remove bias from 3-axis magnetometer measurements.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 // #include <boost/make_shared.hpp>

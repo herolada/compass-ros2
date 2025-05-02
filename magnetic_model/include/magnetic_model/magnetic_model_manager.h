@@ -6,7 +6,7 @@
 /**
  * \file
  * \brief Manager of magnetic field models.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <memory>

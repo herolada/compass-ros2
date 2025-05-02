@@ -6,7 +6,7 @@
 /**
  * \file
  * \brief Logic for naming topics according to the type of Azimuth message they carry.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <optional>

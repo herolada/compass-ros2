@@ -1,3 +1,14 @@
+#pragma once
+
+// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-FileCopyrightText: Czech Technical University in Prague
+
+/**
+ * \file
+ * \brief Tf2 utilities for compass packages. Adapted from cras_cpp_common.
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
+ */
+
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 

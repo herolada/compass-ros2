@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Unit test for magnetometer_compass.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include "gtest/gtest.h"
@@ -148,7 +148,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   std::optional<Field> lastField;
   auto magCb = [&lastField](const Field::ConstSharedPtr& msg)
   {
-    printf("received mag unbiased\n");
     lastField = *msg;
   };
 
@@ -302,7 +301,6 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
       && rclcpp::ok();
     ++i)
   {
-    printf("%u\n", lastField.has_value());
     executor.spin_once(std::chrono::nanoseconds());
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
     }

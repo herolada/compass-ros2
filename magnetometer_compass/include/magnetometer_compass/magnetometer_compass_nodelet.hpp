@@ -6,7 +6,7 @@
 /**
  * \file
  * \brief Compute various azimuth values based on a magnetometer, IMU orientation and possibly also GPS coordinates.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
  

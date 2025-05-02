@@ -1,19 +1,17 @@
 /**
  * \file
- * \brief Various implementations of rate-limiting algorithms.
- * \author Martin Pecka
+ * \brief Various implementations of rate-limiting algorithms for azimuth visualization.
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  * SPDX-License-Identifier: BSD-3-Clause
  * SPDX-FileCopyrightText: Czech Technical University in Prague
  */
 
 #include <algorithm>
-#include <stdexcept>
-
+#include <compass_utils/rate_limiter.h>
 #include <rclcpp/duration.hpp>
 #include <rclcpp/rate.hpp>
 #include <rclcpp/time.hpp>
-
-#include <compass_utils/rate_limiter.h>
+#include <stdexcept>
 
 namespace compass_utils
 {

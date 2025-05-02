@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Convert magnetometer and IMU measurements to azimuth.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <memory>
@@ -71,10 +71,8 @@ void MagnetometerCompass::configFromParams()
 {
   if (this->node->has_parameter("initial_variance") &&
       this->node->get_parameter("initial_variance").get_value<double>() != -1.) {
-    printf("present initial_variance\n");
     this->data->variance = this->data->initialVariance = this->node->get_parameter("initial_variance").get_value<double>();    
   } else {
-    printf("missing initial_variance\n");
     this->data->variance = this->data->initialVariance = this->data->variance;
   }
 

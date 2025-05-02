@@ -1,11 +1,12 @@
 #pragma once
 
+// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-FileCopyrightText: Czech Technical University in Prague
+
 /**
  * \file
- * \brief Various implementations of rate-limiting algorithms.
- * \author Martin Pecka
- * SPDX-License-Identifier: BSD-3-Clause
- * SPDX-FileCopyrightText: Czech Technical University in Prague
+ * \brief Various implementations of rate-limiting algorithms for azimuth visualization node. Adapted from cras_cpp_common.
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <rclcpp/duration.hpp>

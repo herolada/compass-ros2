@@ -1,21 +1,19 @@
 /**
  * \file
- * \brief Utilities for working with transforms.
- * \author Martin Pecka
+ * \brief Utilities for working with transforms for compass packages.
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  * SPDX-License-Identifier: BSD-3-Clause
  * SPDX-FileCopyrightText: Czech Technical University in Prague
  */
 
+#include <compass_utils/tf2_utils.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <tf2/convert.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <compass_utils/tf2_utils.hpp>
 
 namespace compass_utils
 {
-
-
 
 double getRoll(const tf2::Quaternion& quat)
 {

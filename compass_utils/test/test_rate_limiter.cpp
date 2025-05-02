@@ -1,7 +1,7 @@
 /**
  * \file
  * \brief Unit test for rate_limiter.h .
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  * SPDX-License-Identifier: BSD-3-Clause
  * SPDX-FileCopyrightText: Czech Technical University in Prague
  */
@@ -18,8 +18,6 @@
 #include <rclcpp/rate.hpp>
 #include <rclcpp/time.hpp>
 #include <rclcpp/clock.hpp>
-#include <rclcpp/logger.hpp>
-#include "rcutils/logging_macros.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include <compass_utils/rate_limiter.h>
@@ -36,14 +34,6 @@ std::vector<rclcpp::Time> createRegularSequence(const rclcpp::Time& start, const
   for (size_t i = 0; i < numTimes; ++i)
   {
     result[i] = start + period * i;
-
-    // RCLCPP_ERROR(log, "start %ld period %ld result %ld", start.nanoseconds(),
-    // period.nanoseconds()*i,
-    // result[i].nanoseconds());
-    /* SCOPED_TRACE(std::format("start {} period {} result {}",
-      std::to_string(start.nanoseconds()),
-      std::to_string(period.nanoseconds()),
-      std::to_string(result[i].nanoseconds()))); */
   }
   return result;
 }
@@ -171,7 +161,7 @@ TEST(TokenBucketLimiter, RegularSequence)  // NOLINT
   compass_utils::TokenBucketLimiter limiter2(clk, rclcpp::Rate(2), 2, 1); limiters.push_back(&limiter2); names[&limiter2] = "2";
   compass_utils::TokenBucketLimiter limiter4(clk, rclcpp::Rate(4), 2, 1); limiters.push_back(&limiter4); names[&limiter4] = "4";
   compass_utils::TokenBucketLimiter limiter5(clk, rclcpp::Rate(5), 2, 1); limiters.push_back(&limiter5); names[&limiter5] = "5";
-  // compass_utils::TokenBucketLimiter limiter7(clk, rclcpp::Rate(7), 2, 1); limiters.push_back(&limiter7); names[&limiter7] = "7";
+  // compass_utils::TokenBucketLimiter limiter7(clk, rclcpp::Rate(7), 2, 1); limiters.push_back(&limiter7); names[&limiter7] = "7"; //TODO
   compass_utils::TokenBucketLimiter limiter10(clk, rclcpp::Rate(10), 2, 1); limiters.push_back(&limiter10); names[&limiter10] = "10";
   compass_utils::TokenBucketLimiter limiter20(clk, rclcpp::Rate(20), 2, 1); limiters.push_back(&limiter20); names[&limiter20] = "20";
 
@@ -185,7 +175,7 @@ TEST(TokenBucketLimiter, RegularSequence)  // NOLINT
     {&limiter2,  { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0}},  // NOLINT
     {&limiter4,  { 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0}},  // NOLINT
     {&limiter5,  { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0}},  // NOLINT
-    // {&limiter7,  { 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1}},  // NOLINT
+    // {&limiter7,  { 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1}},  // NOLINT //TODO
     {&limiter10, { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},  // NOLINT
     {&limiter20, { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},  // NOLINT
   };

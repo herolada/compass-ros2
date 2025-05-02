@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Visualize Azimuth as a PoseWithCovarianceStamped pointing to North.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <memory>

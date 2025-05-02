@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Remove known bias from 3-axis magnetometer.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <memory>
@@ -53,14 +53,10 @@ MagnetometerBiasRemover::~MagnetometerBiasRemover() = default;
 
 void MagnetometerBiasRemover::configFromParams(const rclcpp::Node* node)
 {
-  printf("%f %f %f\n", node->get_parameter("initial_mag_bias_x").get_value<double>(),
-                      node->get_parameter("initial_mag_bias_y").get_value<double>(),
-                      node->get_parameter("initial_mag_bias_z").get_value<double>());
   if ((node->has_parameter("initial_mag_bias_x") && node->get_parameter("initial_mag_bias_x").get_value<double>() != -1.) ||
       (node->has_parameter("initial_mag_bias_y") && node->get_parameter("initial_mag_bias_y").get_value<double>() != -1.) ||
       (node->has_parameter("initial_mag_bias_z") && node->get_parameter("initial_mag_bias_z").get_value<double>() != -1.))
   {
-    printf("NOOOOOOOOOOOOOOOO\n");
     sensor_msgs::msg::MagneticField msg;
     msg.magnetic_field.x = node->get_parameter_or<double>("initial_mag_bias_x", 0.0);
     msg.magnetic_field.y = node->get_parameter_or<double>("initial_mag_bias_y", 0.0);

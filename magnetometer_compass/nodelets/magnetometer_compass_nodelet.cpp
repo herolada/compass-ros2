@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Compute various azimuth values based on a magnetometer, IMU orientation and possibly also GPS coordinates.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <memory>
@@ -129,8 +129,6 @@ void MagnetometerCompassNodelet::init()
 
   this->publishMagUnbiased = this->get_parameter_or<bool>("publish_mag_unbiased", this->publishMagUnbiased);
   this->subscribeMagUnbiased = this->get_parameter_or<bool>("subscribe_mag_unbiased", this->subscribeMagUnbiased);
-
-  printf("pub unbias %u\n", this->publishMagUnbiased);
 
   if (this->publishMagUnbiased && this->subscribeMagUnbiased)
     throw std::runtime_error("Cannot simultaneously subscribe and publish unbiased magnetometer.");
@@ -286,10 +284,6 @@ void AzimuthPublishersConfigForOrientation::init(
   this->publishPose = param_node->get_parameter_or<bool>(prefix + "pose", this->publishPose);
   this->publishRad = param_node->get_parameter_or<bool>(prefix + "rad", this->publishRad);
   this->publishDeg = param_node->get_parameter_or<bool>(prefix + "deg", this->publishDeg);
-
-  // printf("%s\n", prefix.c_str());
-  // printf("%u %u %u %u %u\n", this->publishQuat, this->publishImu, this->publishPose, this->publishRad, this->publishDeg);
-
   this->publish = this->publishQuat || this->publishImu || this->publishPose || this->publishDeg || this->publishRad;
 
   using compass_conversions::getAzimuthTopicSuffix;
@@ -385,11 +379,7 @@ void AzimuthPublishersConfig::init(
 
 void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbiased)
 {
-  printf("imuMagCb\n");
-  printf("pub unbias %u\n", this->publishMagUnbiased);
-
   if (this->publishMagUnbiased) {
-    printf("publishing mag unbiased\n");
     this->magUnbiasedPub->publish(magUnbiased);
   }
   const auto maybeAzimuth = this->compass->computeAzimuth(imu, magUnbiased);
@@ -442,7 +432,6 @@ void MagnetometerCompassNodelet::imuMagCb(const Imu& imu, const Field& magUnbias
 
 void AzimuthPublishersConfig::publishAzimuths(const Az& nedAzimuth, const Imu& imuInBody)
 {
-  printf("publishAzimuth\n");
   if (!this->publish)
     return;
 

@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Message filter to convert between various compass representations.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <memory>
@@ -207,7 +207,6 @@ std::string UniversalAzimuthSubscriber::getTopic() const
 // }
 
 void UniversalAzimuthSubscriber::azCb(const AzimuthEventType& event) {
-  printf("azCb!\n");
   const auto msg = event.getConstMessage();
   const auto stamp = event.getReceiptTime();
   const auto maybeAzimuth = this->converter.convertAzimuth(*msg, Az::UNIT_RAD, msg->orientation, msg->reference);
@@ -290,7 +289,6 @@ CompassFilter::~CompassFilter() = default;
 
 void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
 {
-  printf("CompassFilter\n");
   const auto& msg = azimuthEvent.getConstMessage();
   const auto output = this->converter->convertAzimuth(
     *msg, this->unit, this->orientation, this->reference.value_or(msg->reference));

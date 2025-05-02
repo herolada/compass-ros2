@@ -1,19 +1,26 @@
-#include <ctime>
-#include <cmath>
-#include <limits>
-#include <regex>
-#include <string>
-#include <optional>
-#include <charconv>
-#include <format>
-#include "tl/expected.hpp"
+// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-FileCopyrightText: Czech Technical University in Prague
+
+/**
+ * \file
+ * \brief Time utilities for compass packages. Adapted from cras_cpp_common.
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
+ */
+
+ #include <charconv>
 #include <chrono>
-
-#include <rclcpp/duration.hpp>
-#include <rclcpp/time.hpp>
-
+#include <cmath>
 #include <compass_utils/string_utils.hpp>
 #include <compass_utils/time_utils.hpp>
+#include <ctime>
+#include <format>
+#include <limits>
+#include <optional>
+#include <rclcpp/duration.hpp>
+#include <rclcpp/time.hpp>
+#include <regex>
+#include <string>
+#include "tl/expected.hpp"
 
 namespace compass_utils
 {
@@ -71,17 +78,6 @@ namespace compass_utils
     return structTm.tm_year + 1900;
   }
 
-  // int getYear(const std::chrono::steady_clock::time_point &time)
-  // {
-  //   const std::time_t timet = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
-  //   duration_cast<std::chrono::system_clock::duration>(time - std::chrono::steady_clock::now()));
-
-  //   tm structTm{};
-  //   const auto result = gmtime_r(&timet, &structTm);
-
-  //   return structTm.tm_year + 1900;
-  // }
-
   rclcpp::Duration parseTimeZoneOffset(const std::string &s)
   {
     if (s.empty() || s == "Z")
@@ -105,10 +101,12 @@ namespace compass_utils
   rclcpp::Time parseTime(
       const std::string &s, const std::optional<rclcpp::Duration> &timezoneOffset, const rclcpp::Time &referenceDate)
   {
-    // TODO find a ROS 2 alternative
-    // if (s.length() == 3 && toLower(s) == "now")
-    //  return this->clock.now();
-
+    if (s.length() == 3 && toLower(s) == "now") {
+      auto now_t = std::chrono::system_clock::now();
+      auto dur = now_t.time_since_epoch();
+      auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(dur).count();
+      return rclcpp::Time(ns, RCL_SYSTEM_TIME);
+    }
     // Check if the string contains delimiters. If so, do not require zero-padding of all numbers.
     const std::regex delimitersRegex{
         R"((?:(?:(?:(\d+)[:_/-])?(\d+)[:_/-])?(\d+)[Tt _-])?(\d+)[:_/-](\d+)[:_/-](\d+)(?:[.,](\d+))?(Z|[+-]?\d{1,2}:?\d{2})?)"}; // NOLINT
@@ -178,13 +176,6 @@ namespace compass_utils
     std::from_chars(matches[4].str().data(), matches[4].str().data() + matches[4].str().size(), hour);
     std::from_chars(matches[5].str().data(), matches[5].str().data() + matches[5].str().size(), minute);
     std::from_chars(matches[6].str().data(), matches[6].str().data() + matches[6].str().size(), second);
-
-    /* rclcpp::Duration zoneOffset{};
-    if (matches[8].matched) {
-      parseTimeZoneOffset(matches[8].str());
-    } else {
-      timezoneOffset;
-    } */
 
     rclcpp::Duration dur(0, 0);
     const auto zoneOffset = matches[8].matched ? parseTimeZoneOffset(matches[8].str()) : timezoneOffset.value_or(dur);

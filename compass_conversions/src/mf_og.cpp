@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Message filter to convert between various compass representations.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <memory>

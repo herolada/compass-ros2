@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Unit test for transformations of compass_interfaces.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include "gtest/gtest.h"
@@ -446,7 +446,6 @@ TEST(CompassTransformerNodelet, FixFromParams)  // NOLINT
   auto cb = [&lastAz](const Az::ConstSharedPtr& msg)
   {
     lastAz = *msg;
-    printf("lastAz %f\n", lastAz->azimuth);
   };
 
   auto azimuthPub = node->create_publisher<Az>("azimuth_in", 1);

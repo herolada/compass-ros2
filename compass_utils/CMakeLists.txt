@@ -9,7 +9,6 @@ find_package(compass_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
-find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tl-expected REQUIRED)
 
@@ -22,20 +21,16 @@ find_package(tl-expected REQUIRED)
 add_library(${PROJECT_NAME} SHARED
     src/string_utils.cpp
     src/time_utils.cpp
-    # src/interruptible_buffer.cpp
-    # src/interruptible_sleep_interface.cpp
     src/rate_limiter.cpp
-    # src/semaphore.cpp
     src/tf2_utils.cpp
 )
 
 # all includes
 ament_target_dependencies(${PROJECT_NAME}
     compass_interfaces
-    rclcpp
     geometry_msgs
+    rclcpp
     tf2
-    tf2_ros
     tf2_geometry_msgs
     )
 
@@ -58,9 +53,6 @@ ament_export_dependencies(
     compass_interfaces
     rclcpp
     tf2
-    tf2_ros
-    geometry_msgs
-    tf2_geometry_msgs
     )
 
 install(
@@ -76,8 +68,8 @@ install(
     INCLUDES DESTINATION include)
 
 if(BUILD_TESTING)
-    # this works
     find_package(ament_cmake_gtest REQUIRED)
+    find_package(std_msgs REQUIRED)
 
     ament_add_gtest(test_${PROJECT_NAME} test/test_${PROJECT_NAME}.cpp)
     target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
@@ -94,7 +86,7 @@ if(BUILD_TESTING)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     )
-    set_tests_properties(test_rate_limiter PROPERTIES ENVIRONMENT "GTEST_CAPTURE=0")
+    # set_tests_properties(test_rate_limiter PROPERTIES ENVIRONMENT "GTEST_CAPTURE=0")
 
     ament_add_gtest(test_string_utils test/test_string_utils.cpp)
     target_link_libraries(test_string_utils ${PROJECT_NAME})
@@ -119,28 +111,7 @@ if(BUILD_TESTING)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     )
-    
-    #ament_target_dependencies(test_${PROJECT_NAME}
-    #    rclcpp
-    #    compass_interfaces
-    #)
-
-    # this idk if works
-    #target_link_libraries(test_${PROJECT_NAME})
-
-
-    #find_package(ament_cmake_gtest REQUIRED)
-    #ament_add_gtest(test_${PROJECT_NAME} test/test_${PROJECT_NAME}.cpp)
-    #ament_target_dependencies(test_${PROJECT_NAME}
-    #    ${dependencies}
-    #)
-    #target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
-    #target_include_directories(test_${PROJECT_NAME} PUBLIC
-    #    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    #    $<INSTALL_INTERFACE:include>
-    #)
-    #target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
-    
+        
     #find_package(ament_lint_auto REQUIRED)
     #set(ament_cmake_copyright_FOUND TRUE)
     #set(ament_cmake_cpplint_FOUND TRUE)

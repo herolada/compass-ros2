@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Unit test for azimuth visualization.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include "gtest/gtest.h"
@@ -112,7 +112,6 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   EXPECT_NEAR(M_SQRT1_2, lastPose->pose.pose.orientation.z, 1e-6);
   EXPECT_NEAR(M_SQRT1_2, lastPose->pose.pose.orientation.w, 1e-6);
 
-  printf("1\n");
   lastPose.reset();
   azimuth.azimuth = M_PI_2;
   azPub->publish(azimuth);
@@ -134,7 +133,6 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   EXPECT_EQ(0, lastPose->pose.pose.orientation.y);
   EXPECT_NEAR(0, lastPose->pose.pose.orientation.z, 1e-6);
   EXPECT_NEAR(1, lastPose->pose.pose.orientation.w, 1e-6);
-  printf("2\n");
 
   lastPose.reset();
   azimuth.azimuth = M_PI;
@@ -160,7 +158,6 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   EXPECT_NEAR(M_SQRT1_2, lastPose->pose.pose.orientation.w, 1e-6);
 
   // We haven't yet supplied a fix, so change of reference is not possible
-  printf("3\n");
 
   lastPose.reset();
   azimuth.azimuth = M_PI;
@@ -169,7 +166,6 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
 
   for (size_t i = 0; i < 5 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
-    printf("33\n");
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
@@ -183,24 +179,18 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   fix.altitude = 445.6146;
   fix.status.service = sensor_msgs::msg::NavSatStatus::SERVICE_GPS;
   fix.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
-  printf("333\n");
   fixPub->publish(fix);
-  printf("3333\n");
   // Wait until the fix arrives
   rclcpp::sleep_for(std::chrono::nanoseconds(200'000'000));
 
   lastPose.reset();
-  printf("33332\n");
   azimuth.azimuth = M_PI;
   azPub->publish(azimuth);
-  printf("33333\n");
   for (size_t i = 0; i < 50 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
-    printf("333333\n");
     executor.spin_once();
     rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
   }
-  printf("4\n");
 
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);

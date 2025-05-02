@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Earth magnetic field model.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <map>

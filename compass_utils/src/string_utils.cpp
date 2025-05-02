@@ -3,18 +3,16 @@
 
 /**
  * \file
- * \brief String utilities for compass_interfaces.
- * \author Martin Pecka
+ * \brief String utilities for compass packages.
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
-#include <string>
-#include <format>
 #include <chrono>
 #include <cmath>
-// #include <compass_interfaces/Azimuth.h>
 #include <compass_interfaces/msg/azimuth.hpp>
-
 #include <compass_utils/string_utils.hpp>
+#include <format>
+#include <string>
 
 namespace compass_utils
 {
@@ -67,32 +65,6 @@ namespace compass_utils
 
     return oss.str();
   }
-
-  // std::string to_pretty_string(const std::chrono::steady_clock::time_point &tp)
-  // {
-
-  //   // Convert to time_t for formatting
-  //   std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now() +
-  //   std::chrono::duration_cast<std::chrono::system_clock::duration>(tp - std::chrono::steady_clock::now()));
-
-  //   printf("Current time as integer: %lld\n", static_cast<long long>(time));
-  //   printf("Current time as integer: %lld\n", static_cast<long long>(std::chrono::duration_cast<std::chrono::system_clock::duration>(tp - std::chrono::steady_clock::now()).count()));
-
-  //   // Format the time into a string
-  //   std::ostringstream oss;
-  //   oss << std::put_time(std::gmtime(&time), "%Y-%m-%dT%H:%M:%S");
-
-  //   auto duration = tp.time_since_epoch();
-  //   auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration) % 1'000'000;
-
-  //   if (micros.count() != 0) {
-  //     oss << "." << std::setw(6) << std::setfill('0') << micros.count() << 'Z';
-  //   } else {
-  //     oss << 'Z';
-  //   }
-
-  //   return oss.str();
-  // }
 
   std::string toLower(const std::string &str)
   {

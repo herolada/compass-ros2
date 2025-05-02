@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Unit test for magnetic model.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include "gtest/gtest.h"

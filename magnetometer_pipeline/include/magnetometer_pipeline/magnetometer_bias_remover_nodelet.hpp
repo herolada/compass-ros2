@@ -7,7 +7,7 @@
 /**
  * \file
  * \brief Remove known bias from 3-axis magnetometer.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
  #include <memory>

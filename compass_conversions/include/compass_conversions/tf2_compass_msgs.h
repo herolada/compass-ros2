@@ -6,7 +6,7 @@
 /**
  * \file
  * \brief Support for transforming compass_interfaces::msg::Azimuth messages.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <string>

@@ -6,7 +6,7 @@
 /**
  * \file
  * \brief Convert magnetometer and IMU measurements to azimuth.
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 #include <memory>

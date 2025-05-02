@@ -4,7 +4,7 @@
 /**
  * \file
  * \brief Unit test for tf2_utils.h
- * \author Martin Pecka
+ * \author Martin Pecka, Adam Herold (ROS2 transcription)
  */
 
 // Test TfMessageFilter is mostly taken from
