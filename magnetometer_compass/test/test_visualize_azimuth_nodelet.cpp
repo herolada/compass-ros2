@@ -23,6 +23,7 @@ using Az = compass_interfaces::msg::Azimuth;
 using Quat = geometry_msgs::msg::QuaternionStamped;
 using Pose = geometry_msgs::msg::PoseWithCovarianceStamped;
 using Fix = sensor_msgs::msg::NavSatFix;
+using namespace std::chrono_literals;
 
 std::shared_ptr<magnetometer_compass::VisualizeAzimuthNodelet> createNodelet(rclcpp::NodeOptions node_options = rclcpp::NodeOptions())
 {
@@ -41,12 +42,18 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
     lastPose = *msg;
   };
 
+  auto sub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data);
+  auto pub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_system_default);
+  size_t dep = 1;
+  pub_qos.depth = dep;
+  sub_qos.depth = dep;
+
   std::list<rclcpp::PublisherBase::SharedPtr> pubs;
-  auto azPub = node->create_publisher<Az>("visualize_azimuth/azimuth", 1); pubs.push_back(azPub);
-  auto fixPub = node->create_publisher<Fix>("gps/fix", rclcpp::QoS(1).transient_local()); pubs.push_back(fixPub);
+  auto azPub = node->create_publisher<Az>("visualize_azimuth/azimuth", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(azPub);
+  auto fixPub = node->create_publisher<Fix>("gps/fix", rclcpp::SystemDefaultsQoS(pub_qos).transient_local()); pubs.push_back(fixPub);
 
   std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
-  auto visSub = node->create_subscription<Pose>("visualize_azimuth/azimuth_vis", 1, poseCb); subs.push_back(visSub);
+  auto visSub = node->create_subscription<Pose>("visualize_azimuth/azimuth_vis", rclcpp::SensorDataQoS(sub_qos), poseCb); subs.push_back(visSub);
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
@@ -55,7 +62,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
+    rclcpp::sleep_for(10ms);
     executor.spin_once();
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
   }
@@ -63,7 +70,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
+    rclcpp::sleep_for(10ms);
     executor.spin_once();
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
   }
@@ -86,10 +93,10 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   azimuth.reference = Az::REFERENCE_UTM;
   azPub->publish(azimuth);
 
-  for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
+  for (size_t i = 0; i < 50 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    rclcpp::sleep_for(100ms);
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -111,7 +118,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    rclcpp::sleep_for(100ms);
   }
   ASSERT_TRUE(lastPose.has_value());
   EXPECT_EQ(time, lastPose->header.stamp);
@@ -133,7 +140,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 10 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    rclcpp::sleep_for(100ms);
   }
 
   ASSERT_TRUE(lastPose.has_value());
@@ -159,7 +166,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 5 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    rclcpp::sleep_for(100ms);
   }
   ASSERT_FALSE(lastPose.has_value());
 
@@ -173,7 +180,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   fix.status.status = sensor_msgs::msg::NavSatStatus::STATUS_FIX;
   fixPub->publish(fix);
   // Wait until the fix arrives
-  rclcpp::sleep_for(std::chrono::nanoseconds(200'000'000));
+  rclcpp::sleep_for(200ms);
 
   lastPose.reset();
   azimuth.azimuth = M_PI;
@@ -181,7 +188,7 @@ TEST(VisualizeAzimuthNodelet, Basic)  // NOLINT
   for (size_t i = 0; i < 50 && !lastPose.has_value() && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    rclcpp::sleep_for(100ms);
   }
 
   ASSERT_TRUE(lastPose.has_value());

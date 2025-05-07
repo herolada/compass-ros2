@@ -42,19 +42,12 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
     lastField = *msg;
   };
 
-  auto sub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data);
-  auto pub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_system_default);
-  size_t dep = 1;
-  pub_qos.depth = dep;
-  sub_qos.depth = dep;
-
   std::list<rclcpp::PublisherBase::SharedPtr> pubs;  
-  auto magPub = node->create_publisher<Field>("imu/mag", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(magPub);
-  auto magBiasPub = node->create_publisher<Field>("imu/mag_bias", rclcpp::SystemDefaultsQoS(pub_qos).transient_local()); pubs.push_back(magBiasPub);
+  auto magPub = node->create_publisher<Field>("imu/mag", rclcpp::SystemDefaultsQoS()); pubs.push_back(magPub);
+  auto magBiasPub = node->create_publisher<Field>("imu/mag_bias", rclcpp::SystemDefaultsQoS().transient_local()); pubs.push_back(magBiasPub);
 
   std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
-  
-  auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", rclcpp::SensorDataQoS(sub_qos), magCb); subs.push_back(magUnbiasedSub);
+  auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", 1, magCb); subs.push_back(magUnbiasedSub);
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
@@ -84,7 +77,7 @@ TEST(MagnetometerBiasRemoverNodelet, Basic)  // NOLINT
   ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
   ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
 
-  builtin_interfaces::msg::Time time;
+    builtin_interfaces::msg::Time time;
   time.sec = 1664286802;
   time.nanosec = 187375068;
 

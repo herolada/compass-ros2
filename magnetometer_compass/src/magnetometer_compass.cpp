@@ -26,6 +26,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/time.hpp>
 #include <tf2_ros/buffer.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 namespace magnetometer_compass
 {
@@ -90,7 +91,7 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> MagnetometerCompass:
   try
   {
     //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
-    this->data->tf->transform(imu, imuInBody, this->data->frame);
+    this->data->tf->transform(imu, imuInBody, this->data->frame, tf2::durationFromSec(0.1));
   }
   catch (const tf2::TransformException& e)
   {
@@ -102,7 +103,7 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> MagnetometerCompass:
   try
   {
     //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
-    this->data->tf->transform(magUnbiased, magUnbiasedInBody, this->data->frame);
+    this->data->tf->transform(magUnbiased, magUnbiasedInBody, this->data->frame, tf2::durationFromSec(0.1));
   }
   catch (const tf2::TransformException& e)
   {
@@ -115,7 +116,7 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> MagnetometerCompass:
   double roll, pitch, yaw;
   compass_utils::getRPY(imuInBody.orientation, roll, pitch, yaw);
 
-#if 0
+#if 1
   tf2::Quaternion rot;
   rot.setRPY(roll, pitch, 0);
   tf2::Vector3 magNoAttitude;

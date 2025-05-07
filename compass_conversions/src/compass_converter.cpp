@@ -156,6 +156,7 @@ tl::expected<double, std::string> CompassConverter::computeMagneticDeclination(
   const sensor_msgs::msg::NavSatFix& fix, const rclcpp::Time& stamp) const
 {
   const auto year = compass_utils::getYear(stamp);
+  // RCLCPP_WARN(this->node->get_logger(), "year %u\n\n\n", year);
   if (this->data->magneticModels[year] == nullptr)
   {
     const auto modelName = !this->forcedMagneticModelName.empty() ?
@@ -249,13 +250,13 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> CompassConverter::co
   result.orientation = orientation;
   result.reference = reference;
 
-
   // Convert the input to NED radians
   if (azimuth.unit == Az::UNIT_DEG)
     result.azimuth = angles::from_degrees(result.azimuth);
   if (azimuth.orientation == Az::ORIENTATION_ENU)
     result.azimuth = M_PI_2 - result.azimuth;
 
+  // RCLCPP_WARN(this->node->get_logger(), "%u %u\n",azimuth.reference, result.reference);
   // When going magnetic->true, we need to add declination in NED.
   // When going true->UTM, we need to subtract grid convergence in NED.
 

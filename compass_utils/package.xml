@@ -26,7 +26,8 @@
   <depend>compass_interfaces</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
-  <depend>tf2_geometry_msgs</depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
   <depend>geometry_msgs</depend>
   <depend>tl-expected</depend>
 

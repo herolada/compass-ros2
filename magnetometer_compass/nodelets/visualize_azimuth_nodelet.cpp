@@ -119,7 +119,7 @@ void VisualizeAzimuthNodelet::init()
   this->converter->configFromParams();
 
   // publisher
-  this->visPub = this->create_publisher<Pose>("visualize_azimuth/azimuth_vis", 10);
+  this->visPub = this->create_publisher<Pose>("visualize_azimuth/azimuth_vis", rclcpp::SystemDefaultsQoS());
 
   // subscribe azimuth, gps fix, utm_zone
   this->azSub = std::make_unique<compass_conversions::UniversalAzimuthSubscriber>(this, "visualize_azimuth/azimuth", 100);

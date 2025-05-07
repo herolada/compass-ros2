@@ -3,8 +3,8 @@
 
 std_msgs/Header header
 
-# The represented azimuth angle (angular difference between a given direction and north/east) in unit corresponding to
-# the 'unit' field.
+# The represented azimuth angle (angular difference between a direction given by the heading of the robot and north/east)
+# in unit corresponding to the 'unit' field.
 float64 azimuth
 
 # Variance of the measurement (i.e. standard deviation squared) in units corresponding to squared 'unit' field.

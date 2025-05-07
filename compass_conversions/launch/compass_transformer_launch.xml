@@ -5,18 +5,18 @@
 <!-- Run magnetometer compass to provide azimuth. -->
 
 <launch>
-    <arg name="target_unit" default="rad" description="-" />
+    <arg name="target_unit" default="deg" description="-" />
     <arg name="target_orientation" default="ned" description="-" />
-    <arg name="target_reference" default="geographic" description="-" />
+    <arg name="target_reference" default="magnetic" description="-" />
     <arg name="target_type" default="azimuth" description="-" />
     <arg name="target_append_suffix" default="false" description="-" />
-    <arg name="target_frame" default="base_link" description="-" />
+    <arg name="target_frame" default="base_link_no_grav" description="-" />
     <arg name="magnetic_declination" default="-0.068" description="Set magnetic declination to zero in simulation." />
 
     <arg name="input_orientation" default="ned" description="-" />
-    <arg name="input_reference" default="utm" description="-" />
+    <arg name="input_reference" default="magnetic" description="-" />
 
-    <node pkg="compass_conversions" exec="compass_transformer_nodelet_node" name="compass" respawn="true">
+    <node pkg="compass_conversions" exec="compass_transformer_nodelet" name="compass" respawn="true">
         <param name="magnetic_declination" value="$(var magnetic_declination)" />
         <param name="target_unit" value="$(var target_unit)" />
         <param name="target_orientation" value="$(var target_orientation)" />
@@ -27,6 +27,6 @@
         
         <param name="input_orientation" value="$(var input_orientation)" />
         <param name="input_reference" value="$(var input_reference)" />
-        <remap from="/azimuth_in/pose" to="/compass/utm/ned/pose" />
+        <remap from="/azimuth_in" to="/compass/mag/ned/deg" />
     </node>
 </launch>

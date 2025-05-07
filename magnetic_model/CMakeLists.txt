@@ -45,21 +45,21 @@ target_include_directories(${PROJECT_NAME}
 
 # hpp includes
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#     geometry_msgs
-#     rclcpp
-#     sensor_msgs
-# )
-ament_export_dependencies(
-    ament_index_cpp
-    angles
-    compass_interfaces
-    compass_utils
+ament_export_dependencies( 
     geometry_msgs
     rclcpp
     sensor_msgs
-    tl-expected
 )
+# ament_export_dependencies(
+#     ament_index_cpp
+#     angles
+#     compass_interfaces
+#     compass_utils
+#     geometry_msgs
+#     rclcpp
+#     sensor_msgs
+#     tl-expected
+# )
 
 install(
     DIRECTORY include/

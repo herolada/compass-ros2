@@ -51,7 +51,7 @@ public:
   ~CompassTransformerNodelet() override;
 
   void init();
-  void setBuffer(tf2_ros::Buffer::SharedPtr buffer);
+  void setBuffer(tf2_ros::Buffer::SharedPtr buffer, bool using_dedicated_thread);
 
 protected:
   void publish(const compass_interfaces::msg::Azimuth::ConstSharedPtr& msg);

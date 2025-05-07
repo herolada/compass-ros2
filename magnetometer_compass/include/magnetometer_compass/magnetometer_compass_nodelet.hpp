@@ -257,7 +257,7 @@ public:
   MagnetometerCompassNodelet(const rclcpp::NodeOptions & options);
   ~MagnetometerCompassNodelet() override;
   void init();
-  void setBuffer(tf2_ros::Buffer::SharedPtr buffer);
+  void setBuffer(tf2_ros::Buffer::SharedPtr buffer, bool using_dedicated_thread);
 
 protected:
   //! \brief Joint callback when IMU and magnetometer messages are received.

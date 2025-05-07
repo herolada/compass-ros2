@@ -45,6 +45,7 @@ using Pose = geometry_msgs::msg::PoseWithCovarianceStamped;
 using Imu = sensor_msgs::msg::Imu;
 using Field = sensor_msgs::msg::MagneticField;
 using Fix = sensor_msgs::msg::NavSatFix;
+using namespace std::chrono_literals;
 
 std::vector< std::string > my_argv;
 
@@ -88,8 +89,9 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
-  node->setBuffer(tf);
+  node->setBuffer(tf, false);
   node->init();
+
 
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(node);
@@ -120,46 +122,52 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   {
     lastField = *msg;
   };
+  
+  auto sub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data);
+  auto pub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_system_default);
+  size_t dep = 1;
+  pub_qos.depth = dep;
+  sub_qos.depth = dep;
 
   std::list<rclcpp::PublisherBase::SharedPtr> pubs;
 
-  auto imuPub = node->create_publisher<Imu>("imu/data", 1); pubs.push_back(imuPub);
-  auto magPub = node->create_publisher<Field>("imu/mag", 1); pubs.push_back(magPub);
-  auto magBiasPub = node->create_publisher<Field>("imu/mag_bias", rclcpp::QoS(1).transient_local()); pubs.push_back(magBiasPub);
-  auto fixPub = node->create_publisher<Fix>("gps/fix", rclcpp::QoS(1).transient_local()); pubs.push_back(fixPub);
+  auto imuPub = node->create_publisher<Imu>("imu/data", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(imuPub);
+  auto magPub = node->create_publisher<Field>("imu/mag", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(magPub);
+  auto magBiasPub = node->create_publisher<Field>("imu/mag_bias", rclcpp::SystemDefaultsQoS(pub_qos).transient_local()); pubs.push_back(magBiasPub);
+  auto fixPub = node->create_publisher<Fix>("gps/fix", rclcpp::SystemDefaultsQoS(pub_qos).transient_local()); pubs.push_back(fixPub);
 
   std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
   size_t numAzimuths {0u};
-  auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", 1, magCb); subs.push_back(magUnbiasedSub);
-  auto azMagEnuRadSub = node->create_subscription<Az>("compass/mag/enu/rad", 1,
+  auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), magCb); subs.push_back(magUnbiasedSub);
+  auto azMagEnuRadSub = node->create_subscription<Az>("compass/mag/enu/rad", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE),
     [&az](const Az::ConstSharedPtr& msg) {
       az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC)] = *msg;
     });
   subs.push_back(azMagEnuRadSub); numAzimuths++;
-  auto azMagNedDegSub = node->create_subscription<Az>("compass/mag/ned/deg", 1,
+  auto azMagNedDegSub = node->create_subscription<Az>("compass/mag/ned/deg", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE),
     [&az](const Az::ConstSharedPtr& msg) {
       az[std::make_tuple(Az::UNIT_DEG, Az::ORIENTATION_NED, Az::REFERENCE_MAGNETIC)] = *msg;
     });
   subs.push_back(azMagNedDegSub); numAzimuths++;
-  auto azTrueEnuRadSub = node->create_subscription<Az>("compass/true/enu/rad", 1,
+  auto azTrueEnuRadSub = node->create_subscription<Az>("compass/true/enu/rad", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE),
     [&az](const Az::ConstSharedPtr& msg) {
       az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC)] = *msg;
     });
   subs.push_back(azTrueEnuRadSub); numAzimuths++;
-  auto azUtmEnuRadSub = node->create_subscription<Az>("compass/utm/enu/rad", 1,
+  auto azUtmEnuRadSub = node->create_subscription<Az>("compass/utm/enu/rad", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE),
     [&az](const Az::ConstSharedPtr& msg) {
       az[std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_UTM)] = *msg;
     });
   subs.push_back(azUtmEnuRadSub); numAzimuths++;
-  auto azTrueEnuImuSub = node->create_subscription<Imu>("compass/true/enu/imu", 1, imuCb); subs.push_back(azTrueEnuImuSub);
-  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", 1, quatCb); subs.push_back(azUtmNedQuatSub);
-  auto azUtmNedPoseSub = node->create_subscription<Pose>("compass/utm/ned/pose", 1, poseCb); subs.push_back(azUtmNedPoseSub);
+  auto azTrueEnuImuSub = node->create_subscription<Imu>("compass/true/enu/imu", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), imuCb); subs.push_back(azTrueEnuImuSub);
+  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), quatCb); subs.push_back(azUtmNedQuatSub);
+  auto azUtmNedPoseSub = node->create_subscription<Pose>("compass/utm/ned/pose", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), poseCb); subs.push_back(azUtmNedPoseSub);
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
+    rclcpp::sleep_for(10ms);
     executor.spin_once();
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
   }
@@ -168,8 +176,8 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
-    executor.spin_once(std::chrono::nanoseconds(10'000'000));
+    rclcpp::sleep_for(10ms);
+    executor.spin_once(10ms);
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
   }
 
@@ -222,8 +230,8 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
       && rclcpp::ok();
     ++i)
   {
-    executor.spin_once(std::chrono::nanoseconds(10'000'000));
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
+    executor.spin_once(10ms);
+    rclcpp::sleep_for(10ms);
   }
   // Missing bias + fix + tf, nothing published
   ASSERT_FALSE(lastImu.has_value());
@@ -256,7 +264,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
 
   // Wait until the latched messages are received
-  rclcpp::sleep_for(std::chrono::nanoseconds(200'000'000));
+  rclcpp::sleep_for(200ms);
   executor.spin_once();
 
   imuPub->publish(imu);
@@ -268,8 +276,8 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
       && rclcpp::ok();
     ++i)
   {
-    executor.spin_once(std::chrono::nanoseconds());
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    executor.spin_once(10ms);
+    rclcpp::sleep_for(100ms);
     }
   // Missing tf, nothing published except unbiased magnetometer
   ASSERT_FALSE(lastImu.has_value());
@@ -312,7 +320,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
     ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    rclcpp::sleep_for(100ms);
   }
   ASSERT_TRUE(lastImu.has_value());
   ASSERT_TRUE(lastQuat.has_value());
@@ -427,11 +435,11 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   magPub->publish(mag);
 
   for (size_t i = 0;
-    i < 100 && (!lastField.has_value() || !lastImu.has_value() || az.size() < numAzimuths) && rclcpp::ok();
+    i < 50 && (!lastField.has_value() || !lastImu.has_value() || az.size() < numAzimuths) && rclcpp::ok();
     ++i)
   {
-    executor.spin_once(std::chrono::nanoseconds(10'000'000));
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    executor.spin_once(10ms);
+    rclcpp::sleep_for(100ms);
     
   }
   ASSERT_TRUE(lastImu.has_value());
@@ -500,6 +508,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   EXPECT_EQ("base_link", lastQuat->header.frame_id);
   EXPECT_NEAR(M_PI_2 - 3.451096 + 2 * M_PI, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
 
+  // ERROR:
   EXPECT_EQ(time, lastPose->header.stamp);
   EXPECT_EQ("base_link", lastPose->header.frame_id);
   EXPECT_NEAR(M_PI_2 - 3.451096 + 2 * M_PI,
@@ -526,7 +535,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
-  node->setBuffer(tf);
+  node->setBuffer(tf, false);
   node->init();
 
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -545,21 +554,27 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
     lastField = *msg;
   };
 
+  auto sub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data);
+  auto pub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_system_default);
+  size_t dep = 1;
+  pub_qos.depth = dep;
+  sub_qos.depth = dep;
+
   std::list<rclcpp::PublisherBase::SharedPtr> pubs;
-  auto imuPub = node->create_publisher<Imu>("imu/data", 1); pubs.push_back(imuPub);
-  auto magPub = node->create_publisher<Field>("imu/mag", 1); pubs.push_back(magPub);
+  auto imuPub = node->create_publisher<Imu>("imu/data", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(imuPub);
+  auto magPub = node->create_publisher<Field>("imu/mag", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(magPub);
 
     
   std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
   size_t numAzimuths {0u};
-  auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", 1, magCb); subs.push_back(magUnbiasedSub);
-  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", 1, quatCb); subs.push_back(azUtmNedQuatSub);
+  auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), magCb); subs.push_back(magUnbiasedSub);
+  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), quatCb); subs.push_back(azUtmNedQuatSub);
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
+    rclcpp::sleep_for(10ms);
     executor.spin_once();
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
@@ -568,7 +583,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
+    rclcpp::sleep_for(10ms);
     executor.spin_once();
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
@@ -632,7 +647,7 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   for (size_t i = 0; i < 100 && (!lastField || !lastQuat) && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    rclcpp::sleep_for(100ms);
   }
   ASSERT_TRUE(lastQuat.has_value());
   ASSERT_TRUE(lastField.has_value());
@@ -664,7 +679,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
   tf->setUsingDedicatedThread(true);
 
-  node->setBuffer(tf);
+  node->setBuffer(tf, false);
   node->init();
 
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -677,19 +692,25 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
     lastQuat = *msg;
   };
 
+  auto sub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data);
+  auto pub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_system_default);
+  size_t dep = 1;
+  pub_qos.depth = dep;
+  sub_qos.depth = dep;
+
   std::list<rclcpp::PublisherBase::SharedPtr> pubs;
 
-  auto imuPub = node->create_publisher<Imu>("imu/data", 1); pubs.push_back(imuPub);
-  auto magPub = node->create_publisher<Field>("imu/mag_unbiased", 1); pubs.push_back(magPub);
+  auto imuPub = node->create_publisher<Imu>("imu/data", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(imuPub);
+  auto magPub = node->create_publisher<Field>("imu/mag_unbiased", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(magPub);
 
   std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
-  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", 1, quatCb); subs.push_back(azUtmNedQuatSub);
+  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), quatCb); subs.push_back(azUtmNedQuatSub);
 
   const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
 
   for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
+    rclcpp::sleep_for(10ms);
     executor.spin_once();
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
@@ -698,7 +719,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
   for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
   {
-    rclcpp::sleep_for(std::chrono::nanoseconds(10'000'000));
+    rclcpp::sleep_for(10ms);
     executor.spin_once();
 
     RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
@@ -764,7 +785,7 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   for (size_t i = 0; i < 100 && (!lastQuat) && rclcpp::ok(); ++i)
   {
     executor.spin_once();
-    rclcpp::sleep_for(std::chrono::nanoseconds(100'000'000));
+    rclcpp::sleep_for(100ms);
   }
   ASSERT_TRUE(lastQuat.has_value());
 

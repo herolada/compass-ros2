@@ -143,6 +143,8 @@ std::string UniversalAzimuthSubscriber::getTopic() const
 void UniversalAzimuthSubscriber::azCb(const AzimuthEventType& event) {
   const auto msg = event.getConstMessage();
   const auto stamp = event.getReceiptTime();
+  // RCLCPP_WARN(this->node->get_logger(), "Universal azimuth sub CB %u\n",msg->reference);
+
   const auto maybeAzimuth = this->converter.convertAzimuth(*msg, Az::UNIT_RAD, msg->orientation, msg->reference);
 
   if (!maybeAzimuth.has_value())
@@ -203,6 +205,9 @@ CompassFilter::~CompassFilter() = default;
 void CompassFilter::cbAzimuth(const AzimuthEventType& azimuthEvent)
 {
   const auto& msg = azimuthEvent.getConstMessage();
+  // RCLCPP_WARN(this->node->get_logger(), "compass filter CB in %u\n",msg->reference);
+  // RCLCPP_WARN(this->node->get_logger(), "compass filter convert to %u\n",this->reference.value_or(msg->reference));
+
   const auto output = this->converter->convertAzimuth(
     *msg, this->unit, this->orientation, this->reference.value_or(msg->reference));
   if (!output.has_value())

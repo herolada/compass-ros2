@@ -34,6 +34,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
+#include <tf2_ros/create_timer_ros.h>
 #include <tf2_ros/transform_listener.h>
 
 namespace magnetometer_compass
@@ -53,6 +54,11 @@ MagnetometerCompassNodelet::MagnetometerCompassNodelet() : rclcpp::Node("magneto
   buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
   listener(std::make_shared<tf2_ros::TransformListener>(*buffer))
 {
+  this->buffer->setUsingDedicatedThread(true);
+  auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
+    this->get_node_base_interface(),
+    this->get_node_timers_interface());
+    buffer->setCreateTimerInterface(timer_interface);
 }
 
 MagnetometerCompassNodelet::MagnetometerCompassNodelet(const rclcpp::NodeOptions & options) : rclcpp::Node("magnetometer_compass_nodelet", options),
@@ -60,11 +66,21 @@ MagnetometerCompassNodelet::MagnetometerCompassNodelet(const rclcpp::NodeOptions
   buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
   listener(std::make_shared<tf2_ros::TransformListener>(*buffer))
 {
+  this->buffer->setUsingDedicatedThread(true);
+  auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
+    this->get_node_base_interface(),
+    this->get_node_timers_interface());
+    buffer->setCreateTimerInterface(timer_interface);
 }
 
-void MagnetometerCompassNodelet::setBuffer(tf2_ros::Buffer::SharedPtr buffer)
+void MagnetometerCompassNodelet::setBuffer(tf2_ros::Buffer::SharedPtr buffer, bool using_dedicated_thread)
 {
   this->buffer = buffer;
+  this->buffer->setUsingDedicatedThread(using_dedicated_thread);
+  auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
+    this->get_node_base_interface(),
+    this->get_node_timers_interface());
+    buffer->setCreateTimerInterface(timer_interface);
   this->listener = std::make_shared<tf2_ros::TransformListener>(*this->buffer);
 }
 
@@ -118,6 +134,7 @@ void MagnetometerCompassNodelet::init()
 
   bool publish = this->publishMagUnbiased;
 
+  // TODO: do not pass two nodes to these, but just one (once the sub_nodes inherit parameters (in jazzy they don't)...)
   this->magPublishers.init(compassNh, this, this->converter, "publish", "", Az::REFERENCE_MAGNETIC, "mag");
   publish |= this->magPublishers.publish;
   this->truePublishers.init(compassNh, this, this->converter, "publish", "", Az::REFERENCE_GEOGRAPHIC, "true");
@@ -129,7 +146,7 @@ void MagnetometerCompassNodelet::init()
     RCLCPP_WARN(this->get_logger(), "No publishers have been requested. Please, set one of the publish_* parameters to true.");
 
   if (this->publishMagUnbiased)
-    this->magUnbiasedPub = imuNh->create_publisher<Field>("mag_unbiased", 10);
+    this->magUnbiasedPub = imuNh->create_publisher<Field>("mag_unbiased", rclcpp::SystemDefaultsQoS());
 
   this->imuSub = std::make_unique<message_filters::Subscriber<Imu>>(imuNh, "data");//, 100);
 
@@ -153,7 +170,7 @@ void MagnetometerCompassNodelet::init()
   }
   this->syncSub->registerCallback(&MagnetometerCompassNodelet::imuMagCb, this);
 
-  this->fixSub = this->create_subscription<sensor_msgs::msg::NavSatFix>("gps/fix", 10, [this] (const sensor_msgs::msg::NavSatFix& msg) {this->fixCb(msg);});
+  this->fixSub = this->create_subscription<sensor_msgs::msg::NavSatFix>("gps/fix",  rclcpp::SensorDataQoS(), [this] (const sensor_msgs::msg::NavSatFix& msg) {this->fixCb(msg);});
 };
 
 MagnetometerCompassNodelet::~MagnetometerCompassNodelet() = default;
@@ -192,16 +209,16 @@ void AzimuthPublishersConfigForOrientation::init(
   prefix = compass_utils::appendIfNonEmpty(topicPrefix, "/");
 
   if (this->publishQuat)
-    this->quatPub = namespace_node->create_publisher<Quat>(prefix + getAzimuthTopicSuffix<Quat>(Az::UNIT_RAD, orientation, reference), 10);
+    this->quatPub = namespace_node->create_publisher<Quat>(prefix + getAzimuthTopicSuffix<Quat>(Az::UNIT_RAD, orientation, reference), rclcpp::SystemDefaultsQoS());
   if (this->publishImu)
-    this->imuPub = namespace_node->create_publisher<Imu>(prefix + getAzimuthTopicSuffix<Imu>(Az::UNIT_RAD, orientation, reference), 10);
+    this->imuPub = namespace_node->create_publisher<Imu>(prefix + getAzimuthTopicSuffix<Imu>(Az::UNIT_RAD, orientation, reference), rclcpp::SystemDefaultsQoS());
   if (this->publishPose)
-    this->posePub = namespace_node->create_publisher<Pose>(prefix + getAzimuthTopicSuffix<Pose>(Az::UNIT_RAD, orientation, reference), 10);
+    this->posePub = namespace_node->create_publisher<Pose>(prefix + getAzimuthTopicSuffix<Pose>(Az::UNIT_RAD, orientation, reference), rclcpp::SystemDefaultsQoS());
   if (this->publishRad) {
-    this->radPub = namespace_node->create_publisher<Az>(prefix + getAzimuthTopicSuffix<Az>(Az::UNIT_RAD, orientation, reference), 10);
+    this->radPub = namespace_node->create_publisher<Az>(prefix + getAzimuthTopicSuffix<Az>(Az::UNIT_RAD, orientation, reference), rclcpp::SystemDefaultsQoS());
   }
   if (this->publishDeg) {
-    this->degPub = namespace_node->create_publisher<Az>(prefix + getAzimuthTopicSuffix<Az>(Az::UNIT_DEG, orientation, reference), 10);
+    this->degPub = namespace_node->create_publisher<Az>(prefix + getAzimuthTopicSuffix<Az>(Az::UNIT_DEG, orientation, reference), rclcpp::SystemDefaultsQoS());
   }
 };
 

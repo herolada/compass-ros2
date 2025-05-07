@@ -20,7 +20,7 @@ import threading
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from rclpy.time import Time
-from rclpy.qos import QoSProfile, DurabilityPolicy
+from rclpy.qos import QoSProfile, DurabilityPolicy, QoSPresetProfiles
 from rclpy.duration import Duration
 from rclpy.parameter import Parameter
 

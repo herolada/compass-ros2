@@ -123,9 +123,10 @@ std::string outputTypeToString(const OutputType type)
  *   this nodelet from subscribing `fix` topic, if you know the approximate coordinates in advance).
  */
 
-void CompassTransformerNodelet::setBuffer(tf2_ros::Buffer::SharedPtr buffer)
+void CompassTransformerNodelet::setBuffer(tf2_ros::Buffer::SharedPtr buffer, bool using_dedicated_thread)
 {
   this->buffer = buffer;
+  this->buffer->setUsingDedicatedThread(using_dedicated_thread);
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     this->get_node_base_interface(),
     this->get_node_timers_interface());
@@ -138,6 +139,7 @@ CompassTransformerNodelet::CompassTransformerNodelet(const rclcpp::NodeOptions &
   buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
   listener(std::make_shared<tf2_ros::TransformListener>(*buffer))
 {
+  this->buffer->setUsingDedicatedThread(true);
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     this->get_node_base_interface(),
     this->get_node_timers_interface());
@@ -149,6 +151,7 @@ CompassTransformerNodelet::CompassTransformerNodelet()
   buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
   listener(std::make_shared<tf2_ros::TransformListener>(*buffer))
 {
+  this->buffer->setUsingDedicatedThread(true);
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     this->get_node_base_interface(),
     this->get_node_timers_interface());
@@ -212,27 +215,27 @@ void CompassTransformerNodelet::init()
       outputTopicSuffix = getAzimuthTopicSuffix<sensor_msgs::msg::Imu>(targetUnit, targetOrientation, targetReference);
       topicName = targetAppendSuffix ? "azimuth_out/"+outputTopicSuffix :  "azimuth_out";
       this->pub_imu = this->create_publisher<sensor_msgs::msg::Imu>(
-        topicName, queue_size);
+        topicName, rclcpp::SystemDefaultsQoS());
       break;
     case OutputType::Pose:
       outputTopicSuffix = getAzimuthTopicSuffix<geometry_msgs::msg::PoseWithCovarianceStamped>(
         targetUnit, targetOrientation, targetReference);
       topicName = targetAppendSuffix ? "azimuth_out/"+outputTopicSuffix :  "azimuth_out";
       this->pub_pose = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
-        topicName, queue_size);
+        topicName, rclcpp::SystemDefaultsQoS());
       break;
     case OutputType::Quaternion:
       outputTopicSuffix = getAzimuthTopicSuffix<geometry_msgs::msg::QuaternionStamped>(
         targetUnit, targetOrientation, targetReference);
       topicName = targetAppendSuffix ? "azimuth_out/"+outputTopicSuffix :  "azimuth_out";
       this->pub_quat = this->create_publisher<geometry_msgs::msg::QuaternionStamped>(
-        topicName, queue_size);
+        topicName, rclcpp::SystemDefaultsQoS());
       break;
     default:
       outputTopicSuffix = getAzimuthTopicSuffix<Az>(targetUnit, targetOrientation, targetReference);
       topicName = targetAppendSuffix ? "azimuth_out/"+outputTopicSuffix :  "azimuth_out";
       this->pub_az = this->create_publisher<Az>(
-        topicName, queue_size);
+        topicName, rclcpp::SystemDefaultsQoS());
       break;
   }
 
@@ -317,7 +320,7 @@ void CompassTransformerNodelet::transformAndPublish(const Az::ConstSharedPtr& ms
     Az::SharedPtr outMsg(new Az{});
 
     //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
-    *outMsg = this->buffer->transform(*msg, this->targetFrame);
+    *outMsg = this->buffer->transform(*msg, this->targetFrame, tf2::durationFromSec(0.1));
 
     this->publish(outMsg);
 
