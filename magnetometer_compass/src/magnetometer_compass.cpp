@@ -65,17 +65,11 @@ void MagnetometerCompass::configFromParams()
   if (this->node->has_parameter("initial_variance") &&
       this->node->get_parameter("initial_variance").get_value<double>() != -1.) {
     this->data->variance = this->data->initialVariance = this->node->get_parameter("initial_variance").get_value<double>();    
-  } else {
-    this->data->variance = this->data->initialVariance = this->data->variance;
   }
 
   if (this->node->has_parameter("low_pass_ratio") &&
       this->node->get_parameter("low_pass_ratio").get_value<double>() != -1.) {
-    RCLCPP_WARN(this->node->get_logger(), "present low_pass_ratio %f\n", this->node->get_parameter("low_pass_ratio").get_value<double>());
     this->data->lowPassRatio = this->node->get_parameter("low_pass_ratio").get_value<double>();
-  } else {
-    RCLCPP_WARN(this->node->get_logger(), "missing low_pass_ratio %f\n", this->node->get_parameter("low_pass_ratio").get_value<double>());
-    this->data->lowPassRatio = this->data->lowPassRatio;
   }
 }
 
@@ -170,6 +164,8 @@ void MagnetometerCompass::updateVariance()
 {
   // TODO: measure consistency of IMU rotation and azimuth increase similar to
   //  https://www.sciencedirect.com/science/article/pii/S2405959519302929
+
+  // OR sample (e.g. 8 in cube) magnetometer vectors (with imu/mag covariance) compute azimuth angles and compute their std...
 }
 
 }

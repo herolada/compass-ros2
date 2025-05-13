@@ -40,6 +40,7 @@ target_link_libraries(${PROJECT_NAME} tl::expected)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    # $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/../tl_expected/include>
     $<INSTALL_INTERFACE:include>)
 
 # hpp includes
@@ -49,6 +50,7 @@ ament_export_dependencies(
     rclcpp
     tf2
     tf2_geometry_msgs
+    # tl-expected
     )
 # ament_export_dependencies(
 #     compass_interfaces

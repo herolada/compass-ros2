@@ -29,7 +29,8 @@
   <exec_depend>tf2_geometry_msgs</exec_depend>
   <build_depend>tf2_geometry_msgs</build_depend>
   <depend>geometry_msgs</depend>
-  <depend>tl-expected</depend>
+  <exec_depend>tl-expected</exec_depend>
+  <build_depend>tl-expected</build_depend>
 
   <!--build_depend>cras_cpp_common</build_depend-->
   <!--build_depend>message_generation</build_depend-->

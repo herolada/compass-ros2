@@ -7,7 +7,8 @@
 <launch>
     <arg name="frame" default="base_link" description="The frame in which the azimuth should be computed." />
     <arg name="unbias" default="true" description="When true, magnetometer bias observer and remover will be launched." />
-    <arg name="low_pass_ratio" default="0.2" description="Low pass smoothing ratio. 0 = raw measurements, 1 = no updates." />
+    <arg name="low_pass_ratio" default="0.93" description="Low pass smoothing ratio. 0 = raw measurements, 1 = no updates." />
+    <arg name="initial_variance" default="1e-1" description="Compass uses static covariance for now." />
     <arg name="visualize" default="true" description="Whether to publish a visualization of the azimuth" />
     <arg name="magnetic_declination" default="-0.068" description="Set magnetic declination to zero in simulation." />
 
@@ -17,9 +18,11 @@
     <node pkg="magnetometer_compass" exec="magnetometer_compass_nodelet" name="compass" respawn="true">
         <param name="frame" value="$(var frame)" />
         <param name="low_pass_ratio" value="$(var low_pass_ratio)" />
+        <param name="initial_variance" value="$(var initial_variance)" />
         <param name="magnetic_declination" value="$(var magnetic_declination)" />
         <param name="subscribe_mag_unbiased" value="$(var unbias)" />
         <param name="publish_mag_azimuth_enu_rad" value="true" />
+        <param name="publish_mag_azimuth_enu_imu" value="true" />
     </node>
 
     <node pkg="magnetometer_compass" exec="visualize_azimuth_nodelet" name="visualize_azimuth" if="$(var visualize)">
