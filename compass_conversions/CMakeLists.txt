@@ -81,29 +81,15 @@ target_include_directories(compass_converter
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_compass_converter HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   compass_utils
-#   magnetic_model
-#   angles
-#   compass_interfaces
-#   std_msgs
-#   rclcpp
-#   geometry_msgs
-#   sensor_msgs
-#   tl-expected
-# )
 ament_export_dependencies( 
+  compass_utils
+  magnetic_model
   angles
   compass_interfaces
-  compass_utils
-  geometry_msgs
-  magnetic_model
-  message_filters
-  rclcpp
-  sensor_msgs
   std_msgs
-  tf2
-  tf2_geometry_msgs
+  rclcpp
+  geometry_msgs
+  sensor_msgs
   tl-expected
 )
 
@@ -129,17 +115,7 @@ target_include_directories(compass_message_filter
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_compass_message_filter HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   compass_interfaces
-#   compass_utils
-#   message_filters
-#   rclcpp
-#   sensor_msgs
-#   std_msgs
-#   tl-expected
-# )
 ament_export_dependencies( 
-  angles
   compass_interfaces
   compass_utils
   message_filters
@@ -170,20 +146,11 @@ target_include_directories(tf2_compass_msgs
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_tf2_compass_msgs HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   compass_interfaces
-#   compass_utils
-#   rclcpp
-#   geometry_msgs
-#   tf2
-#   tl-expected
-# )
 ament_export_dependencies( 
-  angles
-  compass_utils
   compass_interfaces
-  geometry_msgs
+  compass_utils
   rclcpp
+  geometry_msgs
   tf2
   tl-expected
 )

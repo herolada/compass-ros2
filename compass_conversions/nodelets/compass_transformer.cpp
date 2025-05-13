@@ -319,7 +319,6 @@ void CompassTransformerNodelet::transformAndPublish(const Az::ConstSharedPtr& ms
   {
     Az::SharedPtr outMsg(new Az{});
 
-    //TODO with timeout throws following, so for now no timeout: [tf2_buffer]: Do not call canTransform or lookupTransform with a timeout unless you are using another thread for populating data. Without a dedicated thread it will always timeout.  If you have a separate thread servicing tf messages, call setUsingDedicatedThread(true) on your Buffer instance.
     *outMsg = this->buffer->transform(*msg, this->targetFrame, tf2::durationFromSec(0.1));
 
     this->publish(outMsg);

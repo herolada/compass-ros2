@@ -198,7 +198,7 @@ TEST(CompassTransformerNodelet, TfConversion)  // NOLINT
   }
   ASSERT_TRUE(lastAz.has_value());
 
-  // EXPECT_EQ(in.header.stamp, lastAz->header.stamp); //TODO buffer->transform changes timestamp...
+  // EXPECT_EQ(in.header.stamp, lastAz->header.stamp); //BUG buffer->transform timestamp loses some precision so not equal anymore...
   EXPECT_EQ("test2", lastAz->header.frame_id);
   EXPECT_NEAR(180.0, lastAz->azimuth, 1e-6);
   EXPECT_EQ(Az::UNIT_DEG, lastAz->unit);
@@ -528,7 +528,7 @@ TEST(CompassTransformerNodelet, FixFromMsg)  // NOLINT
     lastAz = *msg;
   };
 
-  // TODO SOLVE REMAPPING IN ROS2 NODES !!
+  // TODO SOLVE REMAPPING IN TESTS
   auto azimuthPub = node->create_publisher<sensor_msgs::msg::Imu>("azimuth_in/imu", 1);
   auto azimuthSub = node->create_subscription<Az>("azimuth_out", rclcpp::SensorDataQoS(sub_qos), cb);
   // auto azimuthPub = node->create_publisher<sensor_msgs::msg::Imu>("imu/data/mag/ned/imu", 1);
@@ -674,7 +674,7 @@ TEST(CompassTransformerNodelet, SubImuNoDetect)  // NOLINT
     lastAz = *msg;
   };
 
-  // TODO SOLVE REMAPPING IN ROS2 NODES !!
+  // TODO SOLVE REMAPPING IN TESTS
   auto azimuthPub = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("azimuth_in", 1);
   auto azimuthSub = node->create_subscription<Az>("azimuth_out", rclcpp::SensorDataQoS(sub_qos), cb);  
   // auto azimuthPub = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("pose/mag/ned/pose", 1);
@@ -817,7 +817,7 @@ TEST(CompassTransformerNodelet, SubPoseNoDetect)  // NOLINT
 
   auto azimuthPub = node->create_publisher<geometry_msgs::msg::QuaternionStamped>("quat/mag/ned/quat", 1);
   auto azimuthSub = node->create_subscription<Az>("azimuth_out", rclcpp::SensorDataQoS(sub_qos), cb);  
-  //TODO remaps
+  // TODO SOLVE REMAPPING IN TESTS
   // auto azimuthPub = node->create_publisher<geometry_msgs::msg::QuaternionStamped>("quat/mag/ned/quat", 1);
   // auto azimuthSub = node->create_subscription<Az>("azimuth_out", rclcpp::SensorDataQoS(sub_qos), cb);  
 

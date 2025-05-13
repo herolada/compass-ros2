@@ -37,16 +37,9 @@ target_include_directories(magnetometer_bias_remover
   "/usr/include/eigen3"
 )
 ament_export_targets(export_magnetometer_bias_remover HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   sensor_msgs
-#   rclcpp
-#   tf2_eigen
-# )
 ament_export_dependencies( 
-  compass_conversions
-  compass_utils
-  rclcpp
   sensor_msgs
+  rclcpp
   tf2_eigen
 )
 
@@ -58,7 +51,6 @@ ament_target_dependencies(magnetometer_bias_remover_filter
   geometry_msgs
   message_filters
   rclcpp
-  rcutils
   sensor_msgs
 )
 
@@ -70,15 +62,8 @@ target_include_directories(magnetometer_bias_remover_filter
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_magnetometer_bias_remover_filter HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   message_filters
-#   sensor_msgs
-# )
 ament_export_dependencies( 
-  geometry_msgs
   message_filters
-  rclcpp
-  rcutils
   sensor_msgs
 )
 
@@ -101,16 +86,9 @@ target_include_directories(magnetometer_bias_remover_nodelet_lib
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_magnetometer_bias_remover_nodelet_lib HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   message_filters
-#   rclcpp
-#   sensor_msgs
-# )
 ament_export_dependencies( 
-  geometry_msgs
   message_filters
   rclcpp
-  rclcpp_components
   sensor_msgs
 )
 rclcpp_components_register_nodes(magnetometer_bias_remover_nodelet_lib "magnetometer_pipeline::MagnetometerBiasRemoverNodelet")

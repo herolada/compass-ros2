@@ -50,16 +50,6 @@ ament_export_dependencies(
     rclcpp
     sensor_msgs
 )
-# ament_export_dependencies(
-#     ament_index_cpp
-#     angles
-#     compass_interfaces
-#     compass_utils
-#     geometry_msgs
-#     rclcpp
-#     sensor_msgs
-#     tl-expected
-# )
 
 install(
     DIRECTORY include/

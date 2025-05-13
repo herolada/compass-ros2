@@ -53,27 +53,12 @@ target_include_directories(${PROJECT_NAME}
   "/usr/include/eigen3"
 )
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   compass_interfaces
-#   magnetometer_pipeline
-#   sensor_msgs
-#   rclcpp
-#   tf2
-# )
 ament_export_dependencies( 
-  angles
-  compass_conversions
   compass_interfaces
-  compass_utils
-  geometry_msgs
-  imu_transformer
   magnetometer_pipeline
-  message_filters
-  rclcpp
   sensor_msgs
+  rclcpp
   tf2
-  tf2_geometry_msgs
-  tf2_ros
 )
 
 # LIBRARY 2
@@ -107,29 +92,13 @@ target_include_directories(${PROJECT_NAME}_nodelet_lib
   "/usr/include/eigen3"
 )
 ament_export_targets(export_${PROJECT_NAME}_nodelet_lib HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   compass_interfaces
-#   imu_transformer
-#   magnetometer_pipeline
-#   sensor_msgs
-#   rclcpp
-#   tf2
-# )
 ament_export_dependencies( 
-  compass_conversions
   compass_interfaces
-  compass_utils
-  geometry_msgs
   imu_transformer
   magnetometer_pipeline
-  message_filters
-  pluginlib
-  rclcpp
-  rclcpp_components
   sensor_msgs
+  rclcpp
   tf2
-  tf2_geometry_msgs
-  tf2_ros
 )
 rclcpp_components_register_nodes(${PROJECT_NAME}_nodelet_lib "magnetometer_compass::MagnetometerCompassNodelet")
 
@@ -161,27 +130,12 @@ target_include_directories(visualize_azimuth_nodelet_lib
   $<INSTALL_INTERFACE:include>
 )
 ament_export_targets(export_visualize_azimuth_nodelet_lib HAS_LIBRARY_TARGET)
-# ament_export_dependencies( 
-#   compass_interfaces
-#   magnetometer_pipeline
-#   sensor_msgs
-#   rclcpp
-#   tf2
-# )
 ament_export_dependencies( 
-  compass_conversions
   compass_interfaces
-  compass_utils
-  geometry_msgs
-  imu_transformer
   magnetometer_pipeline
-  message_filters
-  rclcpp
-  rclcpp_components
   sensor_msgs
+  rclcpp
   tf2
-  tf2_geometry_msgs
-  tf2_ros
 )
 rclcpp_components_register_nodes(visualize_azimuth_nodelet_lib "magnetometer_compass::VisualizeAzimuthNodelet")
 
@@ -211,14 +165,6 @@ install(TARGETS
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
-# Do we need this???:
-# https://github.com/ros2/demos/blob/23b3bb5807223673cfd3f5e5652e8b0fe2568d7d/composition/CMakeLists.txt#L77
-# since the package installs libraries without exporting them
-# it needs to make sure that the library path is being exported
-#if(NOT WIN32)
-#  ament_environment_hooks(
-#    "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}")
-#endif()
 
 
 ############################

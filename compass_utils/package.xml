@@ -16,7 +16,6 @@
 
   <license file="LICENSE">BSD</license>
 
-
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
@@ -24,21 +23,10 @@
 
   <depend>rclcpp</depend>
   <depend>compass_interfaces</depend>
-  <depend>tf2</depend>
-  <depend>tf2_ros</depend>
-  <exec_depend>tf2_geometry_msgs</exec_depend>
-  <build_depend>tf2_geometry_msgs</build_depend>
   <depend>geometry_msgs</depend>
-  <exec_depend>tl-expected</exec_depend>
-  <build_depend>tl-expected</build_depend>
-
-  <!--build_depend>cras_cpp_common</build_depend-->
-  <!--build_depend>message_generation</build_depend-->
-
-  <build_export_depend>message_runtime</build_export_depend>
-
-  <!--exec_depend>cras_cpp_common</exec_depend-->
-  <exec_depend>message_runtime</exec_depend>
+  <depend>tf2</depend>
+  <depend>tl-expected</depend>
+  <depend>tf2_geometry_msgs</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>

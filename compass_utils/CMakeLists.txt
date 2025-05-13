@@ -3,7 +3,6 @@ set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(compass_utils)
 
-# find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(compass_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -25,7 +24,6 @@ add_library(${PROJECT_NAME} SHARED
     src/tf2_utils.cpp
 )
 
-# all includes
 ament_target_dependencies(${PROJECT_NAME}
     compass_interfaces
     geometry_msgs
@@ -40,26 +38,17 @@ target_link_libraries(${PROJECT_NAME} tl::expected)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    # $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/../tl_expected/include>
     $<INSTALL_INTERFACE:include>)
 
-# hpp includes
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies( 
     compass_interfaces
+    geometry_msgs
     rclcpp
     tf2
     tf2_geometry_msgs
-    # tl-expected
-    )
-# ament_export_dependencies(
-#     compass_interfaces
-#     geometry_msgs
-#     rclcpp
-#     tf2
-#     tf2_geometry_msgs
-#     tl-expected
-#     )
+    tl-expected
+)
 
 install(
     DIRECTORY include/
@@ -92,7 +81,6 @@ if(BUILD_TESTING)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     )
-    # set_tests_properties(test_rate_limiter PROPERTIES ENVIRONMENT "GTEST_CAPTURE=0")
 
     ament_add_gtest(test_string_utils test/test_string_utils.cpp)
     target_link_libraries(test_string_utils ${PROJECT_NAME})
