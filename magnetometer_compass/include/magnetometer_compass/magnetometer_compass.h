@@ -63,6 +63,9 @@ public:
    */
   virtual void configFromParams();
 
+  geometry_msgs::msg::Quaternion getRotationBetweenFrames(
+    const sensor_msgs::msg::Imu& imu_msg);
+
   /**
    * \brief The azimuth is filtered with a low-pass filter. This sets its aggressivity.
    * \param[in] ratio The ratio (0 means raw measurements, 1 means no updates).
@@ -95,5 +98,6 @@ protected:
 private:
   std::unique_ptr<MagnetometerCompassPrivate> data;  //!< PIMPL
   const rclcpp::Node* node;
+  geometry_msgs::msg::Quaternion last_imu_orientation = geometry_msgs::msg::Quaternion();
 };
 }
