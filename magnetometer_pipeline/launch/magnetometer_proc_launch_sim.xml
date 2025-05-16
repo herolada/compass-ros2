@@ -5,6 +5,9 @@
   <arg name="load_from_params" default="false" description="Whether to load initial calibration from ROS params." />
   <arg name="load_from_file" default="true" description="Whether to load initial calibration from calibration file." />
   <arg name="save_to_file" default="true" description="Whether to save updated calibration to calibration file." />
+  <arg name="initial_mag_bias_x" default="0.0" description="BAG FILE." />
+  <arg name="initial_mag_bias_y" default="0.0" description="BAG FILE." />
+  <arg name="initial_mag_bias_z" default="0.0" description="BAG FILE." />
   
   <!-- PY bias observer node -->
   <node pkg="magnetometer_pipeline" exec="magnetometer_bias_observer.py" name="mag_bias_observer" respawn="true">
@@ -18,6 +21,9 @@
   
   <!-- CPP bias remover node -->
   <node pkg="magnetometer_pipeline" exec="magnetometer_bias_remover_nodelet" name="magnetometer_bias_remover_nodelet">
-      <!-- <remap from="imu/mag" to="magnetometer/data" /> -->
+    <!-- <remap from="imu/mag" to="magnetometer/data" /> -->
+    <param name="initial_mag_bias_x" value="$(var initial_mag_bias_x)" />
+    <param name="initial_mag_bias_y" value="$(var initial_mag_bias_y)" />
+    <param name="initial_mag_bias_z" value="$(var initial_mag_bias_z)" />
   </node>
 </launch>

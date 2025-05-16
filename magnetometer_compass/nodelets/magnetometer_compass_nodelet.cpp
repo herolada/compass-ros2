@@ -16,7 +16,7 @@
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
 #include <magnetometer_compass/magnetometer_compass.h>
 #include <magnetometer_compass/magnetometer_compass_nodelet.hpp>
-#include <magnetometer_compass/tf2_sensor_msgs.h>
+// #include <magnetometer_compass/tf2_sensor_msgs.h>
 #include <magnetometer_pipeline/message_filter.h>
 #include <memory>
 #include <message_filters/subscriber.h>
@@ -36,6 +36,8 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/create_timer_ros.h>
 #include <tf2_ros/transform_listener.h>
+#include <rclcpp/../../imu_transformer/tf2_sensor_msgs.h>
+
 
 namespace magnetometer_compass
 {

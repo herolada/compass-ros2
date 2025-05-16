@@ -155,6 +155,7 @@ tl::expected<compass_interfaces::msg::Azimuth, std::string> MagnetometerCompass:
 #if 1
   tf2::Quaternion final_rot;
   final_rot.setRPY(corrected_roll, corrected_pitch, 0.);
+  final_rot.normalize();
   // RCLCPP_WARN(this->node->get_logger(), "COR roll: %f, pitch: %f, yaw: %f\n", corrected_roll, corrected_pitch, corrected_yaw);
 
   tf2::Vector3 magNoAttitude;
