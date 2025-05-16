@@ -14,7 +14,7 @@
 #include <compass_utils/string_utils.hpp>
 #include <compass_utils/tf2_utils.hpp>
 #include <magnetometer_compass/magnetometer_compass.h>
-#include <magnetometer_compass/tf2_sensor_msgs.h>
+// #include <magnetometer_compass/tf2_sensor_msgs.h>
 #include <map>
 #include <memory>
 #include <optional>
@@ -27,6 +27,7 @@
 #include <tf2/time.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <rclcpp/../../imu_transformer/tf2_sensor_msgs.h>
 
 namespace magnetometer_compass
 {
