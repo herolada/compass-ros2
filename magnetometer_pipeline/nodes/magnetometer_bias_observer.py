@@ -20,7 +20,7 @@ import threading
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from rclpy.time import Time
-from rclpy.qos import QoSProfile, DurabilityPolicy, QoSPresetProfiles
+from rclpy.qos import QoSProfile, DurabilityPolicy, QoSPresetProfiles, qos_profile_services_default
 from rclpy.duration import Duration
 from rclpy.parameter import Parameter
 
@@ -83,7 +83,7 @@ class MagBiasObserver(Node):
 
         self.sub = None  # will be initialized in subscribe()
 
-        self.calibrate_server = self.create_service(Trigger, "calibrate_magnetometer", self.calibrate_service_cb)
+        self.calibrate_server = self.create_service(Trigger, "calibrate_magnetometer", callback=self.calibrate_service_cb, qos_profile=qos_profile_services_default)
 
         # sleep_rate = self.create_rate(1)
         if load_from_file:
@@ -112,6 +112,7 @@ class MagBiasObserver(Node):
             self.get_logger().warn("Calibration in progress, ignoring another request")
             response.success = False
             response.message = "Calibration already running"
+
             return response
 
         self.subscribe()
@@ -161,7 +162,7 @@ class MagBiasObserver(Node):
             self.get_logger().warn("Magnetometer calibrated")
             self.speak("Magnetometer calibrated")
             self.destroy_subscription(self.sub)  # unsubscribe the mag messages
-
+            self.sub = None
             self.set_means()
             self.pub_msg()
 
