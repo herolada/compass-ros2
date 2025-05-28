@@ -18,9 +18,12 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <build_depend>geographiclib</build_depend>
+  <build_depend>libexpected-dev</build_depend>
   <build_depend>magnetic_model</build_depend>
   <build_depend>nodelet</build_depend>
   <build_depend>tf2_ros</build_depend>
+
+  <build_export_depend>libexpected-dev</build_export_depend>
 
   <exec_depend>geographiclib</exec_depend>
   <exec_depend>magnetic_model</exec_depend>
@@ -38,7 +41,6 @@
   <depend>std_msgs</depend>
   <depend>tf2</depend>
   <depend>topic_tools</depend>
-  <depend>tl-expected</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>

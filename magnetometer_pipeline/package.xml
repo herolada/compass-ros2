@@ -18,19 +18,20 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <depend>tl-expected</depend>
   <depend>rclpy</depend>
 
   <build_depend>compass_utils</build_depend>
-  <build_depend>Eigen3</build_depend>
+  <build_depend>eigen</build_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>libexpected-dev</build_depend>
   <build_depend>message_filters</build_depend>
   <build_depend>rclcpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
+  
+  <build_export_depend>libexpected-dev</build_export_depend>
 
   <exec_depend>compass_utils</exec_depend>
   <exec_depend>compass_conversions</exec_depend>
-  <exec_depend>Eigen3</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>message_filters</exec_depend>
   <exec_depend>rclcpp</exec_depend>
