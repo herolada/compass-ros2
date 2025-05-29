@@ -2,9 +2,9 @@
 <launch>
   <arg name="two_d_mode" default="true" description="If true, calibration will only be done in 2 dimensions instead of 3." />
   <arg name="calibration_file_path" default="$(env HOME)/.ros/magnetometer_calib.yaml" description="If nonempty, specifies path to the calibration file." />
-  <arg name="load_from_params" default="false" description="Whether to load initial calibration from ROS params." />
-  <arg name="load_from_file" default="true" description="Whether to load initial calibration from calibration file." />
-  <arg name="save_to_file" default="true" description="Whether to save updated calibration to calibration file." />
+  <arg name="load_from_params" default="true" description="Whether to load initial calibration from ROS params." />
+  <arg name="load_from_file" default="false" description="Whether to load initial calibration from calibration file." />
+  <arg name="save_to_file" default="false" description="Whether to save updated calibration to calibration file." />
   <arg name="initial_mag_bias_x" default="0.0" description="BAG FILE." />
   <arg name="initial_mag_bias_y" default="0.0" description="BAG FILE." />
   <arg name="initial_mag_bias_z" default="0.0" description="BAG FILE." />
