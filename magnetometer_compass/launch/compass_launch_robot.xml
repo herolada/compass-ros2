@@ -10,7 +10,7 @@
     <arg name="low_pass_ratio" default="0.93" description="Low pass smoothing ratio. 0 = raw measurements, 1 = no updates." />
     <arg name="initial_variance" default="1e+2" description="Compass uses static covariance for now." />
     <arg name="visualize" default="true" description="Whether to publish a visualization of the azimuth" />
-    <arg name="magnetic_declination" default="-0.068" description="Set magnetic declination to zero in simulation." />
+<!--    <arg name="magnetic_declination" default="-0.068" description="Set magnetic declination to zero in simulation." />-->
     <!-- <arg name="initial_lat" default="50.25169" description="for bag file without gps fix." />
     <arg name="initial_lon" default="13.12277" description="for bag file without gps fix." /> -->
     <arg name="initial_mag_bias_x" default="0.0" description="BAG FILE." />
@@ -28,18 +28,19 @@
         <param name="subscribe_mag_unbiased" value="$(var unbias)" />
         <param name="publish_mag_azimuth_enu_rad" value="true" />
         <param name="publish_mag_azimuth_enu_imu" value="true" />
+        <param name="publish_utm_azimuth_enu_rad" value="true" />
+        <param name="publish_utm_azimuth_enu_imu" value="true" />
         <param name="initial_mag_bias_x" value="$(var initial_mag_bias_x)" />
         <param name="initial_mag_bias_y" value="$(var initial_mag_bias_y)" />
         <param name="initial_mag_bias_z" value="$(var initial_mag_bias_z)" />
     </node>
 
     <node pkg="magnetometer_compass" exec="visualize_azimuth_nodelet" name="visualize_azimuth" if="$(var visualize)">
-        <remap from="visualize_azimuth/azimuth" to="compass/mag/enu/rad" />
-        <remap from="gps/fix" to="navsatfix" />
-        <param name="magnetic_declination" value="$(var magnetic_declination)" />
+        <remap from="visualize_azimuth/azimuth" to="compass/utm/enu/rad" />
+<!--        <param name="magnetic_declination" value="$(var magnetic_declination)" />-->
         <param name="max_rate" value="10." />
         <param name="input_orientation" value="enu" />
-        <param name="input_reference" value="magnetic" />
+        <param name="input_reference" value="utm" />
         <!-- <param name="initial_lat" value="$(var initial_lat)" />
         <param name="initial_lon" value="$(var initial_lon)" /> -->
     </node>

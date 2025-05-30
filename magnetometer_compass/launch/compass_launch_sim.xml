@@ -26,16 +26,18 @@
         <param name="subscribe_mag_unbiased" value="$(var unbias)" />
         <param name="publish_mag_azimuth_enu_rad" value="true" />
         <param name="publish_mag_azimuth_enu_imu" value="true" />
+        <param name="publish_utm_azimuth_enu_rad" value="true" />
+        <param name="publish_utm_azimuth_enu_imu" value="true" />
         <param name="initial_mag_bias_x" value="$(var initial_mag_bias_x)" />
         <param name="initial_mag_bias_y" value="$(var initial_mag_bias_y)" />
         <param name="initial_mag_bias_z" value="$(var initial_mag_bias_z)" />
     </node>
 
     <node pkg="magnetometer_compass" exec="visualize_azimuth_nodelet" name="visualize_azimuth" if="$(var visualize)">
-        <remap from="visualize_azimuth/azimuth" to="compass/mag/enu/rad" />
-        <param name="magnetic_declination" value="$(var magnetic_declination)" />
+        <remap from="visualize_azimuth/azimuth" to="compass/utm/enu/rad" />
+<!--        <param name="magnetic_declination" value="$(var magnetic_declination)" />-->
         <param name="max_rate" value="10." />
         <param name="input_orientation" value="enu" />
-        <param name="input_reference" value="magnetic" />
+        <param name="input_reference" value="utm" />
     </node>
 </launch>
