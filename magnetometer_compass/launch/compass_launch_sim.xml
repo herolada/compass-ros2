@@ -10,7 +10,7 @@
     <arg name="low_pass_ratio" default="0.93" description="Low pass smoothing ratio. 0 = raw measurements, 1 = no updates." />
     <arg name="initial_variance" default="1e-0" description="Compass uses static covariance for now." />
     <arg name="visualize" default="true" description="Whether to publish a visualization of the azimuth" />
-    <arg name="magnetic_declination" default="-0.068" description="Set magnetic declination to zero in simulation." />
+<!--    <arg name="magnetic_declination" default="-0.068" description="Set magnetic declination to zero in simulation." />-->
     <arg name="initial_mag_bias_x" default="0.0" description="BAG FILE." />
     <arg name="initial_mag_bias_y" default="0.0" description="BAG FILE." />
     <arg name="initial_mag_bias_z" default="0.0" description="BAG FILE." />
@@ -22,7 +22,7 @@
         <param name="frame" value="$(var frame)" />
         <param name="low_pass_ratio" value="$(var low_pass_ratio)" />
         <param name="initial_variance" value="$(var initial_variance)" />
-        <param name="magnetic_declination" value="$(var magnetic_declination)" />
+<!--        <param name="magnetic_declination" value="$(var magnetic_declination)" />-->
         <param name="subscribe_mag_unbiased" value="$(var unbias)" />
         <param name="publish_mag_azimuth_enu_rad" value="true" />
         <param name="publish_mag_azimuth_enu_imu" value="true" />

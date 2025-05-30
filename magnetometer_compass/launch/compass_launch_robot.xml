@@ -24,7 +24,7 @@
         <param name="frame" value="$(var frame)" />
         <param name="low_pass_ratio" value="$(var low_pass_ratio)" />
         <param name="initial_variance" value="$(var initial_variance)" />
-        <param name="magnetic_declination" value="$(var magnetic_declination)" />
+<!--        <param name="magnetic_declination" value="$(var magnetic_declination)" />-->
         <param name="subscribe_mag_unbiased" value="$(var unbias)" />
         <param name="publish_mag_azimuth_enu_rad" value="true" />
         <param name="publish_mag_azimuth_enu_imu" value="true" />
