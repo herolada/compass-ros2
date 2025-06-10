@@ -668,6 +668,151 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   EXPECT_NEAR((3.534008 + declination - gridConv) - M_PI_2, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
 }
 
+TEST(MagnetometerCompassNodelet, InitFromParamsWallTime)  // NOLINT
+{
+  // The values in this test are extracted from a real-world bag file recording.
+
+  rclcpp::NodeOptions node_options;
+  node_options.append_parameter_override("publish_utm_azimuth_ned_quat", true);
+  node_options.append_parameter_override("publish_mag_unbiased", true);
+  node_options.append_parameter_override("low_pass_ratio", 0.0);
+  node_options.append_parameter_override("initial_mag_bias_x", -0.097227663);
+  node_options.append_parameter_override("initial_mag_bias_y", -0.692264333);
+  node_options.append_parameter_override("initial_mag_bias_z", 0.0);
+  node_options.append_parameter_override("initial_lat", 50.090806436);
+  node_options.append_parameter_override("initial_lon", 14.133202857);
+  node_options.append_parameter_override("initial_alt", 445.6146);
+  node_options.append_parameter_override("use_wall_time_for_declination", true);
+  auto node = createNodelet(node_options);
+
+  auto tf = std::make_shared<tf2_ros::Buffer>(node->get_clock());
+  tf->setUsingDedicatedThread(true);
+
+  node->setBuffer(tf, false);
+  node->init();
+
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node);
+  ASSERT_NE(nullptr, node);
+
+  std::optional<Quat> lastQuat;
+  auto quatCb = [&lastQuat](const Quat::ConstSharedPtr& msg)
+  {
+    lastQuat = *msg;
+  };
+
+  std::optional<Field> lastField;
+  auto magCb = [&lastField](const Field::ConstSharedPtr& msg)
+  {
+    lastField = *msg;
+  };
+
+  auto sub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data);
+  auto pub_qos = rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_system_default);
+  size_t dep = 1;
+  pub_qos.depth = dep;
+  sub_qos.depth = dep;
+
+  std::list<rclcpp::PublisherBase::SharedPtr> pubs;
+  auto imuPub = node->create_publisher<Imu>("imu/data", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(imuPub);
+  auto magPub = node->create_publisher<Field>("imu/mag", rclcpp::SystemDefaultsQoS(pub_qos)); pubs.push_back(magPub);
+
+
+  std::list<rclcpp::SubscriptionBase::SharedPtr> subs;
+  size_t numAzimuths {0u};
+  auto magUnbiasedSub = node->create_subscription<Field>("imu/mag_unbiased", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), magCb); subs.push_back(magUnbiasedSub);
+  auto azUtmNedQuatSub = node->create_subscription<Quat>("compass/utm/ned/quat", rclcpp::SensorDataQoS(sub_qos).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE), quatCb); subs.push_back(azUtmNedQuatSub);
+
+  const auto pubTest = [](const rclcpp::PublisherBase::SharedPtr p) {return p->get_subscription_count() == 0;};
+
+  for (size_t i = 0; i < 1000 && std::any_of(pubs.begin(), pubs.end(), pubTest); ++i)
+  {
+    rclcpp::sleep_for(10ms);
+    executor.spin_once();
+
+    RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for publisher connections.");
+  }
+
+  const auto subTest = [](const rclcpp::SubscriptionBase::SharedPtr p) {return p->get_publisher_count() == 0;};
+  for (size_t i = 0; i < 1000 && std::any_of(subs.begin(), subs.end(), subTest); ++i)
+  {
+    rclcpp::sleep_for(10ms);
+    executor.spin_once();
+
+    RCLCPP_WARN_SKIPFIRST_THROTTLE(node->get_logger(), *node->get_clock(), 200., "Waiting for subscriber connections.");
+  }
+
+  ASSERT_FALSE(std::any_of(pubs.begin(), pubs.end(), pubTest));
+  ASSERT_FALSE(std::any_of(subs.begin(), subs.end(), subTest));
+
+  builtin_interfaces::msg::Time time;
+  time.sec = 10;
+  time.nanosec = 0;
+
+  geometry_msgs::msg::TransformStamped baseLinkImuTf;
+  baseLinkImuTf.header.stamp = time;
+  baseLinkImuTf.header.frame_id = "base_link";
+  baseLinkImuTf.child_frame_id = "imu";
+  baseLinkImuTf.transform.translation.x = 0;
+  baseLinkImuTf.transform.translation.y = 0;
+  baseLinkImuTf.transform.translation.z = 0.15;
+  baseLinkImuTf.transform.rotation.x = 0.7071067811882787;
+  baseLinkImuTf.transform.rotation.y = -0.7071067811848163;
+  baseLinkImuTf.transform.rotation.z = 7.312301077167311e-14;
+  baseLinkImuTf.transform.rotation.w = -7.312301077203115e-14;
+  tf->setTransform(baseLinkImuTf, "test", true);
+
+  // Publish imu + mag + tf without bias + fix, which should be substituted by params
+  Imu imu;
+  imu.header.stamp = time;
+  imu.header.frame_id = "imu";
+  imu.angular_velocity.x = -0.002507;
+  imu.angular_velocity.y = 0.015959;
+  imu.angular_velocity.z = 0.044427;
+  imu.linear_acceleration.x = 0.108412;
+  imu.linear_acceleration.y = 0.520543;
+  imu.linear_acceleration.z = -9.605243;
+  imu.orientation.x = 0.747476;
+  imu.orientation.y = -0.664147;
+  imu.orientation.z = 0.013337;
+  imu.orientation.w = -0.003273;
+  imu.angular_velocity_covariance[0 * 3 + 0] = 0.000436;
+  imu.angular_velocity_covariance[1 * 3 + 1] = 0.000436;
+  imu.angular_velocity_covariance[2 * 3 + 2] = 0.000436;
+  imu.linear_acceleration_covariance[0 * 3 + 0] = 0.0004;
+  imu.linear_acceleration_covariance[1 * 3 + 1] = 0.0004;
+  imu.linear_acceleration_covariance[2 * 3 + 2] = 0.0004;
+  imu.orientation_covariance[0 * 3 + 0] = 0.017453;
+  imu.orientation_covariance[1 * 3 + 1] = 0.017453;
+  imu.orientation_covariance[2 * 3 + 2] = 0.157080;
+  imuPub->publish(imu);
+
+  Field mag;
+  mag.header.stamp = time;
+  mag.header.frame_id = "imu";
+  // These values are exaggerated (in Gauss instead of in Tesla), but they're consistent with ethzasl_xsens_driver
+  // output. To just estimate the direction, it is no problem.
+  mag.magnetic_field.x = 0.263093;
+  mag.magnetic_field.y = -0.538677;
+  mag.magnetic_field.z = 0.157033;
+  magPub->publish(mag);
+
+  for (size_t i = 0; i < 100 && (!lastField || !lastQuat) && rclcpp::ok(); ++i)
+  {
+    executor.spin_once();
+    rclcpp::sleep_for(100ms);
+  }
+  ASSERT_TRUE(lastQuat.has_value());
+  ASSERT_TRUE(lastField.has_value());
+
+  EXPECT_EQ(time, lastField->header.stamp);
+  EXPECT_EQ("imu", lastField->header.frame_id);
+  // We cannot compare exact values because wall time is used
+
+  EXPECT_EQ(time, lastQuat->header.stamp);
+  EXPECT_EQ("base_link", lastQuat->header.frame_id);
+}
+
 TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
 {
   // The values in this test are extracted from a real-world bag file recording.

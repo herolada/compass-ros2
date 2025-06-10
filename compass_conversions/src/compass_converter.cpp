@@ -87,6 +87,9 @@ void CompassConverter::configFromParams()
   if (this->node->has_parameter("utm_zone") && this->node->get_parameter("utm_zone").get_value<int>() != -1)
     this->forceUTMZone(std::make_optional<int>(this->node->get_parameter("utm_zone").get_value<int>()));
 
+  if (this->node->has_parameter("use_wall_time_for_declination"))
+    this->useWallTimeForDeclination = this->node->get_parameter("use_wall_time_for_declination").get_value<bool>();
+
   this->setKeepUTMZone(this->node->get_parameter_or<bool>("keep_utm_zone", this->keepUTMZone));
 
   if (!this->forcedMagneticDeclination.has_value() || !this->forcedUTMGridConvergence.has_value())
@@ -134,6 +137,11 @@ void CompassConverter::setMagneticModelPath(const std::optional<std::string>& mo
 void CompassConverter::forceMagneticModelName(const std::string& model)
 {
   this->forcedMagneticModelName = model;
+}
+
+void CompassConverter::setUseWallTimeForDeclination(const bool use)
+{
+  this->useWallTimeForDeclination = use;
 };
 
 void CompassConverter::setKeepUTMZone(const bool keep)
@@ -155,12 +163,13 @@ tl::expected<double, std::string> CompassConverter::getMagneticDeclination(const
 tl::expected<double, std::string> CompassConverter::computeMagneticDeclination(
   const sensor_msgs::msg::NavSatFix& fix, const rclcpp::Time& stamp) const
 {
-  const auto year = compass_utils::getYear(stamp);
+  const auto modelStamp = this->useWallTimeForDeclination ? rclcpp::Clock().now() : stamp;
+  const auto year = compass_utils::getYear(modelStamp);
   // RCLCPP_WARN(this->node->get_logger(), "year %u\n\n\n", year);
   if (this->data->magneticModels[year] == nullptr)
   {
     const auto modelName = !this->forcedMagneticModelName.empty() ?
-      this->forcedMagneticModelName : this->data->magneticModelManager->getBestMagneticModelName(stamp);
+      this->forcedMagneticModelName : this->data->magneticModelManager->getBestMagneticModelName(modelStamp);
 
     const auto model = this->data->magneticModelManager->getMagneticModel(modelName, this->strict);
     if (!model.has_value())
@@ -172,7 +181,7 @@ tl::expected<double, std::string> CompassConverter::computeMagneticDeclination(
 
   const auto& magModel = *this->data->magneticModels[year];
 
-  const auto fieldComponents = magModel.getMagneticFieldComponents(fix, stamp);
+  const auto fieldComponents = magModel.getMagneticFieldComponents(fix, modelStamp);
   if (!fieldComponents.has_value())
     return compass_utils::make_unexpected(fieldComponents.error());
 

@@ -67,6 +67,12 @@ TEST(CompassConverter, ConfigFromParams)  // NOLINT
   node.set_parameter(parameter5);
 
   converter.configFromParams();
+
+  node.declare_parameter("use_wall_time_for_declination", true);
+  rclcpp::Parameter parameter6("use_wall_time_for_declination", true);
+  node.set_parameter(parameter6);
+
+  converter.configFromParams();
 }
 
 TEST(CompassConverter, ComputeMagneticDeclination)  // NOLINT
@@ -96,6 +102,12 @@ TEST(CompassConverter, ComputeMagneticDeclination)  // NOLINT
   time = compass_utils::parseTime("2000-11-18T13:00:00Z");
   maybeDeclination = converter.computeMagneticDeclination(fix, time);
   EXPECT_FALSE(maybeDeclination.has_value());
+
+  // Magnetic model for wall time is used.
+  converter.setUseWallTimeForDeclination(true);
+  time = compass_utils::parseTime("2000-11-18T13:00:00Z");
+  maybeDeclination = converter.computeMagneticDeclination(fix, time);
+  EXPECT_TRUE(maybeDeclination.has_value());
 }
 
 TEST(CompassConverter, GetMagneticDeclination)  // NOLINT
@@ -131,6 +143,12 @@ TEST(CompassConverter, GetMagneticDeclination)  // NOLINT
   time = compass_utils::parseTime("2000-11-18T13:00:00Z");
   maybeDeclination = converter.getMagneticDeclination(time);
   EXPECT_FALSE(maybeDeclination.has_value());
+
+  // Magnetic model for wall time is used.
+  converter.setUseWallTimeForDeclination(true);
+  time = compass_utils::parseTime("2000-11-18T13:00:00Z");
+  maybeDeclination = converter.getMagneticDeclination(time);
+  EXPECT_TRUE(maybeDeclination.has_value());
 }
 
 TEST(CompassConverter, ComputeUTMGridConvergence)  // NOLINT
@@ -1372,6 +1390,35 @@ TEST(CompassConverter, ConvertWithInitialVals)  // NOLINT
   ASSERT_TRUE(maybeAzimuth.has_value());
   EXPECT_EQ(azimuth.header, maybeAzimuth->header);
   EXPECT_NEAR(M_PI_2 + declinationRad - convergenceRad, maybeAzimuth->azimuth, 1e-2);
+  EXPECT_EQ(Az::UNIT_RAD, maybeAzimuth->unit);
+  EXPECT_EQ(Az::ORIENTATION_ENU, maybeAzimuth->orientation);
+  EXPECT_EQ(Az::REFERENCE_MAGNETIC, maybeAzimuth->reference);
+}
+
+TEST(CompassConverter, ConvertWithInitialValsZeroTime)  // NOLINT
+{
+  rclcpp::Node node = rclcpp::Node("test_node");
+
+  sensor_msgs::msg::NavSatFix fix;
+  fix.latitude = 51.0;
+  fix.longitude = 10.0;
+  fix.altitude = 200.0;
+
+  const auto clk = rclcpp::Clock();
+  compass_conversions::CompassConverter converter(&node, true);
+  converter.setNavSatPos(fix);
+  converter.setUseWallTimeForDeclination(true);
+
+  const auto time = compass_utils::parseTime("1970-01-01T13:00:00Z");
+  Az azimuth;
+  azimuth.header.frame_id = "test";
+  azimuth.header.stamp = time;
+
+  azimuth.unit = Az::UNIT_RAD; azimuth.orientation = Az::ORIENTATION_ENU; azimuth.reference = Az::REFERENCE_UTM;
+  azimuth.azimuth = M_PI_2;
+  auto maybeAzimuth = converter.convertAzimuth(azimuth, Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC);
+  ASSERT_TRUE(maybeAzimuth.has_value());
+  EXPECT_EQ(azimuth.header, maybeAzimuth->header);
   EXPECT_EQ(Az::UNIT_RAD, maybeAzimuth->unit);
   EXPECT_EQ(Az::ORIENTATION_ENU, maybeAzimuth->orientation);
   EXPECT_EQ(Az::REFERENCE_MAGNETIC, maybeAzimuth->reference);
