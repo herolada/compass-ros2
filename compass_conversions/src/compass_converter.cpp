@@ -109,7 +109,7 @@ void CompassConverter::configFromParams()
 
       RCLCPP_INFO(
         this->node->get_logger(), "Initial GPS coords for computation of %s are %.6f°, %.6f°, altitude %.0f m.",
-        compass_utils::join(computedValues, "and").c_str(), msg.latitude, msg.longitude, msg.altitude);
+        compass_utils::join(computedValues, " and ").c_str(), msg.latitude, msg.longitude, msg.altitude);
 
       this->setNavSatPos(msg);
     }

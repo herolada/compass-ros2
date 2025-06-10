@@ -339,7 +339,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   const auto radEnuMag = std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_MAGNETIC);
   EXPECT_EQ(time, az[radEnuMag]->header.stamp);
   EXPECT_EQ("base_link", az[radEnuMag]->header.frame_id);
-  EXPECT_NEAR(3.534008, az[radEnuMag]->azimuth, 1e-6);
+  EXPECT_NEAR(3 * M_PI - 3.534008, az[radEnuMag]->azimuth, 1e-6);
   EXPECT_EQ(0.0, az[radEnuMag]->variance);
   EXPECT_EQ(Az::UNIT_RAD, az[radEnuMag]->unit);
   EXPECT_EQ(Az::ORIENTATION_ENU, az[radEnuMag]->orientation);
@@ -348,16 +348,18 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   const auto degNedMag = std::make_tuple(Az::UNIT_DEG, Az::ORIENTATION_NED, Az::REFERENCE_MAGNETIC);
   EXPECT_EQ(time, az[degNedMag]->header.stamp);
   EXPECT_EQ("base_link", az[degNedMag]->header.frame_id);
-  EXPECT_NEAR(90 - angles::to_degrees(3.534008) + 360, az[degNedMag]->azimuth, 1e-4);
+  EXPECT_NEAR(90 - angles::to_degrees(3 * M_PI - 3.534008) + 360, az[degNedMag]->azimuth, 1e-4);
   EXPECT_EQ(0.0, az[degNedMag]->variance);
   EXPECT_EQ(Az::UNIT_DEG, az[degNedMag]->unit);
   EXPECT_EQ(Az::ORIENTATION_NED, az[degNedMag]->orientation);
   EXPECT_EQ(Az::REFERENCE_MAGNETIC, az[degNedMag]->reference);
 
+  auto declination = 0.081716;
+  const auto gridConv = -0.011604834;
   const auto radEnuTrue = std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_GEOGRAPHIC);
   EXPECT_EQ(time, az[radEnuTrue]->header.stamp);
   EXPECT_EQ("base_link", az[radEnuTrue]->header.frame_id);
-  EXPECT_NEAR(3.452292, az[radEnuTrue]->azimuth, 1e-6);
+  EXPECT_NEAR(3 * M_PI - (3.534008 + declination), az[radEnuTrue]->azimuth, 1e-6);
   EXPECT_EQ(0.0, az[radEnuTrue]->variance);
   EXPECT_EQ(Az::UNIT_RAD, az[radEnuTrue]->unit);
   EXPECT_EQ(Az::ORIENTATION_ENU, az[radEnuTrue]->orientation);
@@ -366,7 +368,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
   const auto radEnuUtm = std::make_tuple(Az::UNIT_RAD, Az::ORIENTATION_ENU, Az::REFERENCE_UTM);
   EXPECT_EQ(time, az[radEnuUtm]->header.stamp);
   EXPECT_EQ("base_link", az[radEnuUtm]->header.frame_id);
-  EXPECT_NEAR(3.440687, az[radEnuUtm]->azimuth, 1e-6);
+  EXPECT_NEAR(3 * M_PI - (3.534008 + declination - gridConv), az[radEnuUtm]->azimuth, 1e-6);
   EXPECT_EQ(0.0, az[radEnuUtm]->variance);
   EXPECT_EQ(Az::UNIT_RAD, az[radEnuUtm]->unit);
   EXPECT_EQ(Az::ORIENTATION_ENU, az[radEnuUtm]->orientation);
@@ -395,11 +397,11 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   EXPECT_EQ(time, lastQuat->header.stamp);
   EXPECT_EQ("base_link", lastQuat->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.440687 + 2 * M_PI, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
+  EXPECT_NEAR((3.534008 + declination - gridConv) - M_PI_2, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
 
   EXPECT_EQ(time, lastPose->header.stamp);
   EXPECT_EQ("base_link", lastPose->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.440687 + 2 * M_PI,
+  EXPECT_NEAR((3.534008 + declination - gridConv) - M_PI_2,
     angles::normalize_angle_positive(compass_utils::getYaw(lastPose->pose.pose.orientation)), 1e-6);
   EXPECT_NEAR(0.0, lastPose->pose.covariance[5 * 6 + 5], 1e-6);
   // New data
@@ -456,7 +458,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   EXPECT_EQ(time, az[radEnuMag]->header.stamp);
   EXPECT_EQ("base_link", az[radEnuMag]->header.frame_id);
-  EXPECT_NEAR(3.544417, az[radEnuMag]->azimuth, 1e-6);
+  EXPECT_NEAR(3 * M_PI - 3.544417, az[radEnuMag]->azimuth, 1e-6);
   EXPECT_EQ(0.0, az[radEnuMag]->variance);
   EXPECT_EQ(Az::UNIT_RAD, az[radEnuMag]->unit);
   EXPECT_EQ(Az::ORIENTATION_ENU, az[radEnuMag]->orientation);
@@ -464,7 +466,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   EXPECT_EQ(time, az[degNedMag]->header.stamp);
   EXPECT_EQ("base_link", az[degNedMag]->header.frame_id);
-  EXPECT_NEAR(90 - angles::to_degrees(3.544417) + 360, az[degNedMag]->azimuth, 1e-4);
+  EXPECT_NEAR(90 - angles::to_degrees(3 * M_PI - 3.544417) + 360, az[degNedMag]->azimuth, 1e-4);
   EXPECT_EQ(0.0, az[degNedMag]->variance);
   EXPECT_EQ(Az::UNIT_DEG, az[degNedMag]->unit);
   EXPECT_EQ(Az::ORIENTATION_NED, az[degNedMag]->orientation);
@@ -472,7 +474,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   EXPECT_EQ(time, az[radEnuTrue]->header.stamp);
   EXPECT_EQ("base_link", az[radEnuTrue]->header.frame_id);
-  EXPECT_NEAR(3.462701, az[radEnuTrue]->azimuth, 1e-6);
+  EXPECT_NEAR(3 * M_PI - (3.544417 + declination), az[radEnuTrue]->azimuth, 1e-6);
   EXPECT_EQ(0.0, az[radEnuTrue]->variance);
   EXPECT_EQ(Az::UNIT_RAD, az[radEnuTrue]->unit);
   EXPECT_EQ(Az::ORIENTATION_ENU, az[radEnuTrue]->orientation);
@@ -480,7 +482,7 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   EXPECT_EQ(time, az[radEnuUtm]->header.stamp);
   EXPECT_EQ("base_link", az[radEnuUtm]->header.frame_id);
-  EXPECT_NEAR(3.451096, az[radEnuUtm]->azimuth, 1e-6);
+  EXPECT_NEAR(3 * M_PI - (3.544417 + declination - gridConv), az[radEnuUtm]->azimuth, 1e-6);
   EXPECT_EQ(0.0, az[radEnuUtm]->variance);
   EXPECT_EQ(Az::UNIT_RAD, az[radEnuUtm]->unit);
   EXPECT_EQ(Az::ORIENTATION_ENU, az[radEnuUtm]->orientation);
@@ -506,12 +508,12 @@ TEST(MagnetometerCompassNodelet, BasicConversion)  // NOLINT
 
   EXPECT_EQ(time, lastQuat->header.stamp);
   EXPECT_EQ("base_link", lastQuat->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.451096 + 2 * M_PI, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
+  EXPECT_NEAR((3.544417 + declination - gridConv) - M_PI_2, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
 
   // ERROR:
   EXPECT_EQ(time, lastPose->header.stamp);
   EXPECT_EQ("base_link", lastPose->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.451096 + 2 * M_PI,
+  EXPECT_NEAR((3.544417 + declination - gridConv) - M_PI_2,
     angles::normalize_angle_positive(compass_utils::getYaw(lastPose->pose.pose.orientation)), 1e-6);
   EXPECT_NEAR(0.0, lastPose->pose.covariance[5 * 6 + 5], 1e-6);
 }
@@ -658,9 +660,12 @@ TEST(MagnetometerCompassNodelet, InitFromParams)  // NOLINT
   EXPECT_NEAR(0.153587, lastField->magnetic_field.y, 1e-6);
   EXPECT_NEAR(0.157033, lastField->magnetic_field.z, 1e-6);
 
+  const auto declination = 0.081716;
+  const auto gridConv = -0.011604834;
+
   EXPECT_EQ(time, lastQuat->header.stamp);
   EXPECT_EQ("base_link", lastQuat->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.440687 + 2 * M_PI, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
+  EXPECT_NEAR((3.534008 + declination - gridConv) - M_PI_2, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
 }
 
 TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
@@ -789,9 +794,12 @@ TEST(MagnetometerCompassNodelet, SubscribeMagUnbiased)  // NOLINT
   }
   ASSERT_TRUE(lastQuat.has_value());
 
+  const auto declination = 0.081716;
+  const auto gridConv = -0.011604834;
+
   EXPECT_EQ(time, lastQuat->header.stamp);
   EXPECT_EQ("base_link", lastQuat->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.440687 + 2 * M_PI, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
+  EXPECT_NEAR((3.534008 + declination - gridConv) - M_PI_2, angles::normalize_angle_positive(compass_utils::getYaw(lastQuat->quaternion)), 1e-6);
 }
 
 

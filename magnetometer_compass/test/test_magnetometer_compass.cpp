@@ -95,7 +95,7 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 
   EXPECT_EQ(time, maybeAzimuth->header.stamp);
   EXPECT_EQ("base_link", maybeAzimuth->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.534008 + 2 * M_PI, maybeAzimuth->azimuth, 1e-6);
+  EXPECT_NEAR(3.534008 - M_PI_2, maybeAzimuth->azimuth, 1e-6);
   EXPECT_EQ(0.0, maybeAzimuth->variance);
   EXPECT_EQ(Az::UNIT_RAD, maybeAzimuth->unit);
   EXPECT_EQ(Az::ORIENTATION_NED, maybeAzimuth->orientation);
@@ -130,7 +130,7 @@ TEST(MagnetometerCompass, ComputeAzimuth)  // NOLINT
 
   EXPECT_EQ(time, maybeAzimuth->header.stamp);
   EXPECT_EQ("base_link", maybeAzimuth->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.544417 + 2 * M_PI, maybeAzimuth->azimuth, 1e-6);
+  EXPECT_NEAR(3.544417 - M_PI_2, maybeAzimuth->azimuth, 1e-6);
   EXPECT_EQ(0.0, maybeAzimuth->variance);
   EXPECT_EQ(Az::UNIT_RAD, maybeAzimuth->unit);
   EXPECT_EQ(Az::ORIENTATION_NED, maybeAzimuth->orientation);
@@ -208,7 +208,7 @@ TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
 
   EXPECT_EQ(time, maybeAzimuth->header.stamp);
   EXPECT_EQ("base_link", maybeAzimuth->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.534008 + 2 * M_PI, maybeAzimuth->azimuth, 1e-6);
+  EXPECT_NEAR(3.534008 - M_PI_2, maybeAzimuth->azimuth, 1e-6);
   EXPECT_EQ(4.0, maybeAzimuth->variance);
   EXPECT_EQ(Az::UNIT_RAD, maybeAzimuth->unit);
   EXPECT_EQ(Az::ORIENTATION_NED, maybeAzimuth->orientation);
@@ -243,7 +243,7 @@ TEST(MagnetometerCompass, ConfigFromParams)  // NOLINT
 
   EXPECT_EQ(time, maybeAzimuth->header.stamp);
   EXPECT_EQ("base_link", maybeAzimuth->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.544417 + 2 * M_PI, maybeAzimuth->azimuth, 1e-6);
+  EXPECT_NEAR(3.544417 - M_PI_2, maybeAzimuth->azimuth, 1e-6);
   EXPECT_EQ(4.0, maybeAzimuth->variance);
   EXPECT_EQ(Az::UNIT_RAD, maybeAzimuth->unit);
   EXPECT_EQ(Az::ORIENTATION_NED, maybeAzimuth->orientation);
@@ -315,7 +315,7 @@ TEST(MagnetometerCompass, Reset)  // NOLINT
 
   EXPECT_EQ(time, maybeAzimuth->header.stamp);
   EXPECT_EQ("base_link", maybeAzimuth->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.534008 + 2 * M_PI, maybeAzimuth->azimuth, 1e-6);
+  EXPECT_NEAR(3.534008 - M_PI_2, maybeAzimuth->azimuth, 1e-6);
   EXPECT_EQ(0.0, maybeAzimuth->variance);
   EXPECT_EQ(Az::UNIT_RAD, maybeAzimuth->unit);
   EXPECT_EQ(Az::ORIENTATION_NED, maybeAzimuth->orientation);
@@ -353,7 +353,7 @@ TEST(MagnetometerCompass, Reset)  // NOLINT
 
   EXPECT_EQ(time, maybeAzimuth->header.stamp);
   EXPECT_EQ("base_link", maybeAzimuth->header.frame_id);
-  EXPECT_NEAR(M_PI_2 - 3.544417 + 2 * M_PI, maybeAzimuth->azimuth, 1e-6);
+  EXPECT_NEAR(3.544417 - M_PI_2, maybeAzimuth->azimuth, 1e-6);
   EXPECT_EQ(0.0, maybeAzimuth->variance);
   EXPECT_EQ(Az::UNIT_RAD, maybeAzimuth->unit);
   EXPECT_EQ(Az::ORIENTATION_NED, maybeAzimuth->orientation);
