@@ -31,6 +31,8 @@
 namespace magnetic_model
 {
 
+const char* MagneticModel::GAZEBO = "gazebo";
+const char* MagneticModel::IGRF14 = "igrf14";
 const char* MagneticModel::WMM2010 = "wmm2010";
 const char* MagneticModel::WMM2015 = "wmm2015v2";
 const char* MagneticModel::WMM2020 = "wmm2020";
@@ -56,6 +58,8 @@ struct MagneticModelPrivate
   std::unique_ptr<GeographicLib::MagneticModel> magneticModel;
 
   ModelErrors errors{};
+
+  bool isGazebo {false};  //!< True for the Gazebo model which needs to fix date and zero-out secular variation
 };
 
 MagneticModel::MagneticModel(
@@ -63,9 +67,11 @@ MagneticModel::MagneticModel(
   node(node), strict(strict), data(new MagneticModelPrivate{})
 
 {
+  this->data->isGazebo = name == GAZEBO;
+  const auto modelName = this->data->isGazebo ? IGRF14 : name;
   try
   {
-    this->data->magneticModel = std::make_unique<GeographicLib::MagneticModel>(name, modelPath);
+    this->data->magneticModel = std::make_unique<GeographicLib::MagneticModel>(modelName, modelPath);
   }
   catch (const GeographicLib::GeographicErr& e)
   {
@@ -121,6 +127,29 @@ MagneticModel::MagneticModel(
     this->data->errors.D_ofs = 0.26;
     this->data->errors.D_lin = 5417;
   }
+  else if (name == IGRF14)
+  {
+    // https://earth-planets-space.springeropen.com/articles/10.1186/s40623-022-01572-y/tables/1
+    this->data->errors.X = 144;
+    this->data->errors.Y = 136;
+    this->data->errors.Z = 293;
+    this->data->errors.H = 135;
+    this->data->errors.F = 178;
+    this->data->errors.I = 0.29;
+    this->data->errors.D_ofs = 0.39;
+    this->data->errors.D_lin = 0;
+  }
+  else if (name == GAZEBO)
+  {
+    this->data->errors.X = 0;
+    this->data->errors.Y = 0;
+    this->data->errors.Z = 0;
+    this->data->errors.H = 0;
+    this->data->errors.F = 0;
+    this->data->errors.I = 0;
+    this->data->errors.D_ofs = 0;
+    this->data->errors.D_lin = 0;
+  }
 
   RCLCPP_INFO(this->node->get_logger(), "Initialized magnetic model %s.", name.c_str());
 }
@@ -133,12 +162,22 @@ bool MagneticModel::isValid(const rclcpp::Time& time) const
 
 bool MagneticModel::isValid(const int year) const
 {
+  if (this->data->isGazebo)
+    return true;
   return year >= this->data->magneticModel->MinTime() && year < this->data->magneticModel->MaxTime();
 }
 
 tl::expected<MagneticField, std::string> MagneticModel::getMagneticField(
-  const sensor_msgs::msg::NavSatFix& fix, const rclcpp::Time& stamp) const
+  const sensor_msgs::msg::NavSatFix& fixMsg, const rclcpp::Time& stampIn) const
 {
+  auto fix = fixMsg;
+  auto stamp = stampIn;
+  if (this->data->isGazebo)
+  {
+    fix.altitude = 0;
+    stamp = {1516579200, 0};
+  }
+
   double errorCoef = 1.0;
 
   const auto year = compass_utils::getYear(stamp);
@@ -183,7 +222,7 @@ tl::expected<MagneticField, std::string> MagneticModel::getMagneticField(
     result.dt.x, result.dt.y, result.dt.z);
 
   result.field.header.frame_id = fix.header.frame_id;
-  result.field.header.stamp = stamp;
+  result.field.header.stamp = stampIn;
   result.field.magnetic_field.x *= 1e-9;
   result.field.magnetic_field.y *= 1e-9;
   result.field.magnetic_field.z *= 1e-9;
@@ -201,8 +240,16 @@ tl::expected<MagneticField, std::string> MagneticModel::getMagneticField(
 }
 
 tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMagneticFieldComponents(
-  const sensor_msgs::msg::NavSatFix& fix, const rclcpp::Time& stamp) const
+  const sensor_msgs::msg::NavSatFix& fixMsg, const rclcpp::Time& stampIn) const
 {
+  auto fix = fixMsg;
+  auto stamp = stampIn;
+  if (this->data->isGazebo)
+  {
+    fix.altitude = 0;
+    stamp = {1516579200, 0};
+  }
+
   double errorCoef = 1.0;
   const auto minAlt = this->data->magneticModel->MinHeight();
   const auto maxAlt = this->data->magneticModel->MaxHeight();
@@ -239,8 +286,12 @@ tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMa
 }
 
 tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMagneticFieldComponents(
-  const MagneticField& field, const rclcpp::Time& stamp) const
+  const MagneticField& field, const rclcpp::Time& stampIn) const
 {
+  auto stamp = stampIn;
+  if (this->data->isGazebo)
+    stamp = {1516579200, 0};
+
   double errorCoef = 1.0;
   const auto year = compass_utils::getYear(stamp);
   const auto minYear = this->data->magneticModel->MinTime();
@@ -307,6 +358,14 @@ tl::expected<MagneticFieldComponentProperties, std::string> MagneticModel::getMa
   res.values.totalMagnitude += yearFrac * res.dt.totalMagnitude;
   res.values.declination += yearFrac * res.dt.declination;
   res.values.inclination += yearFrac * res.dt.inclination;
+
+  if (this->data->isGazebo)
+  {
+    res.dt.horizontalMagnitude = 0;
+    res.dt.totalMagnitude = 0;
+    res.dt.declination = 0;
+    res.dt.inclination = 0;
+  }
 
   return res;
 }
