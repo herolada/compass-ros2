@@ -8,7 +8,7 @@
     <arg name="frame" default="base_link" description="The frame in which the azimuth should be computed." />
     <arg name="unbias" default="true" description="When true, magnetometer bias observer and remover will be launched." />
     <arg name="low_pass_ratio" default="0.93" description="Low pass smoothing ratio. 0 = raw measurements, 1 = no updates." />
-    <arg name="initial_variance" default="1e+2" description="Compass uses static covariance for now." />
+    <arg name="initial_variance" default="9.87" description="Compass uses static covariance for now." />
     <arg name="visualize" default="true" description="Whether to publish a visualization of the azimuth" />
     <arg name="magnetic_model" default="gazebo" />
     <arg name="initial_mag_bias_x" default="0.0" />
