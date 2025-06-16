@@ -182,6 +182,33 @@ TEST(MagneticModel, GetFieldComponentsFromFix)
   EXPECT_FALSE(model.getMagneticFieldComponents(fix, fix.header.stamp).has_value());
 }
 
+TEST(MagneticModel, GazeboModel)
+{
+  rclcpp::Node node = rclcpp::Node("test_node");
+  magnetic_model::MagneticModel model(&node, magnetic_model::MagneticModel::GAZEBO, TEST_DATA_DIR, true);
+
+  sensor_msgs::msg::NavSatFix fix;
+  fix.header.frame_id = "test";
+  fix.header.stamp = compass_utils::parseTime("2024-11-18T13:00:00Z");
+  fix.latitude = 50;
+  fix.longitude = 10;
+  fix.altitude = 200;
+
+  // The values are from tables here:
+  // https://github.com/gazebosim/gz-sim/blob/gz-sim9/src/systems/magnetometer/Magnetometer.cc
+  const auto result = model.getMagneticFieldComponents(fix, fix.header.stamp);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_NEAR(49 * 1e-6, result->values.totalMagnitude, 1e-6);
+  EXPECT_NEAR(angles::from_degrees(3), result->values.declination, 1e-2);
+  EXPECT_NEAR(angles::from_degrees(66), result->values.inclination, 1e-2);
+  EXPECT_NEAR(0, result->dt.totalMagnitude, 1e-10);
+  EXPECT_NEAR(0, result->dt.declination, 1e-5);
+  EXPECT_NEAR(0, result->dt.inclination, 1e-5);
+  EXPECT_NEAR(0, result->errors.totalMagnitude, 1e-9);
+  EXPECT_NEAR(0, result->errors.declination, 1e-3);
+  EXPECT_NEAR(0, result->errors.inclination, 1e-3);
+}
+
 TEST(MagneticModelManager, GetBestModelName)
 {
   rclcpp::Node node = rclcpp::Node("test_node");
@@ -204,7 +231,7 @@ TEST(MagneticModelManager, GetBestModelName)
     manager.getBestMagneticModelName(compass_utils::parseTime("2014-11-18T13:00:00Z")));
 
   EXPECT_EQ(
-    magnetic_model::MagneticModel::WMM2010,
+    magnetic_model::MagneticModel::IGRF14,
     manager.getBestMagneticModelName(compass_utils::parseTime("2004-11-18T13:00:00Z")));
 
   EXPECT_EQ(
@@ -279,8 +306,11 @@ TEST(MagneticModelManager, GetModelByTime)
   EXPECT_TRUE(model->isValid(2020));
   EXPECT_FALSE(model->isValid(2025));
 
-  EXPECT_FALSE(manager.getMagneticModel(compass_utils::parseTime("2004-11-18T13:00:00Z"), true).has_value());
+  EXPECT_TRUE(manager.getMagneticModel(compass_utils::parseTime("2004-11-18T13:00:00Z"), true).has_value());
   EXPECT_TRUE(manager.getMagneticModel(compass_utils::parseTime("2004-11-18T13:00:00Z"), false).has_value());
+
+  EXPECT_TRUE(manager.getMagneticModel(compass_utils::parseTime("1970-11-18T13:00:00Z"), true).has_value());
+  EXPECT_TRUE(manager.getMagneticModel(compass_utils::parseTime("1970-11-18T13:00:00Z"), false).has_value());
 }
 
 int main(int argc, char **argv)

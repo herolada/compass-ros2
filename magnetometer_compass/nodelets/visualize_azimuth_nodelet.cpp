@@ -104,6 +104,7 @@ void VisualizeAzimuthNodelet::init()
   this->declare_parameter<double>("initial_lat", -1.);
   this->declare_parameter<double>("initial_lon", -1.);
   this->declare_parameter<double>("initial_alt", -1.);
+  this->declare_parameter<bool>("use_wall_time_for_declination", false);
   // UniversalAzimuthSubscriber params:
   this->declare_parameter<std::string>("input_orientation", std::string());
   this->declare_parameter<std::string>("input_reference", std::string());

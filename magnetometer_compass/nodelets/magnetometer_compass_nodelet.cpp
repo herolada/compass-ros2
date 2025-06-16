@@ -99,6 +99,7 @@ void MagnetometerCompassNodelet::init()
   this->declare_parameter<double>("initial_lat", -1.);
   this->declare_parameter<double>("initial_lon", -1.);
   this->declare_parameter<double>("initial_alt", -1.);
+  this->declare_parameter<bool>("use_wall_time_for_declination", false);
   // MagnetometerCompass params:
   this->declare_parameter<double>("initial_variance", -1.);
   this->declare_parameter<double>("low_pass_ratio", -1.);

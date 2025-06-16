@@ -69,6 +69,7 @@ public:
    * - `initial_lat` (double, degrees, optional): If set, use this latitude before the first navsat pose is received.
    * - `initial_lon` (double, degrees, optional): If set, use this longitude before the first navsat pose is received.
    * - `initial_alt` (double, meters, optional): If set, use this altitude before the first navsat pose is received.
+   * - `use_wall_time_for_declination` (bool, default false): If set, use wall time for magnetic model queries.
    */
   void configFromParams();
 
@@ -98,6 +99,12 @@ public:
    * \param[in] model The name of the model to force (e.g. "wmm2020"). If empty, the best model will be autoselected.
    */
   virtual void forceMagneticModelName(const std::string& model);
+
+  /**
+   * \brief If true, magnetic declination computations will use wall time instead of ROS time.
+   * \param[in] use Whether to use wall time.
+   */
+  virtual void setUseWallTimeForDeclination(bool use);
 
   /**
    * \brief Set whether UTM zone should be kept after it is first computed.
@@ -348,6 +355,9 @@ protected:
 
   //! \brief If the user forces a magnetic model, this is its name.
   std::string forcedMagneticModelName{};
+
+  //! \brief If true, magnetic declination computations will use wall time instead of ROS time.
+  bool useWallTimeForDeclination {false};
 
   //! \brief If true, convertAzimuth() will fail when the magnetic model is used outside its bounds.
   bool strict {true};

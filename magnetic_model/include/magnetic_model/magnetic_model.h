@@ -58,10 +58,15 @@ struct MagneticModelPrivate;
 
 /**
  * \brief Earth magnetic model.
+ *
+ * The GAZEBO model is a special instance of IGRF-14 on 22/01/2018, which corresponds to the
+ * baked-in data table used by the Gazebo Magnetometer system.
  */
 class MagneticModel
 {
 public:
+  static const char* GAZEBO;  //!< Gazebo model name
+  static const char* IGRF14;  //!< IGRF-14 model name
   static const char* WMM2010;  //!< WMM 2010 model name
   static const char* WMM2015;  //!< WMM 2015v2 model name
   static const char* WMM2020;  //!< WMM 2020 model name
@@ -94,30 +99,30 @@ public:
 
   /**
    * \brief Get the magnetic field vector on the provided place on Earth.
-   * \param[in] fix The place for which magnetic field is queried. Timestamp from the message is ignored.
-   * \param[in] stamp The time for which magnetic field is queried.
+   * \param[in] fixMsg The place for which magnetic field is queried. Timestamp from the message is ignored.
+   * \param[in] stampIn The time for which magnetic field is queried.
    * \return The magnetic field.
    */
   virtual tl::expected<MagneticField, std::string> getMagneticField(
-    const sensor_msgs::msg::NavSatFix& fix, const rclcpp::Time& stamp) const;
+    const sensor_msgs::msg::NavSatFix& fixMsg, const rclcpp::Time& stampIn) const;
 
   /**
    * \brief Get the magnetic field components on the provided place on Earth.
-   * \param[in] fix The place for which magnetic field components are queried. Timestamp from the message is ignored.
-   * \param[in] stamp The time for which magnetic field components are queried.
+   * \param[in] fixMsg The place for which magnetic field components are queried. Timestamp from the message is ignored.
+   * \param[in] stampIn The time for which magnetic field components are queried.
    * \return The magnetic field components.
    */
   virtual tl::expected<MagneticFieldComponentProperties, std::string> getMagneticFieldComponents(
-    const sensor_msgs::msg::NavSatFix& fix, const rclcpp::Time& stamp) const;
+    const sensor_msgs::msg::NavSatFix& fixMsg, const rclcpp::Time& stampIn) const;
 
   /**
    * \brief Get the components of the measured magnetic field.
    * \param[in] field The measured magnetic field.
-   * \param[in] stamp The time for which magnetic field components are queried.
+   * \param[in] stampIn The time for which magnetic field components are queried.
    * \return The magnetic field components.
    */
   virtual tl::expected<MagneticFieldComponentProperties, std::string> getMagneticFieldComponents(
-    const MagneticField& field, const rclcpp::Time& stamp) const;
+    const MagneticField& field, const rclcpp::Time& stampIn) const;
 
 protected:
   //! \brief If true, the magnetic model will fail if it is used outside its bounds.

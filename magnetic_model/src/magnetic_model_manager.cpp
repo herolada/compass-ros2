@@ -91,8 +91,10 @@ std::string MagneticModelManager::getBestMagneticModelName(const rclcpp::Time& d
     return MagneticModel::WMM2020;
   else if (year >= 2015)
     return MagneticModel::WMM2015;
-  else
+  else if (year >= 2010)
     return MagneticModel::WMM2010;
+  else
+    return MagneticModel::IGRF14;
 }
 
 tl::expected<std::shared_ptr<MagneticModel>, std::string> MagneticModelManager::getMagneticModel(
