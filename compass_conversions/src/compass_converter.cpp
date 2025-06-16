@@ -533,6 +533,11 @@ std::shared_ptr<Msg> deserializeMessage(const std::shared_ptr<const rclcpp::Seri
 
 void CompassConverter::setNavSatPos(const sensor_msgs::msg::NavSatFix& fix)
 {
+  if(fix.status.status == -1) {
+    RCLCPP_WARN_THROTTLE(this->node->get_logger(), *this->node->get_clock(), 5000., "Ignoring GPS msg with status -1");
+    return;
+  }
+
   this->lastFix = fix;
 
   if (!this->forcedUTMGridConvergence.has_value())
