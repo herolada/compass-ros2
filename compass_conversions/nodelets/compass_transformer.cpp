@@ -185,6 +185,7 @@ void CompassTransformerNodelet::init()
   this->declare_parameter<std::string>("target_type", outputTypeToString(this->targetType));
   this->declare_parameter<bool>("target_append_suffix", false);
   this->declare_parameter<std::string>("target_frame", std::string());
+  this->declare_parameter<std::string>("out_frame_id", std::string());
   this->declare_parameter<bool>("subscribe_fix", true);
   this->declare_parameter<bool>("subscribe_utm", true);
   this->declare_parameter<bool>("strict", true);
@@ -200,6 +201,7 @@ void CompassTransformerNodelet::init()
   this->targetType = parseOutputType(this->get_parameter_or<std::string>("target_type", outputTypeToString(this->targetType)));
   const auto targetAppendSuffix = this->get_parameter_or<bool>("target_append_suffix", false);
   this->targetFrame = this->get_parameter_or<std::string>("target_frame", std::string());
+  this->outFrameId = this->get_parameter_or<std::string>("out_frame_id", std::string());
   const auto subscribeFix = this->get_parameter_or<bool>("subscribe_fix", true);
   const auto subscribeUTMZone = this->get_parameter_or<bool>("subscribe_utm", true);
 
@@ -282,35 +284,58 @@ void CompassTransformerNodelet::publish(const Az::ConstSharedPtr& msg)
   {
     case OutputType::Imu:
     {
-      const auto maybeImu = this->converter->convertToImu(*msg);
+      auto maybeImu = this->converter->convertToImu(*msg);
       if (maybeImu.has_value())
+      {
+        if (!this->outFrameId.empty())
+          maybeImu->header.frame_id = this->outFrameId;
         this->pub_imu->publish<sensor_msgs::msg::Imu>(maybeImu.value());
+      }
       else
         RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybeImu.error().c_str());
       break;
     }
     case OutputType::Pose:
     {
-      const auto maybePose = this->converter->convertToPose(*msg);
+      auto maybePose = this->converter->convertToPose(*msg);
       if (maybePose.has_value())
+      {
+        if (!this->outFrameId.empty())
+          maybePose->header.frame_id = this->outFrameId;
         this->pub_pose->publish(*maybePose);
+      }
       else
         RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybePose.error().c_str());
       break;
     }
     case OutputType::Quaternion:
     {
-      const auto maybeQuat = this->converter->convertToQuaternion(*msg);
+      auto maybeQuat = this->converter->convertToQuaternion(*msg);
 
       if (maybeQuat.has_value())
+      {
+        if (!this->outFrameId.empty())
+          maybeQuat->header.frame_id = this->outFrameId;
         this->pub_quat->publish(*maybeQuat);
+      }
       else
         RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 1000., "%s", maybeQuat.error().c_str());
       break;
     }
     default:
-      this->pub_az->publish(*msg);
+    {
+      if (this->outFrameId.empty())
+      {
+        this->pub_az->publish(*msg);
+      }
+      else
+      {
+        auto copy = *msg;
+        copy.header.frame_id = this->outFrameId;
+        this->pub_az->publish(copy);
+      }
       break;
+    }
   }
 }
 

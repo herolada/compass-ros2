@@ -414,9 +414,9 @@ tl::expected<geometry_msgs::msg::PoseWithCovarianceStamped, std::string> Compass
   geometry_msgs::msg::PoseWithCovarianceStamped pose;
   pose.header = azimuth.header;
   pose.pose.pose.orientation = maybeQuat->quaternion;
-  pose.pose.covariance[0 * 6 + 0] = std::numeric_limits<double>::infinity();
-  pose.pose.covariance[1 * 6 + 1] = std::numeric_limits<double>::infinity();
-  pose.pose.covariance[2 * 6 + 2] = std::numeric_limits<double>::infinity();
+  pose.pose.covariance[0 * 6 + 0] = std::pow(40000, 2);
+  pose.pose.covariance[1 * 6 + 1] = std::pow(40000, 2);
+  pose.pose.covariance[2 * 6 + 2] = std::pow(40000, 2);
   pose.pose.covariance[3 * 6 + 3] = 4 * M_PI * M_PI;
   pose.pose.covariance[4 * 6 + 4] = 4 * M_PI * M_PI;
   pose.pose.covariance[5 * 6 + 5] = azimuth.variance;

@@ -11,6 +11,7 @@
     <arg name="target_type" default="azimuth" description="-" />
     <arg name="target_append_suffix" default="false" description="-" />
     <arg name="target_frame" default="base_link_no_grav" description="-" />
+    <arg name="out_frame_id" default="" description="-" />
     <arg name="magnetic_declination" default="-0.068" description="Set magnetic declination to zero in simulation." />
 
     <arg name="input_orientation" default="ned" description="-" />
@@ -24,7 +25,8 @@
         <param name="target_type" value="$(var target_type)" />
         <param name="target_append_suffix" value="$(var target_append_suffix)" />
         <param name="target_frame" value="$(var target_frame)" />
-        
+        <param name="out_frame_id" value="$(var out_frame_id)" />
+
         <param name="input_orientation" value="$(var input_orientation)" />
         <param name="input_reference" value="$(var input_reference)" />
         <remap from="/azimuth_in" to="/compass/mag/ned/deg" />

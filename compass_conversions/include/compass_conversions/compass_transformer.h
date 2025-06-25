@@ -72,6 +72,7 @@ protected:
   rclcpp::Publisher<geometry_msgs::msg::QuaternionStamped>::SharedPtr pub_quat;
 
   std::string targetFrame;
+  std::string outFrameId;
   OutputType targetType {OutputType::Azimuth};
   tf2_ros::Buffer::SharedPtr buffer;
   std::shared_ptr<tf2_ros::TransformListener> listener;

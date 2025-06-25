@@ -117,6 +117,8 @@ The nodelet can also be launched as a standalone node using `rosrun compass_conv
     string.
 - `~target_frame` (str, default: no change): TF frame to transform the messages to. Please note that frames that are
     too "titled" from gravity will not make much sense.
+- `~out_frame_id` (str, default: no change): If nonempty, the `frame_id` of the transformed messages will be substituted
+    by this value. Different from `~target_frame`, no geometrical transformations are done.
 - `~subscribe_fix` (bool, default true): Whether to subscribe `fix` topic. In some cases, you don't need it.
 - `~subscribe_utm` (bool, default true): Whether to subscribe `utm_zone` topic. It is fully optional.
 - `~input_orientation` (str, 'enu' or 'ned', default: unspecified): ENU or NED orientation to be used to interpret
